@@ -24,7 +24,8 @@
 		"title": "Dashboard",
 		"serverSideAuth": {
 			"title": "Server-Side Auth Check",
-			"description": "Data fetched during SSR (Server-Side Rendering)."
+			"description": "Data fetched during SSR (Server-Side Rendering).",
+			"authenticated": "Authenticated"
 		},
 		"clientSideAuth": {
 			"title": "Client-Side Auth Check",

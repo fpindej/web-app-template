@@ -29,7 +29,7 @@
 				<div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
 					<dt class="text-sm font-medium text-muted-foreground">{$t('dashboard.status')}</dt>
 					<dd class="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">
-						<Badge variant="success">{$t('dashboard.clientSideAuth.authenticated')}</Badge>
+						<Badge variant="success">{$t('dashboard.serverSideAuth.authenticated')}</Badge>
 					</dd>
 				</div>
 				<div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">

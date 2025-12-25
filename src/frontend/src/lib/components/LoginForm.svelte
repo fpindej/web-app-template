@@ -2,6 +2,7 @@
 	import { client } from '$lib/api/client';
 	import { cn } from '$lib/utils';
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
@@ -43,10 +44,10 @@
 				// eslint-disable-next-line svelte/no-navigation-without-resolve
 				await goto('/');
 			} else {
-				error = apiError?.detail || apiError?.title || 'common.login.failed';
+				error = apiError?.detail || apiError?.title || get(t)('common.login.failed');
 			}
 		} catch {
-			error = 'common.login.error';
+			error = get(t)('common.login.error');
 		}
 	}
 </script>
@@ -97,8 +98,8 @@
 					{#if error}
 						<Alert.Root variant="destructive">
 							<CircleAlert class="h-4 w-4" />
-							<Alert.Title>{$t('dashboard.clientSideAuth.error')}</Alert.Title>
-							<Alert.Description>{$t(error)}</Alert.Description>
+							<Alert.Title>{$t('common.login.error')}</Alert.Title>
+							<Alert.Description>{error}</Alert.Description>
 						</Alert.Root>
 					{/if}
 

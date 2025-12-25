@@ -24,7 +24,8 @@
 		"title": "Nástěnka",
 		"serverSideAuth": {
 			"title": "Server-Side ověření",
-			"description": "Data načtena během SSR (Server-Side Rendering)."
+			"description": "Data načtena během SSR (Server-Side Rendering).",
+			"authenticated": "Ověřeno"
 		},
 		"clientSideAuth": {
 			"title": "Client-Side ověření",
