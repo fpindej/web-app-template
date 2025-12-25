@@ -19,14 +19,16 @@ DEFAULT_BASE_PORT=13000
 read -p "Enter base port for Docker services (default $DEFAULT_BASE_PORT): " BASE_PORT
 BASE_PORT=${BASE_PORT:-$DEFAULT_BASE_PORT}
 
+FRONTEND_PORT=$BASE_PORT
 API_PORT=$((BASE_PORT + 2))
 DB_PORT=$((BASE_PORT + 4))
 
 echo "--------------------------------------------------"
 echo "Configuration:"
-echo "  Project Name: $NEW_NAME"
-echo "  API Port:     $API_PORT"
-echo "  DB Port:      $DB_PORT"
+echo "  Project Name:  $NEW_NAME"
+echo "  Frontend Port: $FRONTEND_PORT"
+echo "  API Port:      $API_PORT"
+echo "  DB Port:       $DB_PORT"
 echo "--------------------------------------------------"
 
 read -p "Proceed with initialization? (y/n): " CONFIRM
@@ -38,11 +40,13 @@ fi
 # 3. Update Docker Ports
 echo "Updating Docker ports..."
 # We use a simple sed here assuming the structure of docker-compose.local.yml is known and consistent
+# Frontend Port: "13000:3000" -> "$FRONTEND_PORT:3000"
 # API Port: "13002:8080" -> "$API_PORT:8080"
 # DB Port: "13004:5432" -> "$DB_PORT:5432"
 
 OS=$(uname)
 if [ "$OS" = "Darwin" ]; then
+    sed -i '' "s/13000:3000/$FRONTEND_PORT:3000/g" docker-compose.local.yml
     sed -i '' "s/13002:8080/$API_PORT:8080/g" docker-compose.local.yml
     sed -i '' "s/13004:5432/$DB_PORT:5432/g" docker-compose.local.yml
     
@@ -56,6 +60,7 @@ if [ "$OS" = "Darwin" ]; then
     cp src/frontend/.env.example src/frontend/.env.local
     sed -i '' "s/localhost:13002/localhost:$API_PORT/g" src/frontend/.env.local
 else
+    sed -i "s/13000:3000/$FRONTEND_PORT:3000/g" docker-compose.local.yml
     sed -i "s/13002:8080/$API_PORT:8080/g" docker-compose.local.yml
     sed -i "s/13004:5432/$DB_PORT:5432/g" docker-compose.local.yml
 

@@ -26,14 +26,16 @@ if ($BasePort -eq 13000) {
     }
 }
 
+$FrontendPort = $BasePort
 $ApiPort = $BasePort + 2
 $DbPort = $BasePort + 4
 
 Write-Host "--------------------------------------------------"
 Write-Host "Configuration:"
-Write-Host "  Project Name: $NewName"
-Write-Host "  API Port:     $ApiPort"
-Write-Host "  DB Port:      $DbPort"
+Write-Host "  Project Name:  $NewName"
+Write-Host "  Frontend Port: $FrontendPort"
+Write-Host "  API Port:      $ApiPort"
+Write-Host "  DB Port:       $DbPort"
 Write-Host "--------------------------------------------------"
 
 $confirm = Read-Host "Proceed with initialization? (y/n)"
@@ -47,6 +49,7 @@ Write-Host "Updating Docker ports..."
 $dockerFile = "docker-compose.local.yml"
 if (Test-Path $dockerFile) {
     $content = Get-Content $dockerFile -Raw
+    $content = $content -replace "13000:3000", "$FrontendPort`:3000"
     $content = $content -replace "13002:8080", "$ApiPort`:8080"
     $content = $content -replace "13004:5432", "$DbPort`:5432"
     Set-Content $dockerFile $content -NoNewline -Encoding UTF8

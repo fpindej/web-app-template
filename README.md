@@ -1,13 +1,25 @@
 # Web API Template
 
-This repository serves as a robust starting point for building .NET Web APIs. It comes pre-configured with essential components to jumpstart your development, following Clean Architecture principles.
+This repository serves as a robust starting point for building modern full-stack applications with .NET and SvelteKit. It comes pre-configured with essential components to jumpstart your development, following Clean Architecture principles.
 
 ## Features
 
+### Backend (.NET 10)
 *   **Clean Architecture:** Organized into Domain, Application, Infrastructure, and WebApi layers.
 *   **Database:** Pre-configured PostgreSQL connection with Entity Framework Core.
-*   **Identity:** Built-in authentication system (JWT/Cookie-based).
-*   **Containerization:** Ready-to-use `Dockerfile` and `docker-compose` setup.
+*   **Identity:** Built-in authentication system (JWT/Cookie-based) with HttpOnly cookies.
+*   **Validation:** FluentValidation integration.
+*   **Logging:** Serilog configuration.
+*   **Documentation:** Scalar (OpenAPI) integration.
+
+### Frontend (SvelteKit)
+*   **Modern Stack:** Svelte 5 (Runes), Tailwind CSS v4, and Vite.
+*   **UI Components:** Shadcn-svelte (using bits-ui@next) for accessible, customizable components.
+*   **BFF Pattern:** Backend-for-Frontend architecture using SvelteKit's server-side hooks and proxy routes to handle authentication securely.
+*   **Type Safety:** End-to-end type safety with `openapi-fetch` generated from the backend OpenAPI spec.
+
+### DevOps
+*   **Containerization:** Ready-to-use `Dockerfile` and `docker-compose` setup for the entire stack.
 *   **Tooling:** Includes initialization scripts to rename the project and set up ports automatically.
 
 ## Prerequisites
@@ -16,6 +28,7 @@ Before you begin, ensure you have the following installed:
 
 *   [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 *   [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+*   [Node.js 22+](https://nodejs.org/) (for local frontend development)
 *   [Git](https://git-scm.com/)
 
 ## Getting Started
@@ -51,51 +64,79 @@ chmod +x init.sh
 **What the script does:**
 1.  Asks for your **Project Name** (e.g., `MyAwesomeApi`).
 2.  Asks for a **Base Port** (default `13000`).
-    *   API will run on `Base Port + 2` (e.g., `13002`).
-    *   Database will run on `Base Port + 4` (e.g., `13004`).
+    *   **Frontend:** `Base Port` (e.g., `13000`).
+    *   **API:** `Base Port + 2` (e.g., `13002`).
+    *   **Database:** `Base Port + 4` (e.g., `13004`).
 3.  Renames all files, directories, and namespaces in the solution.
 4.  Updates `docker-compose.local.yml` and configuration files with the new ports.
 5.  Restores local .NET tools (ensures `dotnet-ef` is available).
-6.  (Optional) Creates a fresh initial Entity Framework migration.
 
 ### 3. Run the Application
 
-Once initialized, you can start the entire infrastructure (API + Database + Frontend) using Docker Compose:
+Once initialized, you can start the entire infrastructure (Frontend + API + Database) using Docker Compose:
 
 ```bash
-docker compose -f docker-compose.local.yml up -d
+docker compose -f docker-compose.local.yml up -d --build
 ```
 
-*   **Frontend:** `http://localhost:5173`
+*   **Frontend:** `http://localhost:<BASE_PORT>` (e.g., `http://localhost:13000`)
 *   **API:** `http://localhost:<API_PORT>` (e.g., `http://localhost:13002`)
-*   **Swagger UI:** `http://localhost:<API_PORT>/swagger`
+*   **Swagger UI:** `http://localhost:<API_PORT>/scalar/v1`
 
 ## Project Structure
 
-*   **src/backend**: .NET Web API solution.
-    *   **MyProject.Domain**: Contains enterprise logic and entities.
-    *   **MyProject.Application**: Contains application logic, interfaces, and DTOs.
-    *   **MyProject.Infrastructure**: Contains implementation of interfaces (EF Core, external services).
-    *   **MyProject.WebApi**: The entry point of the application (Controllers, Middleware).
-*   **src/frontend**: SvelteKit application.
+```
+src/
+├── backend/                # .NET Web API solution
+│   ├── MyProject.Domain/   # Core domain entities, value objects
+│   ├── MyProject.Application/ # Application contracts, features
+│   ├── MyProject.Infrastructure/ # Implementation (EF Core, etc.)
+│   └── MyProject.WebApi/   # API entry point
+│
+└── frontend/               # SvelteKit application
+    ├── src/
+    │   ├── lib/
+    │   │   ├── api/        # Generated API client
+    │   │   ├── components/ # UI components (Shadcn)
+    │   │   └── server/     # Server-side config
+    │   └── routes/         # File-based routing
+    └── static/
+```
 
 ## Database Migrations
 
 > **Note:** When running the API in the `Development` configuration, the application automatically applies any pending migrations on startup.
 
-If you chose not to run migrations during initialization, or need to add new ones later:
+If you need to add new migrations:
 
 1.  Ensure the database container is running.
-2.  Restore local tools (if you haven't already):
-    ```bash
-    dotnet tool restore
-    ```
-3.  Run the following command from the root directory:
+2.  Run the following command from the root directory:
 
 ```bash
 dotnet ef migrations add <MigrationName> --project src/backend/<YourProjectName>.Infrastructure --startup-project src/backend/<YourProjectName>.WebApi --output-dir Features/Postgres/Migrations
 dotnet ef database update --project src/backend/<YourProjectName>.Infrastructure --startup-project src/backend/<YourProjectName>.WebApi
 ```
+
+## Frontend Development
+
+For a better developer experience (HMR, faster builds), you can run the frontend locally while keeping the backend in Docker:
+
+1.  Start the backend and database:
+    ```bash
+    docker compose -f docker-compose.local.yml up -d api db
+    ```
+2.  Navigate to the frontend directory:
+    ```bash
+    cd src/frontend
+    ```
+3.  Install dependencies:
+    ```bash
+    npm install
+    ```
+4.  Start the dev server:
+    ```bash
+    npm run dev
+    ```
 
 ## License
 

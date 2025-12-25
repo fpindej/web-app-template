@@ -48,6 +48,16 @@ services:
       context: ./src/frontend
       dockerfile: Dockerfile
     container_name: myproject-local-frontend
+    volumes:
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "13000:3000"
+    depends_on:
+      - api
+
+volumes:
+  db_data:
+  frontend_node_modules:
     environment:
       - API_URL=http://api:8080
     ports:
