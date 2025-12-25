@@ -4,6 +4,8 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import LanguageSelector from '$lib/components/LanguageSelector.svelte';
+	import { t } from 'svelte-i18n';
 
 	let { user } = $props();
 </script>
@@ -18,10 +20,11 @@
 				</div>
 			</div>
 			<div class="flex items-center gap-4">
+				<LanguageSelector />
 				<ThemeToggle />
 				{#if user}
 					<span class="mr-4 hidden text-sm text-muted-foreground sm:inline-block"
-						>Hello, {user.username || 'User'}</span
+						>{$t('common.hello')}, {user.username || 'User'}</span
 					>
 					<div class="w-24">
 						<Button
