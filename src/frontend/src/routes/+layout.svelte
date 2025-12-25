@@ -2,14 +2,21 @@
 	import './layout.css';
 	import 'flag-icons/css/flag-icons.min.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { initTheme } from '$lib/theme.svelte';
 	import { initI18n } from '$lib/i18n';
 	import { isLoading } from 'svelte-i18n';
+	import { browser } from '$app/environment';
 
 	let { children, data } = $props();
 
-	initI18n(data.locale);
+	if (!browser) {
+		initI18n(untrack(() => data.locale));
+	}
+
+	$effect(() => {
+		initI18n(data.locale);
+	});
 
 	onMount(() => {
 		initTheme();
