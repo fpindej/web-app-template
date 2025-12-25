@@ -7,7 +7,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 
-	const lang = event.request.headers.get('accept-language')?.split(',')[0];
+	const cookieLang = event.cookies.get('locale');
+	const headerLang = event.request.headers.get('accept-language')?.split(',')[0];
+	const lang = cookieLang || headerLang;
+
 	const locale = lang?.startsWith('cs') ? 'cs' : 'en';
 	event.locals.locale = locale;
 

@@ -2,7 +2,7 @@
 	import ClientSideAuthCheck from '$lib/components/ClientSideAuthCheck.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
-	import { t } from 'svelte-i18n';
+	import { t } from '$lib/i18n';
 
 	let { data } = $props();
 </script>

@@ -2,7 +2,7 @@
 	import { Sun, Moon } from 'lucide-svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { toggleTheme, getTheme } from '$lib/theme.svelte';
-	import { t } from 'svelte-i18n';
+	import { t } from '$lib/i18n';
 </script>
 
 <Button

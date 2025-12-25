@@ -4,7 +4,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { Ghost, Ban, TriangleAlert, Home, SearchX } from 'lucide-svelte';
-	import { t } from 'svelte-i18n';
+	import { t } from '$lib/i18n';
 
 	function getErrorContent(status: number) {
 		switch (status) {

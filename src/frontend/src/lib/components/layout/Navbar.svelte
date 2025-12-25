@@ -5,7 +5,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import LanguageSelector from '$lib/components/LanguageSelector.svelte';
-	import { t } from 'svelte-i18n';
+	import { t } from '$lib/i18n';
 
 	let { user } = $props();
 </script>

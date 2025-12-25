@@ -39,6 +39,7 @@ export function setLanguage(newLocale: string) {
 	locale.set(newLocale);
 	if (browser) {
 		localStorage.setItem('locale', newLocale);
+		document.cookie = `locale=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
 		document.documentElement.setAttribute('lang', newLocale);
 	}
 }
