@@ -11,7 +11,11 @@ export function getTheme() {
 export function setTheme(newTheme: Theme) {
 	theme = newTheme;
 	if (browser) {
-		localStorage.setItem('theme', newTheme);
+		try {
+			localStorage.setItem('theme', newTheme);
+		} catch {
+			// Ignore write errors
+		}
 		applyTheme(newTheme);
 	}
 }
@@ -39,10 +43,12 @@ function applyTheme(t: Theme) {
 export function initTheme() {
 	if (!browser) return;
 
-	const savedTheme = localStorage.getItem('theme') as Theme | null;
-	if (savedTheme) {
-		theme = savedTheme;
-	} else {
+	try {
+		const savedTheme = localStorage.getItem('theme') as Theme | null;
+		if (savedTheme) {
+			theme = savedTheme;
+		}
+	} catch {
 		theme = 'system';
 	}
 	applyTheme(theme);
