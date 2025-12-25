@@ -1,30 +1,79 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { base } from '$app/paths';
+	import { Button } from '$lib/components/ui/button';
+	import * as Card from '$lib/components/ui/card';
+	import { Ghost, Ban, TriangleAlert, Home, SearchX } from 'lucide-svelte';
+
+	// Determine content based on status code
+	function getErrorContent(status: number) {
+		switch (status) {
+			case 404:
+				return {
+					title: 'Lost in the Void?',
+					description:
+						"We couldn't find the page you're looking for. It might have been abducted by aliens.",
+					icon: SearchX,
+					iconColor: 'text-muted-foreground'
+				};
+			case 403:
+				return {
+					title: 'You Shall Not Pass!',
+					description:
+						"You don't have permission to be here. Nice try though, we appreciate the effort.",
+					icon: Ban,
+					iconColor: 'text-destructive'
+				};
+			case 500:
+				return {
+					title: 'Server Meltdown',
+					description:
+						'The server is having a bad day. Our code monkeys are working hard to fix it.',
+					icon: TriangleAlert,
+					iconColor: 'text-destructive'
+				};
+			default:
+				return {
+					title: 'Computer Says No',
+					description: "Something went wrong. We're not sure what, but it's probably not good.",
+					icon: Ghost,
+					iconColor: 'text-warning'
+				};
+		}
+	}
+
+	// Reactive derived values
+	let status = $derived($page.status);
+	let message = $derived($page.error?.message);
+	let content = $derived(getErrorContent(status));
+	let Icon = $derived(content.icon);
 </script>
 
-<div class="flex min-h-screen flex-col justify-center bg-background py-12 sm:px-6 lg:px-8">
-	<div class="text-center sm:mx-auto sm:w-full sm:max-w-md">
-		<h1 class="text-9xl font-extrabold text-primary">
-			{$page.status}
-		</h1>
-		<h2 class="mt-4 text-3xl font-bold tracking-tight text-foreground">
-			{#if $page.status === 404}
-				Page not found
-			{:else if $page.status === 403}
-				Access denied
-			{:else}
-				Something went wrong
-			{/if}
-		</h2>
-		<p class="mt-2 text-base text-muted-foreground">
-			{$page.error?.message || 'An unexpected error occurred.'}
-		</p>
-		<div class="mt-6">
-			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href="{base}/" class="text-base font-medium text-primary hover:text-primary/80">
-				Go back home <span aria-hidden="true"> &rarr;</span>
-			</a>
-		</div>
+<div class="flex min-h-screen flex-col justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
+	<div class="sm:mx-auto sm:w-full sm:max-w-md">
+		<Card.Root class="text-center shadow-lg">
+			<Card.Header>
+				<div
+					class="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-muted/50 p-4"
+				>
+					<Icon class="h-12 w-12 {content.iconColor}" />
+				</div>
+				<Card.Title class="text-4xl font-extrabold tracking-tight">{status}</Card.Title>
+				<Card.Description class="mt-2 text-xl font-semibold text-foreground">
+					{content.title}
+				</Card.Description>
+			</Card.Header>
+			<Card.Content>
+				<p class="text-muted-foreground">
+					{message && message !== 'An unexpected error occurred.' ? message : content.description}
+				</p>
+			</Card.Content>
+			<Card.Footer class="flex justify-center pb-8">
+				<Button href="{base}/" variant="default" size="lg" class="gap-2">
+					<Home class="h-4 w-4" />
+					Take me home
+				</Button>
+			</Card.Footer>
+		</Card.Root>
 	</div>
 </div>
