@@ -3,6 +3,7 @@
 	import { base } from '$app/paths';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 
 	let { user } = $props();
 </script>
@@ -16,7 +17,8 @@
 					<a href="{base}/" class="text-xl font-bold text-primary">MyProject</a>
 				</div>
 			</div>
-			<div class="flex items-center">
+			<div class="flex items-center gap-4">
+				<ThemeToggle />
 				{#if user}
 					<span class="mr-4 hidden text-sm text-muted-foreground sm:inline-block"
 						>Hello, {user.username || 'User'}</span
