@@ -1,0 +1,53 @@
+name: myproject-local
+
+x-api-environment: &api-environment
+  ASPNETCORE_ENVIRONMENT: Development
+  ConnectionStrings__Database: Host=db;Port=5432;Database=myproject;Username=admin;Password=pwd
+  BackgroundJobs__Quartz__Postgres__ConnectionString: Host=db;Port=5432;Database=myproject;Username=admin;Password=pwd
+  Authentication__Jwt__ExpiresInMinutes: 100
+  Authentication__Jwt__RefreshTokenExpiresInDays: 7
+  FileStorage__UploadPath: /app/attachments
+
+x-db-environment: &db-environment
+  POSTGRES_DB: myproject
+  POSTGRES_USER: admin
+  POSTGRES_PASSWORD: pwd
+
+x-common-settings: &common-settings
+  restart: unless-stopped
+  networks:
+    - application_network
+
+services:
+  api:
+    build:
+      context: ./src
+      dockerfile: MyProject.WebApi/Dockerfile
+    container_name: myproject-local-api
+    environment: *api-environment
+    <<: *common-settings
+    volumes:
+      - ./data/attachments:/app/attachments
+    ports:
+      - "13002:8080"
+    depends_on:
+        - db
+
+  db:
+    image: postgres:15-alpine
+    container_name: myproject-local-db
+    environment: *db-environment
+    <<: *common-settings
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "13004:5432"
+
+networks:
+  application_network:
+    name: myproject-local-network
+    driver: bridge
+
+volumes:
+  db_data:
+    name: myproject-local-db-data

@@ -1,0 +1,224 @@
+# Cursor Rules for MyProject Web API Template
+
+## Project Overview
+This is a .NET 10 Web API following Clean Architecture principles with four distinct layers:
+- **Domain** - Core business entities and value objects
+- **Application** - Interfaces, DTOs, and application logic contracts
+- **Infrastructure** - Implementation of interfaces (EF Core, external services)
+- **WebApi** - Controllers, middleware, and API configuration
+
+## Technology Stack
+- .NET 10 / C# 13 (uses new extension syntax for static methods)
+- PostgreSQL with Entity Framework Core
+- ASP.NET Core Identity with JWT cookie-based authentication
+- Serilog for structured logging
+- FluentValidation for request validation
+- Scalar for API documentation (development only)
+- Docker for containerization
+
+## Architecture Patterns
+
+### Layer Dependencies
+```
+WebApi → Application ← Infrastructure
+              ↓
+           Domain
+```
+- WebApi references Application and Infrastructure
+- Infrastructure references Application and Domain
+- Application references Domain
+- Domain has no dependencies
+
+### Feature-Based Organization
+Code is organized by feature rather than technical concern:
+```
+src/MyProject.{Layer}/Features/{FeatureName}/
+├── Dtos/
+├── Services/
+├── Configurations/
+├── Extensions/
+├── Models/
+└── Options/
+```
+
+## Code Conventions
+
+### C# Style
+- Use file-scoped namespaces
+- Use primary constructors for classes with dependencies
+- Use `init` for immutable properties in DTOs/requests
+- Use `[UsedImplicitly]` from JetBrains.Annotations for properties set via binding
+- Use XML documentation comments for public APIs
+- Mark internal implementations as `internal`
+
+### Result Pattern
+Use `Result` and `Result<T>` from `MyProject.Domain` for operation outcomes:
+```csharp
+// Success with value
+return Result<Guid>.Success(user.Id);
+
+// Failure with error message
+return Result.Failure("Invalid credentials.");
+```
+
+### Controller Conventions
+- Inherit from `ApiController` (authorized, versioned) or `ControllerBase` (public endpoints)
+- Use `[Route("api/[controller]")]` or `[Route("api/v1/[controller]")]`
+- Include `[ProducesResponseType]` attributes for all response types
+- Use meaningful XML comments for OpenAPI documentation
+
+### Service Interfaces
+- Define interfaces in Application layer: `src/MyProject.Application/Features/{Feature}/I{Service}.cs`
+- Implement in Infrastructure layer: `src/MyProject.Infrastructure/Features/{Feature}/Services/{Service}.cs`
+- Register via extension methods in `ServiceCollectionExtensions.cs`
+
+### DTOs
+- WebApi layer: Request/Response DTOs in `Features/{Feature}/Dtos/{Operation}/`
+- Application layer: Input/Output DTOs in `Features/{Feature}/Dtos/`
+- Use mapping methods or mappers to convert between layers
+
+### Entity Framework
+- DbContext: `MyProjectDbContext` in Infrastructure layer
+- Configurations: Use `IEntityTypeConfiguration<T>` pattern
+- Migrations output: `Features/Postgres/Migrations/`
+- Entities extend `BaseEntity` with soft delete support
+
+### Extension Methods
+Use the C# 13 extension syntax for service registration:
+```csharp
+public static class ServiceCollectionExtensions
+{
+    extension(IServiceCollection services)
+    {
+        public IServiceCollection AddFeature(IConfiguration configuration)
+        {
+            // Register services
+            return services;
+        }
+    }
+}
+```
+
+## Configuration
+
+### Settings Structure
+- `appsettings.json` - Base configuration (production)
+- `appsettings.Development.json` - Development overrides
+- Options pattern with validation: `[Options("SectionName")]`
+
+### Key Configuration Sections
+- `ConnectionStrings:Database` - PostgreSQL connection
+- `Authentication:Jwt` - JWT token settings
+- `RateLimiting` - Rate limiter configuration
+- `Cors` - CORS policy settings
+- `Serilog` - Logging configuration
+
+## Database
+
+### Entities
+- Extend `BaseEntity` for auditing and soft delete
+- Properties: `Id`, `CreatedAt`, `UpdatedAt`, `IsDeleted`, `DeletedAt`
+- Use `SoftDelete()` and `Restore()` methods
+
+### Repositories
+- Implement `IBaseEntityRepository<TEntity>` for basic CRUD
+- Use `IUnitOfWork` for transaction management
+- Pagination via `GetAllAsync(pageNumber, pageSize, ...)`
+
+## Authentication
+
+### JWT Cookie-Based Flow
+1. Login → Returns HttpOnly cookies (access_token, refresh_token)
+2. Subsequent requests → Cookies sent automatically
+3. Token refresh → POST /api/auth/refresh
+4. Logout → Clears cookies and revokes tokens
+
+### Cookie Names
+- `access_token` - JWT access token
+- `refresh_token` - Refresh token for rotation
+
+## Project Initialization
+
+### Using the Init Scripts
+The template includes initialization scripts that rename the project and configure ports automatically.
+
+**For Windows (PowerShell):**
+```powershell
+.\init.ps1
+
+# Or with parameters to skip prompts:
+.\init.ps1 -NewName "MyAwesomeApi" -BasePort 14000
+```
+
+**For macOS / Linux:**
+```bash
+chmod +x init.sh
+./init.sh
+```
+
+### What the Init Script Does
+
+1. **Prompts for project name** (e.g., `MyAwesomeApi`)
+2. **Prompts for base port** (default: `13000`)
+   - API runs on `BasePort + 2` (e.g., `13002`)
+   - Database runs on `BasePort + 4` (e.g., `13004`)
+3. **Updates Docker ports** in `docker-compose.local.yml`
+4. **Updates configuration files**:
+   - `appsettings.Development.json` (DB connection)
+   - `http-client.env.json` (API URL for testing)
+5. **Renames all files, directories, and namespaces** from `MyProject` to your project name
+6. **Offers to commit** the rename changes
+7. **Offers to create fresh Initial migration**:
+   - Removes existing migrations
+   - Restores .NET tools (`dotnet-ef`)
+   - Builds the project
+   - Creates new `Initial` migration
+8. **Offers to commit** the migration
+
+### Port Configuration
+
+| Service | Port Formula | Default |
+|---------|--------------|---------|
+| API | BasePort + 2 | 13002 |
+| PostgreSQL | BasePort + 4 | 13004 |
+
+## Development Workflow
+
+### Running Locally
+```bash
+docker compose -f docker-compose.local.yml up -d
+```
+
+### Migrations
+```bash
+dotnet ef migrations add <Name> --project src/MyProject.Infrastructure --startup-project src/MyProject.WebApi --output-dir Features/Postgres/Migrations
+```
+
+### API Documentation
+- Scalar UI: `http://localhost:<port>/scalar/v1` (development only)
+- OpenAPI spec: `http://localhost:<port>/openapi/v1.json`
+
+## Testing Endpoints
+Use the `auth-flow.http` file with REST Client extension or the `http-client.env.json` for environment configuration.
+
+## Common Patterns
+
+### Adding a New Feature
+1. Create interface in `Application/Features/{Feature}/I{Service}.cs`
+2. Create DTOs in `Application/Features/{Feature}/Dtos/`
+3. Implement service in `Infrastructure/Features/{Feature}/Services/`
+4. Create controller in `WebApi/Features/{Feature}/`
+5. Register services in extension methods
+6. Add configurations for any new entities
+
+### Handling Errors
+- Use `Result` pattern for expected errors
+- Throw exceptions for unexpected errors
+- `ExceptionHandlingMiddleware` catches and formats all exceptions
+- Return appropriate HTTP status codes
+
+### Pagination
+- Use `PaginatedRequest` base class for list endpoints
+- Return `PaginatedResponse<T>` with metadata
+- Maximum page size: 100 items
+

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/solution items/">
+    <File Path="../docker-compose.local.yml" />
+    <File Path="MyProject.WebApi/Dockerfile" />
+  </Folder>
+  <Project Path="MyProject.Application/MyProject.Application.csproj" />
+  <Project Path="MyProject.Domain/MyProject.Domain.csproj" />
+  <Project Path="MyProject.Infrastructure/MyProject.Infrastructure.csproj" />
+  <Project Path="MyProject.WebApi/MyProject.WebApi.csproj" />
+</Solution>

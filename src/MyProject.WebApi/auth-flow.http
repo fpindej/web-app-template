@@ -1,0 +1,30 @@
+### Try to get current user (should fail, not authorized)
+GET {{baseUrl}}/api/auth/me
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### Try to get current user (should succeed, authorized via cookies)
+GET {{baseUrl}}/api/auth/me
+
+### Refresh token (should succeed, rotates cookies)
+POST {{baseUrl}}/api/auth/refresh
+
+### Try to get current user (should succeed, authorized with new cookies)
+GET {{baseUrl}}/api/auth/me
+
+### Logout (should succeed, clears cookies)
+POST {{baseUrl}}/api/auth/logout
+
+### Try to get current user (should fail, cookies cleared)
+GET {{baseUrl}}/api/auth/me
+
+### Try to refresh token (should fail, cookies cleared)
+POST {{baseUrl}}/api/auth/refresh
