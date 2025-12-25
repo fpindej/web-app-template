@@ -18,13 +18,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\..\.dockerignore">
+        <Content Include="../../../.dockerignore">
             <Link>.dockerignore</Link>
         </Content>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\MyProject.Infrastructure\MyProject.Infrastructure.csproj" />
+        <ProjectReference Include="../MyProject.Infrastructure/MyProject.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

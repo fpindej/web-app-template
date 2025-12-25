@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <ProjectReference Include="..\MyProject.Domain\MyProject.Domain.csproj"/>
+        <ProjectReference Include="../MyProject.Domain/MyProject.Domain.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\" />
+      <Folder Include="Features/" />
     </ItemGroup>
 
 </Project>
