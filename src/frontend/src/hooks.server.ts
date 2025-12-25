@@ -7,6 +7,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 
+	const lang = event.request.headers.get('accept-language')?.split(',')[0];
+	const locale = lang?.startsWith('cs') ? 'cs' : 'en';
+	event.locals.locale = locale;
+
 	const client = createApiClient(event.fetch, event.url.origin);
 
 	try {
@@ -21,5 +25,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.user = null;
 	}
 
-	return resolve(event);
+	return resolve(event, {
+		transformPageChunk: ({ html }) => html.replace('%lang%', event.locals.locale)
+	});
 };
