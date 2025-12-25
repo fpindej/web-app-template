@@ -21,3 +21,12 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Editor directories and files
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
