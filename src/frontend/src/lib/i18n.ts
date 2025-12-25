@@ -13,7 +13,11 @@ export { locale, date, time, number } from 'svelte-i18n';
 
 export function initI18n(serverLocale?: string) {
 	if (!browser) {
-		init({ fallbackLocale: defaultLocale, initialLocale: serverLocale || defaultLocale });
+		init({
+			fallbackLocale: defaultLocale,
+			initialLocale: serverLocale || defaultLocale,
+			loadingDelay: 0
+		});
 		return;
 	}
 
@@ -27,7 +31,8 @@ export function initI18n(serverLocale?: string) {
 
 	init({
 		fallbackLocale: defaultLocale,
-		initialLocale: initialLocale
+		initialLocale: initialLocale,
+		loadingDelay: 0
 	});
 }
 
