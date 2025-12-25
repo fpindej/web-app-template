@@ -2,7 +2,7 @@
 	import ClientSideAuthCheck from '$lib/components/ClientSideAuthCheck.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
-	import { t, locale } from '$lib/i18n';
+	import { t } from '$lib/i18n';
 
 	let { data } = $props();
 </script>
@@ -16,9 +16,7 @@
 		</h2>
 		<p class="mt-1 text-sm text-muted-foreground">
 			{$t('dashboard.currentDate', {
-				date: new Date().toLocaleDateString($locale ?? undefined, {
-					dateStyle: 'long'
-				})
+				date: new Date()
 			})}
 		</p>
 	</div>

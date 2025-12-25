@@ -9,7 +9,7 @@ register('cs', () => import('./locales/cs.json'));
 export const defaultLocale = 'en';
 export const supportedLocales = ['en', 'cs'];
 
-export { locale };
+export { locale, date, time, number } from 'svelte-i18n';
 
 export function initI18n(serverLocale?: string) {
 	if (!browser) {
