@@ -6,13 +6,10 @@
 	import { initTheme } from '$lib/theme.svelte';
 	import { initI18n } from '$lib/i18n';
 	import { isLoading } from 'svelte-i18n';
-	import { browser } from '$app/environment';
 
 	let { children, data } = $props();
 
-	if (!browser) {
-		initI18n(untrack(() => data.locale));
-	}
+	initI18n(untrack(() => data.locale));
 
 	$effect(() => {
 		initI18n(data.locale);
