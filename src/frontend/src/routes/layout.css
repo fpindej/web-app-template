@@ -112,10 +112,13 @@
 }
 
 @layer base {
-	* {
+	:where(*, ::before, ::after) {
 		@apply border-border outline-ring/50;
 	}
 	body {
 		@apply bg-background text-foreground;
+	}
+	:focus-visible {
+		@apply outline-ring/50 outline-2;
 	}
 }

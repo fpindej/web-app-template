@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { client } from '$lib/api/client';
+	import { cn } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
@@ -59,7 +60,7 @@
 						class="group flex items-center gap-x-2 rounded-full bg-secondary px-4 py-1 text-sm font-medium text-secondary-foreground shadow-sm ring-1 ring-border hover:bg-secondary/80"
 					>
 						<div
-							class={`h-1.5 w-1.5 rounded-full ${isApiOnline ? 'bg-green-500' : 'bg-red-500'}`}
+							class={cn('h-1.5 w-1.5 rounded-full', isApiOnline ? 'bg-success' : 'bg-destructive')}
 						></div>
 						<span class="group-hover:hidden"
 							>{isApiOnline ? 'API is online' : 'API is offline'}</span

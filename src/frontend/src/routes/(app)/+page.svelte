@@ -24,7 +24,7 @@
 			<Card.Description>Data fetched during SSR (Server-Side Rendering).</Card.Description>
 		</Card.Header>
 		<Card.Content>
-			<dl class="sm:divide-y sm:divide-gray-200">
+			<dl class="sm:divide-y sm:divide-border">
 				<div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
 					<dt class="text-sm font-medium text-muted-foreground">Status</dt>
 					<dd class="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">

@@ -4,7 +4,7 @@
 	let { children, data } = $props();
 </script>
 
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-background">
 	<Navbar user={data.user} />
 
 	<main class="py-10">
