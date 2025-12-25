@@ -9,6 +9,8 @@ register('cs', () => import('./locales/cs.json'));
 export const defaultLocale = 'en';
 export const supportedLocales = ['en', 'cs'];
 
+export { locale };
+
 export function initI18n(serverLocale?: string) {
 	if (!browser) {
 		init({ fallbackLocale: defaultLocale, initialLocale: serverLocale || defaultLocale });

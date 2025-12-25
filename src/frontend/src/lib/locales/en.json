@@ -22,7 +22,7 @@
 	},
 	"dashboard": {
 		"title": "Dashboard",
-		"currentDate": "Today is {date, date, long}",
+		"currentDate": "Today is {date}",
 		"serverSideAuth": {
 			"title": "Server-Side Auth Check",
 			"description": "Data fetched during SSR (Server-Side Rendering)."

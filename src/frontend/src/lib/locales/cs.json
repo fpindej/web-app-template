@@ -22,7 +22,7 @@
 	},
 	"dashboard": {
 		"title": "Nástěnka",
-		"currentDate": "Dnes je {date, date, long}",
+		"currentDate": "Dnes je {date}",
 		"serverSideAuth": {
 			"title": "Server-Side ověření",
 			"description": "Data načtena během SSR (Server-Side Rendering)."
