@@ -4,37 +4,35 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { Ghost, Ban, TriangleAlert, Home, SearchX } from 'lucide-svelte';
+	import { t } from '$lib/i18n';
 
 	function getErrorContent(status: number) {
 		switch (status) {
 			case 404:
 				return {
-					title: 'Lost in the Void?',
-					description:
-						"We couldn't find the page you're looking for. It might have been abducted by aliens.",
+					title: 'error.404.title',
+					description: 'error.404.description',
 					icon: SearchX,
 					iconColor: 'text-muted-foreground'
 				};
 			case 403:
 				return {
-					title: 'You Shall Not Pass!',
-					description:
-						"You don't have permission to be here. Nice try though, we appreciate the effort.",
+					title: 'error.403.title',
+					description: 'error.403.description',
 					icon: Ban,
 					iconColor: 'text-destructive'
 				};
 			case 500:
 				return {
-					title: 'Server Meltdown',
-					description:
-						'The server is having a bad day. Our code monkeys are working hard to fix it.',
+					title: 'error.500.title',
+					description: 'error.500.description',
 					icon: TriangleAlert,
 					iconColor: 'text-destructive'
 				};
 			default:
 				return {
-					title: 'Computer Says No',
-					description: "Something went wrong. We're not sure what, but it's probably not good.",
+					title: 'error.default.title',
+					description: 'error.default.description',
 					icon: Ghost,
 					iconColor: 'text-warning'
 				};
@@ -58,18 +56,20 @@
 				</div>
 				<Card.Title class="text-4xl font-extrabold tracking-tight">{status}</Card.Title>
 				<Card.Description class="mt-2 text-xl font-semibold text-foreground">
-					{content.title}
+					{$t(content.title)}
 				</Card.Description>
 			</Card.Header>
 			<Card.Content>
 				<p class="text-muted-foreground">
-					{message && message !== 'An unexpected error occurred.' ? message : content.description}
+					{message && message !== 'An unexpected error occurred.'
+						? message
+						: $t(content.description)}
 				</p>
 			</Card.Content>
 			<Card.Footer class="flex justify-center pb-8">
 				<Button href="{base}/" variant="default" size="lg" class="gap-2">
 					<Home class="h-4 w-4" />
-					Take me home
+					{$t('error.goHome')}
 				</Button>
 			</Card.Footer>
 		</Card.Root>

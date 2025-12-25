@@ -2,6 +2,7 @@
 	import ClientSideAuthCheck from '$lib/components/ClientSideAuthCheck.svelte';
 	import * as Card from '$lib/components/ui/card';
 	import { Badge } from '$lib/components/ui/badge';
+	import { t } from '$lib/i18n';
 
 	let { data } = $props();
 </script>
@@ -11,7 +12,7 @@
 		<h2
 			class="text-2xl leading-7 font-bold text-foreground sm:truncate sm:text-3xl sm:tracking-tight"
 		>
-			Dashboard
+			{$t('dashboard.title')}
 		</h2>
 	</div>
 </div>
@@ -20,25 +21,25 @@
 	<!-- Server Side Auth Card -->
 	<Card.Root>
 		<Card.Header>
-			<Card.Title class="text-lg">Server-Side Auth Check</Card.Title>
-			<Card.Description>Data fetched during SSR (Server-Side Rendering).</Card.Description>
+			<Card.Title class="text-lg">{$t('dashboard.serverSideAuth.title')}</Card.Title>
+			<Card.Description>{$t('dashboard.serverSideAuth.description')}</Card.Description>
 		</Card.Header>
 		<Card.Content>
 			<dl class="sm:divide-y sm:divide-border">
 				<div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
-					<dt class="text-sm font-medium text-muted-foreground">Status</dt>
+					<dt class="text-sm font-medium text-muted-foreground">{$t('dashboard.status')}</dt>
 					<dd class="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">
-						<Badge variant="success">Authenticated</Badge>
+						<Badge variant="success">{$t('dashboard.serverSideAuth.authenticated')}</Badge>
 					</dd>
 				</div>
 				<div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
-					<dt class="text-sm font-medium text-muted-foreground">Username</dt>
+					<dt class="text-sm font-medium text-muted-foreground">{$t('dashboard.username')}</dt>
 					<dd class="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">{data.user.username}</dd>
 				</div>
 				<div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5">
-					<dt class="text-sm font-medium text-muted-foreground">Roles</dt>
+					<dt class="text-sm font-medium text-muted-foreground">{$t('dashboard.roles')}</dt>
 					<dd class="mt-1 text-sm text-foreground sm:col-span-2 sm:mt-0">
-						{data.user.roles?.join(', ') || 'None'}
+						{data.user.roles?.join(', ') || $t('dashboard.none')}
 					</dd>
 				</div>
 			</dl>
