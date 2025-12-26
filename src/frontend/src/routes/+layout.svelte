@@ -2,17 +2,11 @@
 	import './layout.css';
 	import 'flag-icons/css/flag-icons.min.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { onMount, untrack } from 'svelte';
+	import { onMount } from 'svelte';
 	import { initTheme } from '$lib/theme.svelte';
-	import { initI18n, t } from '$lib/i18n';
+	import { t } from '$lib/i18n';
 
-	let { children, data } = $props();
-
-	initI18n(untrack(() => data.locale));
-
-	$effect(() => {
-		initI18n(data.locale);
-	});
+	let { children } = $props();
 
 	onMount(() => {
 		return initTheme();
