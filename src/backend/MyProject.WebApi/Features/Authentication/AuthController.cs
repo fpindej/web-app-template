@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.Features.Authentication;
+using MyProject.Application.Identity;
 using MyProject.Infrastructure.Features.Authentication.Constants;
 using MyProject.WebApi.Features.Authentication.Dtos.Login;
 using MyProject.WebApi.Features.Authentication.Dtos.Me;
@@ -14,7 +15,9 @@ namespace MyProject.WebApi.Features.Authentication;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IAuthenticationService authenticationService) : ControllerBase
+public class AuthController(
+    IAuthenticationService authenticationService,
+    IUserService userService) : ControllerBase
 {
     /// <summary>
     /// Authenticates a user and returns a http-only cookie with the JWT access token and a refresh token
@@ -92,7 +95,7 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<MeResponse>> Me()
     {
-        var userResult = await authenticationService.GetCurrentUserAsync();
+        var userResult = await userService.GetCurrentUserAsync();
 
         if (!userResult.IsSuccess)
         {
@@ -100,7 +103,7 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
         }
 
         var user = userResult.Value!;
-        var roles = await authenticationService.GetUserRolesAsync(user.Id);
+        var roles = await userService.GetUserRolesAsync(user.Id);
 
         return Ok(new MeResponse
         {

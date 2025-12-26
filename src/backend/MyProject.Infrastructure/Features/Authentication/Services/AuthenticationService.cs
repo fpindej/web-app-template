@@ -138,7 +138,7 @@ internal class AuthenticationService(
         {
             // Security alert: Token reuse! Revoke all tokens for this user.
             storedToken.Invalidated = true;
-            await RevokeUserTokens(storedToken.UserId);
+            await RevokeUserTokens(storedToken.UserId, cancellationToken);
             cookieService.DeleteCookie(CookieNames.AccessToken);
             cookieService.DeleteCookie(CookieNames.RefreshToken);
             return Result.Failure("Invalid refresh token.");
@@ -193,55 +193,24 @@ internal class AuthenticationService(
         return Result.Success();
     }
 
-    private async Task RevokeUserTokens(Guid userId)
+    private async Task RevokeUserTokens(Guid userId, CancellationToken cancellationToken = default)
     {
         var tokens = await dbContext.RefreshTokens
             .Where(rt => rt.UserId == userId && !rt.Invalidated)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         foreach (var token in tokens)
         {
             token.Invalidated = true;
         }
 
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user != null)
         {
             await userManager.UpdateSecurityStampAsync(user);
         }
-    }
-
-    public async Task<Result<UserOutput>> GetCurrentUserAsync()
-    {
-        var userId = userContext.UserId;
-
-        if (!userId.HasValue)
-        {
-            return Result<UserOutput>.Failure("User is not authenticated.");
-        }
-
-        var user = await userManager.FindByIdAsync(userId.Value.ToString());
-
-        if (user is null)
-        {
-            return Result<UserOutput>.Failure("User not found.");
-        }
-
-        return Result<UserOutput>.Success(new UserOutput(
-            Id: user.Id,
-            UserName: user.UserName!));
-    }
-
-    public async Task<IList<string>> GetUserRolesAsync(Guid userId)
-    {
-        var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-        {
-            return new List<string>();
-        }
-        return await userManager.GetRolesAsync(user);
     }
 }
 

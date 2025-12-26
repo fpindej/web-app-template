@@ -34,17 +34,4 @@ public interface IAuthenticationService
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
     Task<Result> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets the current authenticated user information
-    /// </summary>
-    /// <returns>A Result containing the user if authenticated, or failure if not</returns>
-    Task<Result<UserOutput>> GetCurrentUserAsync();
-
-    /// <summary>
-    /// Gets the roles for a specific user
-    /// </summary>
-    /// <param name="userId">The user ID to get roles for</param>
-    /// <returns>A list of role names</returns>
-    Task<IList<string>> GetUserRolesAsync(Guid userId);
 }
