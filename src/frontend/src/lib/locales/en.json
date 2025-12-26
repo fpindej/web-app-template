@@ -7,6 +7,10 @@
 		"loading": "Loading...",
 		"profile": "Profile",
 		"settings": "Settings",
+		"wip": {
+			"title": "Coming Soon",
+			"description": "This feature is currently under development. Stay tuned for updates!"
+		},
 		"dashboard": "Dashboard",
 		"login": {
 			"title": "Welcome back",
@@ -22,6 +26,11 @@
 	},
 	"navbar": {
 		"logout": "Logout"
+	},
+	"settings": {
+		"title": "Settings",
+		"description": "Manage your application preferences and configurations.",
+		"wipDescription": "We are working on a comprehensive settings panel to give you full control over your experience."
 	},
 	"dashboard": {
 		"title": "Dashboard",

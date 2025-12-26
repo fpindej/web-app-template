@@ -7,6 +7,10 @@
 		"loading": "Načítání...",
 		"profile": "Profil",
 		"settings": "Nastavení",
+		"wip": {
+			"title": "Již brzy",
+			"description": "Tato funkce je momentálně ve vývoji. Sledujte nás pro další aktualizace!"
+		},
 		"dashboard": "Nástěnka",
 		"login": {
 			"title": "Vítejte zpět",
@@ -22,6 +26,11 @@
 	},
 	"navbar": {
 		"logout": "Odhlásit se"
+	},
+	"settings": {
+		"title": "Nastavení",
+		"description": "Spravujte předvolby a konfigurace aplikace.",
+		"wipDescription": "Pracujeme na komplexním panelu nastavení, který vám poskytne plnou kontrolu nad vaším zážitkem."
 	},
 	"dashboard": {
 		"title": "Nástěnka",
