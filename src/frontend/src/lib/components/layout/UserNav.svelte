@@ -35,7 +35,7 @@
 		{#snippet child({ props })}
 			<Button variant="ghost" class="relative h-8 w-8 rounded-full" {...props}>
 				<Avatar.Root class="h-8 w-8">
-					<Avatar.Fallback>{getInitials(user?.username || 'User')}</Avatar.Fallback>
+					<Avatar.Fallback>{getInitials(user?.username || $t('common.user'))}</Avatar.Fallback>
 				</Avatar.Root>
 			</Button>
 		{/snippet}

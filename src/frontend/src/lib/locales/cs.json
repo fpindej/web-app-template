@@ -1,5 +1,7 @@
 {
 	"common": {
+		"appName": "MůjProjekt",
+		"user": "Uživatel",
 		"hello": "Ahoj",
 		"welcome": "Vítejte v MyProject",
 		"language": "Jazyk",

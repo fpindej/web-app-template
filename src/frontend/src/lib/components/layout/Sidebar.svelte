@@ -7,6 +7,7 @@
 	import LanguageSelector from '$lib/components/layout/LanguageSelector.svelte';
 	import UserNav from '$lib/components/layout/UserNav.svelte';
 	import type { components } from '$lib/api/v1';
+	import { t } from '$lib/i18n';
 
 	type User = components['schemas']['MeResponse'];
 
@@ -20,7 +21,7 @@
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 				<a href="{base}/" class="flex items-center gap-2 text-lg font-semibold">
 					<Package2 class="h-6 w-6" />
-					<span class="">MyProject</span>
+					<span class="">{$t('common.appName')}</span>
 				</a>
 			</div>
 			<div class="space-y-1">
