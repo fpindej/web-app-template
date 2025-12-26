@@ -17,9 +17,11 @@
 			if (response.ok && data) {
 				clientUser = data;
 			} else {
+				console.error('Failed to fetch user:', response.statusText);
 				error = 'dashboard.clientSideAuth.failedFetch';
 			}
-		} catch {
+		} catch (e) {
+			console.error('Error fetching user:', e);
 			error = 'dashboard.clientSideAuth.errorFetch';
 		} finally {
 			loading = false;
