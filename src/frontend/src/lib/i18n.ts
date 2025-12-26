@@ -1,5 +1,6 @@
 import { register, init, getLocaleFromNavigator, locale, t as originalT } from 'svelte-i18n';
 import { browser } from '$app/environment';
+import { invalidateAll } from '$app/navigation';
 import type { TranslationKey } from './types/i18n';
 import type { Readable } from 'svelte/store';
 
@@ -36,11 +37,12 @@ export async function initI18n(serverLocale?: string) {
 	});
 }
 
-export function setLanguage(newLocale: string) {
+export async function setLanguage(newLocale: string) {
 	locale.set(newLocale);
 	if (browser) {
 		document.cookie = `locale=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
 		document.documentElement.setAttribute('lang', newLocale);
+		await invalidateAll();
 	}
 }
 

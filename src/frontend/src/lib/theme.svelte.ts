@@ -22,8 +22,18 @@ export function setTheme(newTheme: Theme) {
 
 export function toggleTheme() {
 	const current = getTheme();
-	if (current === 'light') setTheme('dark');
-	else setTheme('light');
+	if (current === 'light') {
+		setTheme('dark');
+	} else if (current === 'dark') {
+		setTheme('light');
+	} else {
+		// system
+		if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+			setTheme('light');
+		} else {
+			setTheme('dark');
+		}
+	}
 }
 
 function applyTheme(t: Theme) {
