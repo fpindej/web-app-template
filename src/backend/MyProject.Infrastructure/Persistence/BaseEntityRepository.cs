@@ -7,7 +7,7 @@ using MyProject.Infrastructure.Persistence.Extensions;
 
 namespace MyProject.Infrastructure.Persistence;
 
-internal abstract class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
+internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
     : IBaseEntityRepository<TEntity>
     where TEntity : BaseEntity
 {

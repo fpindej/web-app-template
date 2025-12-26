@@ -19,6 +19,12 @@ internal class UserContext(IHttpContextAccessor httpContextAccessor) : IUserCont
     private T? GetClaimValue<T>(string claimType, Func<string, T> converter)
     {
         var value = httpContextAccessor.HttpContext?.User.FindFirst(claimType)?.Value;
-        return value != null ? converter(value) : default;
+
+        if (value is not null)
+        {
+            return converter(value);
+        }
+
+        return default;
     }
 }
