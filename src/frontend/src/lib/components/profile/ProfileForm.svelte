@@ -2,6 +2,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
+	import { Textarea } from '$lib/components/ui/textarea';
 	import { Label } from '$lib/components/ui/label';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import type { components } from '$lib/api/v1';
@@ -20,7 +21,7 @@
 	function handleSubmit(e: Event) {
 		e.preventDefault();
 		isLoading = true;
-		// Simulate API call
+		// TODO: Implement actual API call to update profile
 		setTimeout(() => {
 			isLoading = false;
 		}, 1000);
@@ -37,7 +38,6 @@
 			<div class="flex flex-col items-center gap-4 sm:flex-row">
 				<div class="relative h-24 w-24">
 					<Avatar.Root class="h-24 w-24">
-						<Avatar.Image src="https://github.com/shadcn.png" alt="@shadcn" class="object-cover" />
 						<Avatar.Fallback class="text-lg">
 							{user?.username?.substring(0, 2).toUpperCase() ?? 'ME'}
 						</Avatar.Fallback>
@@ -82,7 +82,7 @@
 
 				<div class="grid gap-2">
 					<Label for="bio">{$t('profile.personalInfo.bio')}</Label>
-					<Input
+					<Textarea
 						id="bio"
 						bind:value={bio}
 						placeholder={$t('profile.personalInfo.bioPlaceholder')}
