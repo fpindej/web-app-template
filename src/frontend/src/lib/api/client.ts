@@ -7,4 +7,8 @@ export const createApiClient = (customFetch?: typeof fetch, baseUrl: string = ''
 		fetch: customFetch
 	});
 
-export const client = createApiClient();
+/**
+ * Client for browser-side usage only.
+ * For server-side (load functions), use createApiClient(fetch).
+ */
+export const browserClient = createApiClient();

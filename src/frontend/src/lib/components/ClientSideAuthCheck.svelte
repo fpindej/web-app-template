@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { client } from '$lib/api/client';
+	import { browserClient } from '$lib/api/client';
 	import type { components } from '$lib/api/v1';
 	import { onMount } from 'svelte';
 	import * as Card from '$lib/components/ui/card';
@@ -13,7 +13,7 @@
 
 	onMount(async () => {
 		try {
-			const { data, response } = await client.GET('/api/auth/me');
+			const { data, response } = await browserClient.GET('/api/auth/me');
 			if (response.ok && data) {
 				clientUser = data;
 			} else {

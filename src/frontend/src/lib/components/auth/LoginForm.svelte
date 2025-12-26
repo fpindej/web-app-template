@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { client } from '$lib/api/client';
+	import { browserClient } from '$lib/api/client';
 	import { cn } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
@@ -35,7 +35,7 @@
 		error = '';
 
 		try {
-			const { response, error: apiError } = await client.POST('/api/auth/login', {
+			const { response, error: apiError } = await browserClient.POST('/api/auth/login', {
 				body: { username: email, password }
 			});
 

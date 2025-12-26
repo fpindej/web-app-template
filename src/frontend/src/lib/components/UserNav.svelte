@@ -2,7 +2,7 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { client } from '$lib/api/client';
+	import { browserClient } from '$lib/api/client';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { t } from '$lib/i18n';
@@ -22,7 +22,7 @@
 	}
 
 	async function logout() {
-		await client.POST('/api/auth/logout');
+		await browserClient.POST('/api/auth/logout');
 		await invalidateAll();
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		await goto(`${base}/login`);
