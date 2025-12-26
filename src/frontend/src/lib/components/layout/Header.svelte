@@ -3,9 +3,9 @@
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Menu } from 'lucide-svelte';
 	import SidebarNav from './SidebarNav.svelte';
-	import ThemeToggle from '$lib/components/layout/ThemeToggle.svelte';
-	import LanguageSelector from '$lib/components/layout/LanguageSelector.svelte';
-	import UserNav from '$lib/components/layout/UserNav.svelte';
+	import ThemeToggle from './ThemeToggle.svelte';
+	import LanguageSelector from './LanguageSelector.svelte';
+	import UserNav from './UserNav.svelte';
 	import { base } from '$app/paths';
 	import { Package2 } from 'lucide-svelte';
 	import type { components } from '$lib/api/v1';

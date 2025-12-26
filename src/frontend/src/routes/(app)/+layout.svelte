@@ -1,6 +1,5 @@
 <script lang="ts">
-	import Header from '$lib/components/layout/Header.svelte';
-	import Sidebar from '$lib/components/layout/Sidebar.svelte';
+	import { Header, Sidebar } from '$lib/components/layout';
 
 	let { children, data } = $props();
 </script>

@@ -1,6 +1,5 @@
 <script lang="ts">
-	import ProfileForm from '$lib/components/profile/ProfileForm.svelte';
-	import AccountDetails from '$lib/components/profile/AccountDetails.svelte';
+	import { ProfileForm, AccountDetails } from '$lib/components/profile';
 	import type { PageData } from './$types';
 	import { t } from '$lib/i18n';
 

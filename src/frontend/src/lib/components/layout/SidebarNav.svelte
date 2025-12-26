@@ -52,7 +52,7 @@
 			)}
 			aria-current={active ? 'page' : undefined}
 		>
-			<item.icon class="mr-2 h-4 w-4" />
+			<item.icon class="me-2 h-4 w-4" />
 			{$t(item.title) || item.title}
 		</a>
 		<!-- eslint-enable svelte/no-navigation-without-resolve -->

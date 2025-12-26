@@ -10,8 +10,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import * as Alert from '$lib/components/ui/alert';
 	import { CircleAlert } from 'lucide-svelte';
-	import ThemeToggle from '$lib/components/layout/ThemeToggle.svelte';
-	import LanguageSelector from '$lib/components/layout/LanguageSelector.svelte';
+	import { ThemeToggle, LanguageSelector } from '$lib/components/layout';
 	import { t } from '$lib/i18n';
 
 	let { apiUrl } = $props();

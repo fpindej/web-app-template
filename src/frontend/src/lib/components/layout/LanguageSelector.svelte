@@ -23,10 +23,10 @@
 	<DropdownMenu.Content align="end">
 		{#each languages as lang (lang.code)}
 			<DropdownMenu.Item onclick={() => setLanguage(lang.code)}>
-				<span class={`fi fi-${lang.flag} mr-2`}></span>
+				<span class={`fi fi-${lang.flag} me-2`}></span>
 				<span>{lang.label}</span>
 				{#if $locale === lang.code}
-					<Check class="ml-auto h-4 w-4" />
+					<Check class="ms-auto h-4 w-4" />
 				{/if}
 			</DropdownMenu.Item>
 		{/each}
