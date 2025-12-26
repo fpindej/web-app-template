@@ -20,18 +20,18 @@
 	<!-- Animated Background -->
 	<div class="absolute inset-0 h-full w-full overflow-hidden">
 		<div
-			class="absolute top-0 right-0 -mt-20 -mr-20 h-[500px] w-[500px] rounded-full bg-primary/20 blur-3xl"
+			class="absolute top-0 right-0 -mt-20 -mr-20 h-[500px] w-[500px] rounded-full bg-primary/5 blur-3xl"
 			style="transform: translate({-$mouseX * 0.12}px, {$mouseY * 0.12}px)"
 		></div>
 		<div
-			class="absolute bottom-0 left-0 -mb-20 -ml-20 h-[500px] w-[500px] rounded-full bg-secondary/30 blur-3xl"
+			class="absolute bottom-0 left-0 -mb-20 -ml-20 h-[500px] w-[500px] rounded-full bg-secondary/20 blur-3xl"
 			style="transform: translate({$mouseX * 0.12}px, {-$mouseY * 0.12}px)"
 		></div>
 		<div
 			class="absolute top-1/2 left-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2"
 			style="transform: translate(calc(-50% + {$mouseX * 0.08}px), calc(-50% + {$mouseY * 0.08}px))"
 		>
-			<div class="animate-blob h-full w-full rounded-full bg-primary/20 blur-3xl"></div>
+			<div class="animate-blob h-full w-full rounded-full bg-primary/5 blur-3xl"></div>
 		</div>
 	</div>
 
