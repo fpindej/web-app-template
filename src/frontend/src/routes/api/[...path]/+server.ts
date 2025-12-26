@@ -14,6 +14,9 @@ export const fallback: RequestHandler = async ({ request, params, url, fetch }) 
 
 	newRequest.headers.delete('host');
 	newRequest.headers.delete('connection');
+	// Note: We are forwarding all other headers (including Cookie and Authorization)
+	// This is necessary for auth to work, but be aware of the security implications
+	// if the backend is not trusted or if this proxy is exposed to untrusted clients.
 
 	try {
 		const response = await fetch(newRequest);
