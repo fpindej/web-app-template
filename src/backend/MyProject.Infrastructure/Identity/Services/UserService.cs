@@ -44,7 +44,9 @@ internal class UserService(
             UserName: user.UserName!,
             Roles: roles);
 
-        await cacheService.SetAsync(cacheKey, output, TimeSpan.FromMinutes(10));
+        // NOTE: UserOutput (including roles) is cached to improve performance.
+        // Role or permission changes may take up to this duration to be reflected.
+        await cacheService.SetAsync(cacheKey, output, TimeSpan.FromMinutes(1));
 
         return Result<UserOutput>.Success(output);
     }

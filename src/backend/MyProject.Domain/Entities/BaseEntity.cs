@@ -13,12 +13,12 @@ public abstract class BaseEntity
     /// <summary>
     /// Gets the date and time when the entity was created.
     /// </summary>
-    public DateTime CreatedAt { get; private set; }
+    public DateTime CreatedAt { get; private init; }
 
     /// <summary>
     /// Gets the identifier of the user who created the entity.
     /// </summary>
-    public Guid? CreatedBy { get; private set; }
+    public Guid? CreatedBy { get; private init; }
 
     /// <summary>
     /// Gets the date and time when the entity was last updated.
@@ -77,5 +77,7 @@ public abstract class BaseEntity
         }
 
         IsDeleted = false;
+        DeletedAt = null;
+        DeletedBy = null;
     }
 }

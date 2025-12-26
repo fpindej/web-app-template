@@ -127,11 +127,14 @@ internal class AuthenticationService(
             .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken, cancellationToken);
 
-        if (storedToken is null || storedToken.Invalidated)
+        if (storedToken is null)
         {
-            cookieService.DeleteCookie(CookieNames.AccessToken);
-            cookieService.DeleteCookie(CookieNames.RefreshToken);
-            return Result.Failure("Invalid refresh token.");
+            return Fail("Refresh token not found.");
+        }
+
+        if (storedToken.Invalidated)
+        {
+            return Fail("Refresh token has been invalidated.");
         }
 
         if (storedToken.Used)
@@ -139,18 +142,14 @@ internal class AuthenticationService(
             // Security alert: Token reuse! Revoke all tokens for this user.
             storedToken.Invalidated = true;
             await RevokeUserTokens(storedToken.UserId, cancellationToken);
-            cookieService.DeleteCookie(CookieNames.AccessToken);
-            cookieService.DeleteCookie(CookieNames.RefreshToken);
-            return Result.Failure("Invalid refresh token.");
+            return Fail("Invalid refresh token.");
         }
 
         if (storedToken.ExpiredAt < timeProvider.GetUtcNow().UtcDateTime)
         {
             storedToken.Invalidated = true;
             await dbContext.SaveChangesAsync(cancellationToken);
-            cookieService.DeleteCookie(CookieNames.AccessToken);
-            cookieService.DeleteCookie(CookieNames.RefreshToken);
-            return Result.Failure("Refresh token has expired.");
+            return Fail("Refresh token has expired.");
         }
 
         // Mark current token as used
@@ -191,6 +190,13 @@ internal class AuthenticationService(
             expires: utcNow.AddDays(_jwtOptions.RefreshToken.ExpiresInDays));
 
         return Result.Success();
+
+        Result Fail(string message)
+        {
+            cookieService.DeleteCookie(CookieNames.AccessToken);
+            cookieService.DeleteCookie(CookieNames.RefreshToken);
+            return Result.Failure(message);
+        }
     }
 
     private async Task RevokeUserTokens(Guid userId, CancellationToken cancellationToken = default)

@@ -6,9 +6,25 @@ namespace MyProject.Infrastructure.Identity;
 
 internal class UserContext(IHttpContextAccessor httpContextAccessor) : IUserContext
 {
-    public Guid? UserId => GetClaimValue(ClaimTypes.NameIdentifier, Guid.Parse);
+    public Guid? UserId
+    {
+        get
+        {
+            var value = httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (Guid.TryParse(value, out var guid))
+            {
+                return guid;
+            }
+
+            return null;
+        }
+    }
+
     public string? Email => GetClaimValue(ClaimTypes.Email, x => x);
+
     public string? UserName => GetClaimValue(ClaimTypes.Name, x => x);
+
     public bool IsAuthenticated => UserId.HasValue;
 
     public bool IsInRole(string role)

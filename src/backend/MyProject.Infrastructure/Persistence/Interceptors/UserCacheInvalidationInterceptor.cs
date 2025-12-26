@@ -12,43 +12,58 @@ namespace MyProject.Infrastructure.Persistence.Interceptors;
 /// </summary>
 internal class UserCacheInvalidationInterceptor(ICacheService cacheService) : SaveChangesInterceptor
 {
+    private readonly List<Guid> _userIdsToInvalidate = [];
+
     /// <summary>
-    /// Intercepts the saving changes operation to detect user modifications and invalidate their cache.
+    /// Intercepts the saving changes operation to detect user modifications.
     /// </summary>
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default)
     {
+        _userIdsToInvalidate.Clear();
+
         var context = eventData.Context;
         if (context is null)
         {
             return await base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
-        var userIdsToInvalidate = new List<Guid>();
-
         var modifiedUsers = context.ChangeTracker.Entries<ApplicationUser>()
             .Where(e => e.State == EntityState.Modified)
             .Select(e => e.Entity.Id);
-        
-        userIdsToInvalidate.AddRange(modifiedUsers);
+
+        _userIdsToInvalidate.AddRange(modifiedUsers);
 
         var modifiedUserRoles = context.ChangeTracker.Entries<IdentityUserRole<Guid>>()
-            .Where(e => e.State == EntityState.Added || e.State == EntityState.Deleted || e.State == EntityState.Modified)
+            .Where(e => e.State is EntityState.Added or EntityState.Deleted or EntityState.Modified)
             .Select(e => e.Entity.UserId);
 
-        userIdsToInvalidate.AddRange(modifiedUserRoles);
+        _userIdsToInvalidate.AddRange(modifiedUserRoles);
 
-        var saveResult = await base.SavingChangesAsync(eventData, result, cancellationToken);
+        return await base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
 
-        if (userIdsToInvalidate.Count > 0)
+    /// <summary>
+    /// Intercepts the saved changes operation to invalidate cache after successful save.
+    /// </summary>
+    public override async ValueTask<int> SavedChangesAsync(
+        SaveChangesCompletedEventData eventData,
+        int result,
+        CancellationToken cancellationToken = default)
+    {
+        if (_userIdsToInvalidate.Count <= 0)
         {
-            await Task.WhenAll(userIdsToInvalidate
-                .Distinct()
-                .Select(userId => cacheService.RemoveAsync(CacheKeys.User(userId), cancellationToken)));
+            return await base.SavedChangesAsync(eventData, result, cancellationToken);
         }
 
-        return saveResult;
+        await Task.WhenAll(_userIdsToInvalidate
+            .Distinct()
+            .Select(userId => cacheService.RemoveAsync(CacheKeys.User(userId), cancellationToken)));
+
+        _userIdsToInvalidate.Clear();
+
+        return await base.SavedChangesAsync(eventData, result, cancellationToken);
     }
 }
