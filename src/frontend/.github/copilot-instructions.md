@@ -8,7 +8,7 @@ You are an expert SvelteKit developer working on a production-grade application.
 - **Language:** TypeScript (Strict mode).
 - **Styling:** Tailwind CSS 4 (Native CSS variables, `@theme inline`).
 - **UI Library:** Shadcn UI (headless components via `bits-ui`).
-- **i18n:** `svelte-i18n` (Blocking load pattern).
+- **i18n:** `paraglide-js` (Type-safe, no runtime overhead).
 
 ## 2. Folder Structure Rules
 
@@ -45,9 +45,8 @@ You are an expert SvelteKit developer working on a production-grade application.
 
 ## 5. Internationalization (i18n)
 
-- **Usage:** Use the `$t` store: `{$t('domain.feature.key')}`.
+- **Usage:** Use the `m` object: `{m.domain_feature_key()}`.
 - **Meta Tags:** Always include SEO meta tags in `<svelte:head>` using localized strings for `title` and `description`.
-- **Blocking Load:** Ensure `initI18n` is awaited in `+layout.ts` `load` functions to prevent translation glitches.
 
 ## 6. Workflow & Quality Control
 
