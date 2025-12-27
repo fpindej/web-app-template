@@ -23,7 +23,12 @@
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content align="end">
 		{#each languages as lang (lang.code)}
-			<DropdownMenu.Item onclick={() => setLocale(lang.code)}>
+			<DropdownMenu.Item
+				onclick={() => {
+					setLocale(lang.code);
+					document.cookie = `PARAGLIDE_LOCALE=${lang.code}; path=/; max-age=31536000; SameSite=Lax`;
+				}}
+			>
 				<span class={`fi fi-${lang.flag} me-2`}></span>
 				<span>{lang.label}</span>
 				{#if getLocale() === lang.code}
