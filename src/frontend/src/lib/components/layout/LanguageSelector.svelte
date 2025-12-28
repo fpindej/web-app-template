@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { getLocale, setLocale, locales } from '$lib/paraglide/runtime';
+	import { getLocale, setLocale, locales, baseLocale } from '$lib/paraglide/runtime';
 	import { Check } from 'lucide-svelte';
 
 	type AvailableLanguageTag = (typeof locales)[number];
@@ -21,7 +21,8 @@
 	<DropdownMenu.Trigger>
 		{#snippet child({ props })}
 			<Button variant="ghost" size="icon" {...props} aria-label="Select Language">
-				<span class={`fi fi-${languages.find((l) => l.code === getLocale())?.flag ?? 'gb'} text-lg`}
+				<span
+					class={`fi fi-${languages.find((l) => l.code === getLocale())?.flag ?? languageMetadata[baseLocale as AvailableLanguageTag].flag} text-lg`}
 				></span>
 			</Button>
 		{/snippet}
