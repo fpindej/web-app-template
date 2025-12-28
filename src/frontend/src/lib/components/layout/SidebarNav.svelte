@@ -3,7 +3,7 @@
 	import { base } from '$app/paths';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$lib/components/ui/button';
-	import { LayoutDashboard, Settings, User } from 'lucide-svelte';
+	import { LayoutDashboard, ChartPie, FileText } from 'lucide-svelte';
 	import * as m from '$lib/paraglide/messages';
 	import type { ComponentType } from 'svelte';
 
@@ -14,14 +14,14 @@
 			icon: LayoutDashboard
 		},
 		{
-			title: m.common_profile,
-			href: `${base}/profile`,
-			icon: User
+			title: m.common_analytics,
+			href: `${base}/analytics`,
+			icon: ChartPie
 		},
 		{
-			title: m.common_settings,
-			href: `${base}/settings`,
-			icon: Settings
+			title: m.common_reports,
+			href: `${base}/reports`,
+			icon: FileText
 		}
 	];
 
