@@ -141,7 +141,7 @@ For a better developer experience (HMR, faster builds), you can run the frontend
 
 ## Localization
 
-The frontend includes a robust localization system built on `Paraglide JS`, designed for low-traffic SPAs.
+The frontend includes a robust localization system built on `Paraglide JS`, designed for high-traffic and scalable SPAs.
 
 ### Key Features
 *   **Type-Safe Keys:** TypeScript types are generated from the default locale (`en.json`), preventing missing key errors.
