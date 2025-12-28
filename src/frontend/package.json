@@ -19,6 +19,7 @@
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",
 		"@eslint/js": "^9.39.1",
+		"@inlang/paraglide-js": "^2.7.1",
 		"@internationalized/date": "^3.10.1",
 		"@sveltejs/adapter-node": "^5.4.0",
 		"@sveltejs/kit": "^2.49.1",
@@ -50,7 +51,6 @@
 		"flag-icons": "^7.5.0",
 		"lucide-svelte": "^0.562.0",
 		"openapi-fetch": "^0.15.0",
-		"svelte-i18n": "^4.0.1",
 		"svelte-sonner": "^1.0.7",
 		"tailwind-merge": "^3.4.0",
 		"tailwind-variants": "^3.2.2",

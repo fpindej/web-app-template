@@ -4,7 +4,7 @@
 	import { User, Shield } from 'lucide-svelte';
 	import InfoItem from './InfoItem.svelte';
 	import type { components } from '$lib/api/v1';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	type UserType = components['schemas']['MeResponse'];
 
@@ -13,20 +13,20 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('profile.accountDetails.title')}</Card.Title>
-		<Card.Description>{$t('profile.accountDetails.description')}</Card.Description>
+		<Card.Title>{m.profile_accountDetails_title()}</Card.Title>
+		<Card.Description>{m.profile_accountDetails_description()}</Card.Description>
 	</Card.Header>
 	<Card.Content class="space-y-6">
-		<InfoItem icon={User} label={$t('profile.accountDetails.userId')}>
+		<InfoItem icon={User} label={m.profile_accountDetails_userId()}>
 			{user?.id}
 		</InfoItem>
 
-		<InfoItem icon={Shield} label={$t('profile.accountDetails.roles')}>
+		<InfoItem icon={Shield} label={m.profile_accountDetails_roles()}>
 			<div class="mt-1 flex flex-wrap gap-2">
 				{#each user?.roles || [] as role (role)}
 					<Badge variant="secondary">{role}</Badge>
 				{:else}
-					<span>{$t('profile.accountDetails.noRoles')}</span>
+					<span>{m.profile_accountDetails_noRoles()}</span>
 				{/each}
 			</div>
 		</InfoItem>

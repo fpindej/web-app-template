@@ -5,7 +5,7 @@
 	import { browserClient } from '$lib/api/client';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import type { components } from '$lib/api/v1';
 
 	type User = components['schemas']['MeResponse'];
@@ -35,7 +35,7 @@
 		{#snippet child({ props })}
 			<Button variant="ghost" class="relative h-8 w-8 rounded-full" {...props}>
 				<Avatar.Root class="h-8 w-8">
-					<Avatar.Fallback>{getInitials(user?.username || $t('common.user'))}</Avatar.Fallback>
+					<Avatar.Fallback>{getInitials(user?.username || m.common_user())}</Avatar.Fallback>
 				</Avatar.Root>
 			</Button>
 		{/snippet}
@@ -49,15 +49,15 @@
 		<DropdownMenu.Separator />
 		<DropdownMenu.Group>
 			<DropdownMenu.Item onclick={() => goto(`${base}/profile`)}>
-				{$t('common.profile')}
+				{m.common_profile()}
 			</DropdownMenu.Item>
 			<DropdownMenu.Item onclick={() => goto(`${base}/settings`)}>
-				{$t('common.settings')}
+				{m.common_settings()}
 			</DropdownMenu.Item>
 		</DropdownMenu.Group>
 		<DropdownMenu.Separator />
 		<DropdownMenu.Item onclick={logout}>
-			{$t('navbar.logout')}
+			{m.navbar_logout()}
 		</DropdownMenu.Item>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>

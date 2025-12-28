@@ -4,7 +4,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { onMount } from 'svelte';
 	import { initTheme } from '$lib/theme.svelte';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { Toaster } from '$lib/components/ui/sonner';
 
 	let { children } = $props();
@@ -15,8 +15,8 @@
 </script>
 
 <svelte:head>
-	<title>{$t('common.appName')}</title>
-	<meta name="description" content={$t('common.meta.description')} />
+	<title>{m.common_appName()}</title>
+	<meta name="description" content={m.common_meta_description()} />
 	<link rel="icon" href={favicon} />
 </svelte:head>
 

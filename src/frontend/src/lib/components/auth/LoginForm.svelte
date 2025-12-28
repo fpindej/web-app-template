@@ -2,14 +2,13 @@
 	import { browserClient } from '$lib/api/client';
 	import { cn } from '$lib/utils';
 	import { onMount } from 'svelte';
-	import { get } from 'svelte/store';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import * as Card from '$lib/components/ui/card';
 	import { ThemeToggle, LanguageSelector } from '$lib/components/layout';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import { fly, scale } from 'svelte/transition';
 	import { Check } from 'lucide-svelte';
 	import LoginBackground from './LoginBackground.svelte';
@@ -61,18 +60,18 @@
 			} else {
 				let errorMessage = '';
 				if (response.status === 401) {
-					errorMessage = get(t)('common.login.invalidCredentials');
+					errorMessage = m.common_login_invalidCredentials();
 				} else {
-					errorMessage = apiError?.detail || apiError?.title || get(t)('common.login.error');
+					errorMessage = apiError?.detail || apiError?.title || m.common_login_error();
 				}
-				toast.error(get(t)('common.login.failed'), {
+				toast.error(m.common_login_failed(), {
 					description: errorMessage
 				});
 				triggerShake();
 			}
 		} catch {
-			toast.error(get(t)('common.login.failed'), {
-				description: get(t)('common.login.error')
+			toast.error(m.common_login_failed(), {
+				description: m.common_login_error()
 			});
 			triggerShake();
 		}
@@ -97,8 +96,8 @@
 				)}
 			>
 				<Card.Header>
-					<Card.Title class="text-center text-2xl">{$t('common.login.title')}</Card.Title>
-					<Card.Description class="text-center">{$t('common.login.subtitle')}</Card.Description>
+					<Card.Title class="text-center text-2xl">{m.common_login_title()}</Card.Title>
+					<Card.Description class="text-center">{m.common_login_subtitle()}</Card.Description>
 
 					<div class="mt-4 flex justify-center">
 						<div
@@ -111,7 +110,7 @@
 								)}
 							></div>
 							<span class="group-hover:hidden"
-								>{isApiOnline ? $t('common.login.apiOnline') : $t('common.login.apiOffline')}</span
+								>{isApiOnline ? m.common_login_apiOnline() : m.common_login_apiOffline()}</span
 							>
 							<span class="hidden group-hover:block">{apiUrl}</span>
 						</div>
@@ -120,7 +119,7 @@
 				<Card.Content>
 					<form class="space-y-6" onsubmit={login}>
 						<div class="grid gap-2">
-							<Label for="email">{$t('common.login.email')}</Label>
+							<Label for="email">{m.common_login_email()}</Label>
 							<Input
 								id="email"
 								type="email"
@@ -132,7 +131,7 @@
 						</div>
 
 						<div class="grid gap-2">
-							<Label for="password">{$t('common.login.password')}</Label>
+							<Label for="password">{m.common_login_password()}</Label>
 							<Input
 								id="password"
 								type="password"
@@ -144,7 +143,7 @@
 						</div>
 
 						<Button type="submit" class="w-full" disabled={!isApiOnline}>
-							{isApiOnline ? $t('common.login.submit') : $t('common.login.apiOffline')}
+							{isApiOnline ? m.common_login_submit() : m.common_login_apiOffline()}
 						</Button>
 					</form>
 				</Card.Content>
@@ -162,7 +161,7 @@
 				<Check class="h-12 w-12" />
 			</div>
 			<h2 class="text-3xl font-bold tracking-tight text-foreground">
-				{$t('common.login.success')}
+				{m.common_login_success()}
 			</h2>
 		</div>
 	{/if}

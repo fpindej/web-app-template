@@ -4,23 +4,22 @@
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { LayoutDashboard, Settings, User } from 'lucide-svelte';
-	import { t } from '$lib/i18n';
-	import type { TranslationKey } from '$lib/types/i18n';
+	import * as m from '$lib/paraglide/messages';
 	import type { ComponentType } from 'svelte';
 
-	let items: { title: TranslationKey; href: string; icon: ComponentType }[] = [
+	let items: { title: () => string; href: string; icon: ComponentType }[] = [
 		{
-			title: 'common.dashboard',
+			title: m.common_dashboard,
 			href: `${base}/`,
 			icon: LayoutDashboard
 		},
 		{
-			title: 'common.profile',
+			title: m.common_profile,
 			href: `${base}/profile`,
 			icon: User
 		},
 		{
-			title: 'common.settings',
+			title: m.common_settings,
 			href: `${base}/settings`,
 			icon: Settings
 		}
@@ -53,7 +52,7 @@
 			aria-current={active ? 'page' : undefined}
 		>
 			<item.icon class="me-2 h-4 w-4" />
-			{$t(item.title) || item.title}
+			{item.title()}
 		</a>
 		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	{/each}

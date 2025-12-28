@@ -1,5 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
-import { defaultLocale, supportedLocales } from '$lib/i18n';
+import { paraglideMiddleware } from '$lib/paraglide/server';
+import { extractLocaleFromHeader, cookieName, baseLocale } from '$lib/paraglide/runtime';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Skip auth check for API routes to avoid infinite loops
@@ -7,16 +8,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 
-	const cookieLang = event.cookies.get('locale');
-	const headerLang = event.request.headers.get('accept-language')?.split(',')[0];
-	const lang = cookieLang || headerLang;
+	return paraglideMiddleware(event.request, async ({ locale }) => {
+		const cookieLocale = event.cookies.get(cookieName);
+		if (!cookieLocale && locale === baseLocale) {
+			const headerLocale = extractLocaleFromHeader(event.request);
+			if (headerLocale) {
+				locale = headerLocale;
+			}
+		}
 
-	const foundLocale = supportedLocales.find((l) => lang?.startsWith(l));
-	const locale = foundLocale || defaultLocale;
-	event.locals.locale = locale;
-	event.locals.user = null;
+		event.locals.locale = locale;
+		event.locals.user = null;
 
-	return resolve(event, {
-		transformPageChunk: ({ html }) => html.replace('%lang%', event.locals.locale)
+		return resolve(event, {
+			transformPageChunk: ({ html }) => html.replace('%lang%', locale)
+		});
 	});
 };

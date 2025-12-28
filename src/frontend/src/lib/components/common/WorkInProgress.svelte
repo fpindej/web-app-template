@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Construction } from 'lucide-svelte';
 	import * as Card from '$lib/components/ui/card';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	let {
 		title,
@@ -31,9 +31,9 @@
 		>
 			<Construction class="h-10 w-10 text-muted-foreground" />
 		</div>
-		<h2 class="text-2xl font-bold tracking-tight">{wipTitle ?? $t('common.wip.title')}</h2>
+		<h2 class="text-2xl font-bold tracking-tight">{wipTitle ?? m.common_wip_title()}</h2>
 		<p class="mt-4 max-w-lg text-muted-foreground">
-			{wipDescription ?? $t('common.wip.description')}
+			{wipDescription ?? m.common_wip_description()}
 		</p>
 	</Card.Root>
 </div>

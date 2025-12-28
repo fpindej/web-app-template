@@ -6,7 +6,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import type { components } from '$lib/api/v1';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	type UserType = components['schemas']['MeResponse'];
 
@@ -30,8 +30,8 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{$t('profile.personalInfo.title')}</Card.Title>
-		<Card.Description>{$t('profile.personalInfo.description')}</Card.Description>
+		<Card.Title>{m.profile_personalInfo_title()}</Card.Title>
+		<Card.Description>{m.profile_personalInfo_description()}</Card.Description>
 	</Card.Header>
 	<Card.Content>
 		<form onsubmit={handleSubmit} class="space-y-6">
@@ -47,51 +47,51 @@
 					<h3 class="text-lg font-medium">{fullName}</h3>
 					<p class="text-sm text-muted-foreground">{email}</p>
 					<Button variant="outline" size="sm" class="mt-2 w-full sm:w-auto">
-						{$t('profile.personalInfo.changeAvatar')}
+						{m.profile_personalInfo_changeAvatar()}
 					</Button>
 				</div>
 			</div>
 
 			<div class="grid gap-4">
 				<div class="grid gap-2">
-					<Label for="username">{$t('profile.personalInfo.username')}</Label>
+					<Label for="username">{m.profile_personalInfo_username()}</Label>
 					<Input id="username" value={user?.username} disabled />
 					<p class="text-xs text-muted-foreground">
-						{$t('profile.personalInfo.usernameDescription')}
+						{m.profile_personalInfo_usernameDescription()}
 					</p>
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="fullName">{$t('profile.personalInfo.fullName')}</Label>
+					<Label for="fullName">{m.profile_personalInfo_fullName()}</Label>
 					<Input
 						id="fullName"
 						bind:value={fullName}
-						placeholder={$t('profile.personalInfo.fullNamePlaceholder')}
+						placeholder={m.profile_personalInfo_fullNamePlaceholder()}
 					/>
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="email">{$t('profile.personalInfo.email')}</Label>
+					<Label for="email">{m.profile_personalInfo_email()}</Label>
 					<Input
 						id="email"
 						type="email"
 						bind:value={email}
-						placeholder={$t('profile.personalInfo.emailPlaceholder')}
+						placeholder={m.profile_personalInfo_emailPlaceholder()}
 					/>
 				</div>
 
 				<div class="grid gap-2">
-					<Label for="bio">{$t('profile.personalInfo.bio')}</Label>
+					<Label for="bio">{m.profile_personalInfo_bio()}</Label>
 					<Textarea
 						id="bio"
 						bind:value={bio}
-						placeholder={$t('profile.personalInfo.bioPlaceholder')}
+						placeholder={m.profile_personalInfo_bioPlaceholder()}
 					/>
 				</div>
 
 				<div class="flex justify-end">
 					<Button type="submit" disabled={isLoading}>
-						{isLoading ? $t('profile.personalInfo.saving') : $t('profile.personalInfo.saveChanges')}
+						{isLoading ? m.profile_personalInfo_saving() : m.profile_personalInfo_saveChanges()}
 					</Button>
 				</div>
 			</div>

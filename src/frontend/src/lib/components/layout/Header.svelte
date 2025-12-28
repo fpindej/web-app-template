@@ -38,9 +38,8 @@
 		</Sheet.Content>
 	</Sheet.Root>
 
-	<div class="w-full flex-1">
-		<!-- Search or other items could go here -->
-	</div>
+	<!-- Flex spacer to push the right-side navigation items to the edge on mobile -->
+	<div class="w-full flex-1"></div>
 	<nav class="flex items-center gap-2">
 		<LanguageSelector />
 		<ThemeToggle />

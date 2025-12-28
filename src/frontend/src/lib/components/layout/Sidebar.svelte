@@ -7,7 +7,7 @@
 	import LanguageSelector from './LanguageSelector.svelte';
 	import UserNav from './UserNav.svelte';
 	import type { components } from '$lib/api/v1';
-	import { t } from '$lib/i18n';
+	import * as m from '$lib/paraglide/messages';
 
 	type User = components['schemas']['MeResponse'];
 
@@ -21,7 +21,7 @@
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 				<a href="{base}/" class="flex items-center gap-2 text-lg font-semibold">
 					<Package2 class="h-6 w-6" />
-					<span class="">{$t('common.appName')}</span>
+					<span class="">{m.common_appName()}</span>
 				</a>
 			</div>
 			<div class="space-y-1">
