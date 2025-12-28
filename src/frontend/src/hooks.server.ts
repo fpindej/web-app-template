@@ -1,6 +1,6 @@
 import type { Handle } from '@sveltejs/kit';
 import { paraglideMiddleware } from '$lib/paraglide/server';
-import { extractLocaleFromHeader } from '$lib/paraglide/runtime';
+import { extractLocaleFromHeader, cookieName, baseLocale } from '$lib/paraglide/runtime';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Skip auth check for API routes to avoid infinite loops
@@ -9,8 +9,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	return paraglideMiddleware(event.request, async ({ locale }) => {
-		const cookieLocale = event.cookies.get('PARAGLIDE_LOCALE');
-		if (!cookieLocale && locale === 'en') {
+		const cookieLocale = event.cookies.get(cookieName);
+		if (!cookieLocale && locale === baseLocale) {
 			const headerLocale = extractLocaleFromHeader(event.request);
 			if (headerLocale) {
 				locale = headerLocale;

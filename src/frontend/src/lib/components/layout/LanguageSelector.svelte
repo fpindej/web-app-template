@@ -31,7 +31,6 @@
 			<DropdownMenu.Item
 				onclick={() => {
 					setLocale(lang.code);
-					document.cookie = `PARAGLIDE_LOCALE=${lang.code}; path=/; max-age=31536000; SameSite=Lax`;
 				}}
 			>
 				<span class={`fi fi-${lang.flag} me-2`}></span>
