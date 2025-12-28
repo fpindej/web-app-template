@@ -1,7 +1,12 @@
-import { setLocale, locales } from '$lib/paraglide/runtime';
+import { setLocale, locales, baseLocale } from '$lib/paraglide/runtime';
 import type { LayoutLoad } from './$types';
 
 export const load: LayoutLoad = async ({ data }) => {
-	setLocale(data.locale as (typeof locales)[number]);
+	const locale = data.locale;
+	if (locales.includes(locale as (typeof locales)[number])) {
+		setLocale(locale as (typeof locales)[number]);
+	} else {
+		setLocale(baseLocale);
+	}
 	return data;
 };
