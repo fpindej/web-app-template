@@ -6,10 +6,15 @@
 
 	type AvailableLanguageTag = (typeof locales)[number];
 
-	const languages: { code: AvailableLanguageTag; label: string; flag: string }[] = [
-		{ code: 'en', label: 'English', flag: 'gb' },
-		{ code: 'cs', label: 'Čeština', flag: 'cz' }
-	];
+	const languageMetadata: Record<AvailableLanguageTag, { label: string; flag: string }> = {
+		en: { label: 'English', flag: 'gb' },
+		cs: { label: 'Čeština', flag: 'cz' }
+	};
+
+	const languages = locales.map((code) => ({
+		code,
+		...languageMetadata[code]
+	}));
 </script>
 
 <DropdownMenu.Root>
