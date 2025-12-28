@@ -1,6 +1,6 @@
 {
 	"common_appName": "MyProject",
-	"common_meta_titleTemplate": "%s | MyProject",
+	"common_meta_titleTemplate": "{title} | MyProject",
 	"common_meta_description": "Produkční šablona webové aplikace.",
 	"common_meta_login_title": "Přihlášení",
 	"common_meta_login_description": "Přihlaste se ke svému účtu.",

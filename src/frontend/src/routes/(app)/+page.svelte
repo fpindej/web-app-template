@@ -41,7 +41,7 @@
 </script>
 
 <svelte:head>
-	<title>{m.common_meta_titleTemplate(m.common_meta_dashboard_title())}</title>
+	<title>{m.common_meta_titleTemplate({ title: m.common_meta_dashboard_title() })}</title>
 	<meta name="description" content={m.common_meta_dashboard_description()} />
 </svelte:head>
 

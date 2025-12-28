@@ -1,6 +1,6 @@
 {
 	"common_appName": "MyProject",
-	"common_meta_titleTemplate": "%s | MyProject",
+	"common_meta_titleTemplate": "{title} | MyProject",
 	"common_meta_description": "A production-ready web application template.",
 	"common_meta_login_title": "Login",
 	"common_meta_login_description": "Sign in to your account.",

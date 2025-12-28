@@ -4,7 +4,7 @@
 </script>
 
 <svelte:head>
-	<title>{m.common_meta_titleTemplate(m.common_analytics())}</title>
+	<title>{m.common_meta_titleTemplate({ title: m.common_analytics() })}</title>
 </svelte:head>
 
 <WorkInProgress
