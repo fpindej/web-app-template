@@ -24,7 +24,7 @@
 <script lang="ts">
 	import { Dialog as SheetPrimitive } from 'bits-ui';
 	import { X } from 'lucide-svelte';
-	import { cn } from '$lib/utils.js';
+	import { cn } from '$lib/utils';
 	import SheetOverlay from './sheet-overlay.svelte';
 	import SheetPortal from './sheet-portal.svelte';
 

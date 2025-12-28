@@ -2,11 +2,12 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { browserClient } from '$lib/api/client';
-	import { goto, invalidateAll } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import * as m from '$lib/paraglide/messages';
 	import type { components } from '$lib/api/v1';
+	import { getShortcutSymbol, ShortcutAction } from '$lib/state/shortcuts.svelte';
+	import { logout } from '$lib/services/auth';
 
 	type User = components['schemas']['MeResponse'];
 
@@ -19,13 +20,6 @@
 			.join('')
 			.toUpperCase()
 			.slice(0, 2);
-	}
-
-	async function logout() {
-		await browserClient.POST('/api/auth/logout');
-		await invalidateAll();
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		await goto(`${base}/login`);
 	}
 </script>
 
@@ -53,11 +47,13 @@
 			</DropdownMenu.Item>
 			<DropdownMenu.Item onclick={() => goto(`${base}/settings`)}>
 				{m.common_settings()}
+				<DropdownMenu.Shortcut>{getShortcutSymbol(ShortcutAction.Settings)}</DropdownMenu.Shortcut>
 			</DropdownMenu.Item>
 		</DropdownMenu.Group>
 		<DropdownMenu.Separator />
 		<DropdownMenu.Item onclick={logout}>
 			{m.navbar_logout()}
+			<DropdownMenu.Shortcut>{getShortcutSymbol(ShortcutAction.Logout)}</DropdownMenu.Shortcut>
 		</DropdownMenu.Item>
 	</DropdownMenu.Content>
 </DropdownMenu.Root>

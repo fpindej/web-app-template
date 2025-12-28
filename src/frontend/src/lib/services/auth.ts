@@ -1,4 +1,6 @@
-import { createApiClient } from '$lib/api/client';
+import { goto, invalidateAll } from '$app/navigation';
+import { base } from '$app/paths';
+import { browserClient, createApiClient } from '$lib/api/client';
 import type { components } from '$lib/api/v1';
 
 type User = components['schemas']['MeResponse'];
@@ -14,21 +16,16 @@ export async function getUser(
 		if (response.ok && user) {
 			return user;
 		}
-
-		if (response.status === 401) {
-			// Try to refresh the token
-			const { response: refreshResponse } = await client.POST('/api/auth/refresh');
-			if (refreshResponse.ok) {
-				// Retry fetching the user
-				const { data: retryUser, response: retryResponse } = await client.GET('/api/auth/me');
-				if (retryResponse.ok && retryUser) {
-					return retryUser;
-				}
-			}
-		}
 	} catch (e) {
 		console.error('Failed to fetch user:', e);
 	}
 
 	return null;
+}
+
+export async function logout() {
+	await browserClient.POST('/api/auth/logout');
+	await invalidateAll();
+	// eslint-disable-next-line svelte/no-navigation-without-resolve
+	await goto(`${base}/login`);
 }

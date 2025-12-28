@@ -1,10 +1,10 @@
 <script lang="ts">
-	import WorkInProgress from '$lib/components/common/WorkInProgress.svelte';
+	import { WorkInProgress } from '$lib/components/common';
 	import * as m from '$lib/paraglide/messages';
 </script>
 
 <svelte:head>
-	<title>{m.common_meta_titleTemplate().replace('%s', m.common_meta_settings_title())}</title>
+	<title>{m.common_meta_titleTemplate({ title: m.common_meta_settings_title() })}</title>
 	<meta name="description" content={m.common_meta_settings_description()} />
 </svelte:head>
 

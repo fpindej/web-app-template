@@ -5,7 +5,7 @@
 </script>
 
 <svelte:head>
-	<title>{m.common_meta_titleTemplate().replace('%s', m.common_meta_login_title())}</title>
+	<title>{m.common_meta_titleTemplate({ title: m.common_meta_login_title() })}</title>
 	<meta name="description" content={m.common_meta_login_description()} />
 </svelte:head>
 
