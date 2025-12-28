@@ -1,5 +1,5 @@
 <script lang="ts">
-	import WorkInProgress from '$lib/components/common/WorkInProgress.svelte';
+	import { WorkInProgress } from '$lib/components/common';
 	import * as m from '$lib/paraglide/messages';
 </script>
 
