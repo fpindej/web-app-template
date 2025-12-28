@@ -40,7 +40,7 @@ const SHORTCUTS: ShortcutConfig[] = [
 	{
 		key: 'l',
 		meta: true,
-		shift: true,
+		alt: true,
 		action: ShortcutAction.Logout,
 		description: m.common_shortcut_logout
 	},
