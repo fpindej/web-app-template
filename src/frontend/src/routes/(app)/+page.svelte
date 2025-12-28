@@ -98,7 +98,8 @@
 						<span>{m.dashboard_serverSideAuth_authenticated()}</span>
 					</div>
 					<div class="mt-2 text-xs text-muted-foreground">
-						Logged in as <span class="font-mono text-foreground">{data.user.username}</span>
+						{m.common_loggedInAs()}
+						<span class="font-mono text-foreground">{data.user.username}</span>
 					</div>
 				</div>
 			</div>

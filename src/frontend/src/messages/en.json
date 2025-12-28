@@ -41,6 +41,7 @@
 	"common_login_apiOnline": "API is online",
 	"common_login_apiOffline": "API is offline",
 	"common_login_success": "Login successful!",
+	"common_loggedInAs": "Logged in as",
 	"navbar_logout": "Logout",
 	"settings_title": "Settings",
 	"settings_description": "Manage your application preferences and configurations.",

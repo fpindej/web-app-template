@@ -41,6 +41,7 @@
 	"common_login_apiOnline": "API je online",
 	"common_login_apiOffline": "API je offline",
 	"common_login_success": "Přihlášení úspěšné!",
+	"common_loggedInAs": "Přihlášen jako",
 	"navbar_logout": "Odhlásit se",
 	"settings_title": "Nastavení",
 	"settings_description": "Správa předvoleb a konfigurace aplikace.",
