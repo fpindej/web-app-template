@@ -14,9 +14,9 @@
 	import {
 		isValidationProblemDetails,
 		mapFieldErrors,
-		getErrorMessage,
-		createFieldShakes
+		getErrorMessage
 	} from '$lib/utils';
+	import { createFieldShakes } from '$lib/state';
 
 	interface Props {
 		user: User | null | undefined;

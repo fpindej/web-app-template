@@ -8,7 +8,8 @@
 	import * as m from '$lib/paraglide/messages';
 	import { toast } from '$lib/components/ui/sonner';
 	import { Loader2 } from '@lucide/svelte';
-	import { createFieldShakes, isValidationProblemDetails, mapFieldErrors } from '$lib/utils';
+	import { isValidationProblemDetails, mapFieldErrors } from '$lib/utils';
+	import { createFieldShakes } from '$lib/state';
 
 	let { open = $bindable(false), onSuccess } = $props<{
 		open?: boolean;

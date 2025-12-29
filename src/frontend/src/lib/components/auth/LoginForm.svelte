@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browserClient } from '$lib/api/client';
-	import { cn, createShake } from '$lib/utils';
+	import { cn } from '$lib/utils';
+	import { createShake } from '$lib/state';
 	import { onMount } from 'svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';

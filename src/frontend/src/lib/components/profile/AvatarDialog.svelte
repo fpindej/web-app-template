@@ -8,7 +8,7 @@
 	import { browserClient } from '$lib/api/client';
 	import { toast } from 'svelte-sonner';
 	import { invalidateAll } from '$app/navigation';
-	import { createFieldShakes } from '$lib/utils';
+	import { createFieldShakes } from '$lib/state';
 
 	interface Props {
 		open: boolean;

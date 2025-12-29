@@ -6,7 +6,7 @@ import { SvelteSet } from 'svelte/reactivity';
  * Usage:
  * ```svelte
  * <script>
- *   import { createShake } from '$lib/utils/shake.svelte';
+ *   import { createShake } from '$lib/state';
  *   const shake = createShake();
  *
  *   function handleError() {
@@ -42,7 +42,7 @@ export function createShake(duration = 500) {
  * Usage:
  * ```svelte
  * <script>
- *   import { createFieldShakes } from '$lib/utils/shake.svelte';
+ *   import { createFieldShakes } from '$lib/state';
  *   const fieldShakes = createFieldShakes();
  *
  *   function handleValidationError(errors: Record<string, string>) {
