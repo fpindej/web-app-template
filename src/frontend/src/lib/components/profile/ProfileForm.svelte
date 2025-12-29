@@ -55,7 +55,7 @@
 			<div class="grid gap-4">
 				<div class="grid gap-2">
 					<Label for="username">{m.profile_personalInfo_username()}</Label>
-					<Input id="username" value={user?.username} disabled />
+					<Input id="username" autocomplete="username" value={user?.username} disabled />
 					<p class="text-xs text-muted-foreground">
 						{m.profile_personalInfo_usernameDescription()}
 					</p>
@@ -65,6 +65,7 @@
 					<Label for="fullName">{m.profile_personalInfo_fullName()}</Label>
 					<Input
 						id="fullName"
+						autocomplete="name"
 						bind:value={fullName}
 						placeholder={m.profile_personalInfo_fullNamePlaceholder()}
 					/>
@@ -75,6 +76,7 @@
 					<Input
 						id="email"
 						type="email"
+						autocomplete="email"
 						bind:value={email}
 						placeholder={m.profile_personalInfo_emailPlaceholder()}
 					/>
