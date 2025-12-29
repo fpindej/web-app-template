@@ -70,8 +70,7 @@
 			} else {
 				error = m.common_register_failed();
 			}
-		} catch (err) {
-			console.error(err);
+		} catch {
 			error = m.common_register_failed();
 		} finally {
 			isLoading = false;
