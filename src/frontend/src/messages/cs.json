@@ -73,6 +73,7 @@
 	"profile_personalInfo_avatarUrlInvalid": "Zadejte platnou URL (http:// nebo https://)",
 	"profile_personalInfo_avatarSave": "Uložit avatar",
 	"profile_personalInfo_avatarCancel": "Zrušit",
+	"profile_personalInfo_avatarRemove": "Odebrat avatar",
 	"profile_personalInfo_avatarUpdateSuccess": "Avatar byl úspěšně aktualizován",
 	"profile_personalInfo_avatarUpdateError": "Nepodařilo se aktualizovat avatar",
 	"profile_personalInfo_firstName": "Jméno",

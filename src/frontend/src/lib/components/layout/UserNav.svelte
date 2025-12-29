@@ -27,6 +27,9 @@
 		{#snippet child({ props })}
 			<Button variant="ghost" class="relative h-8 w-8 rounded-full" {...props}>
 				<Avatar.Root class="h-8 w-8">
+					{#if user?.avatarUrl}
+						<Avatar.Image src={user.avatarUrl} alt={user.username || m.common_user()} />
+					{/if}
 					<Avatar.Fallback>{getInitials(user?.username || m.common_user())}</Avatar.Fallback>
 				</Avatar.Root>
 			</Button>

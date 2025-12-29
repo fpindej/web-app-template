@@ -73,6 +73,7 @@
 	"profile_personalInfo_avatarUrlInvalid": "Please enter a valid URL (http:// or https://)",
 	"profile_personalInfo_avatarSave": "Save Avatar",
 	"profile_personalInfo_avatarCancel": "Cancel",
+	"profile_personalInfo_avatarRemove": "Remove Avatar",
 	"profile_personalInfo_avatarUpdateSuccess": "Avatar updated successfully",
 	"profile_personalInfo_avatarUpdateError": "Failed to update avatar",
 	"profile_personalInfo_firstName": "First Name",

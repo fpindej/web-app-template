@@ -60,12 +60,20 @@
 			return;
 		}
 
+		await saveAvatar(avatarUrl || null);
+	}
+
+	async function handleRemove() {
+		await saveAvatar(null);
+	}
+
+	async function saveAvatar(url: string | null) {
 		isLoading = true;
 
 		try {
 			const { response, error: apiError } = await browserClient.PATCH('/api/users/me', {
 				body: {
-					avatarUrl: avatarUrl || null
+					avatarUrl: url
 				}
 			});
 
@@ -130,17 +138,26 @@
 				{/if}
 			</div>
 		</div>
-		<Dialog.Footer>
-			<Dialog.Close>
-				{#snippet child({ props })}
-					<Button {...props} variant="outline">
-						{m.profile_personalInfo_avatarCancel()}
+		<Dialog.Footer class="flex-col gap-2 sm:flex-row sm:justify-between">
+			<div>
+				{#if currentAvatarUrl}
+					<Button variant="destructive" onclick={handleRemove} disabled={isLoading}>
+						{m.profile_personalInfo_avatarRemove()}
 					</Button>
-				{/snippet}
-			</Dialog.Close>
-			<Button onclick={handleSubmit} disabled={isLoading || !!avatarUrlError}>
-				{isLoading ? m.profile_personalInfo_saving() : m.profile_personalInfo_avatarSave()}
-			</Button>
+				{/if}
+			</div>
+			<div class="flex gap-2">
+				<Dialog.Close>
+					{#snippet child({ props })}
+						<Button {...props} variant="outline">
+							{m.profile_personalInfo_avatarCancel()}
+						</Button>
+					{/snippet}
+				</Dialog.Close>
+				<Button onclick={handleSubmit} disabled={isLoading || !!avatarUrlError}>
+					{m.profile_personalInfo_avatarSave()}
+				</Button>
+			</div>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
