@@ -13,6 +13,7 @@
 	import { Check } from 'lucide-svelte';
 	import LoginBackground from './LoginBackground.svelte';
 	import { toast } from '$lib/components/ui/sonner';
+	import RegisterDialog from './RegisterDialog.svelte';
 
 	let { apiUrl } = $props();
 
@@ -22,6 +23,7 @@
 	let isSuccess = $state(false);
 	let isRedirecting = $state(false);
 	let shake = $state(false);
+	let isRegisterOpen = $state(false);
 
 	const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -39,6 +41,11 @@
 		setTimeout(() => {
 			shake = false;
 		}, 500);
+	}
+
+	function onRegisterSuccess(newEmail: string) {
+		email = newEmail;
+		password = '';
 	}
 
 	async function login(e: Event) {
@@ -146,6 +153,16 @@
 							{isApiOnline ? m.common_login_submit() : m.common_login_apiOffline()}
 						</Button>
 					</form>
+					<div class="mt-4 text-center text-sm">
+						<span class="text-muted-foreground">{m.common_login_noAccount()}</span>
+						<button
+							type="button"
+							class="ms-1 font-medium text-primary hover:underline"
+							onclick={() => (isRegisterOpen = true)}
+						>
+							{m.common_login_signUp()}
+						</button>
+					</div>
 				</Card.Content>
 			</Card.Root>
 		</div>
@@ -166,6 +183,8 @@
 		</div>
 	{/if}
 </LoginBackground>
+
+<RegisterDialog bind:open={isRegisterOpen} onSuccess={onRegisterSuccess} />
 
 <style>
 	@keyframes shake {
