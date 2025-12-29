@@ -1,23 +1,17 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.Features.Authentication;
-using MyProject.Application.Identity;
 using MyProject.Infrastructure.Features.Authentication.Constants;
 using MyProject.WebApi.Features.Authentication.Dtos.Login;
-using MyProject.WebApi.Features.Authentication.Dtos.Me;
-using MyProject.WebApi.Features.Authentication.Dtos.Profile;
 using MyProject.WebApi.Features.Authentication.Dtos.Register;
 
 namespace MyProject.WebApi.Features.Authentication;
 
 /// <summary>
-/// Controller for managing user accounts, including login, registration, and token management using HttpOnly cookies.
+/// Controller for authentication operations including login, registration, and token management using HttpOnly cookies.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(
-    IAuthenticationService authenticationService,
-    IUserService userService) : ControllerBase
+public class AuthController(IAuthenticationService authenticationService) : ControllerBase
 {
     /// <summary>
     /// Authenticates a user and returns a http-only cookie with the JWT access token and a refresh token
@@ -84,78 +78,13 @@ public class AuthController(
     }
 
     /// <summary>
-    /// Gets the current authenticated user's information
+    /// Registers a new user account
     /// </summary>
-    /// <returns>User information if authenticated</returns>
-    /// <response code="200">Returns user information</response>
-    /// <response code="401">If the user is not authenticated</response>
-    [HttpGet("me")]
-    [Authorize]
-    [ProducesResponseType(typeof(MeResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<MeResponse>> Me()
-    {
-        var userResult = await userService.GetCurrentUserAsync();
-
-        if (!userResult.IsSuccess)
-        {
-            return Unauthorized();
-        }
-
-        var user = userResult.Value!;
-
-        return Ok(new MeResponse
-        {
-            Id = user.Id,
-            Username = user.UserName,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            Bio = user.Bio,
-            AvatarUrl = user.AvatarUrl,
-            Roles = user.Roles
-        });
-    }
-
-    /// <summary>
-    /// Updates the current authenticated user's profile information
-    /// </summary>
-    /// <param name="request">The profile update request</param>
-    /// <returns>Updated user information</returns>
-    /// <response code="200">Returns updated user information</response>
-    /// <response code="400">If the request is invalid</response>
-    /// <response code="401">If the user is not authenticated</response>
-    [HttpPatch("profile")]
-    [Authorize]
-    [ProducesResponseType(typeof(MeResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<MeResponse>> UpdateProfile([FromBody] UpdateProfileRequest request)
-    {
-        var result = await userService.UpdateProfileAsync(request.ToInput());
-
-        if (!result.IsSuccess)
-        {
-            return BadRequest(result.Error);
-        }
-
-        var user = result.Value!;
-
-        return Ok(new MeResponse
-        {
-            Id = user.Id,
-            Username = user.UserName,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            PhoneNumber = user.PhoneNumber,
-            Bio = user.Bio,
-            AvatarUrl = user.AvatarUrl,
-            Roles = user.Roles
-        });
-    }
-
+    /// <param name="request">The registration details</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>Created response with the new user's ID</returns>
+    /// <response code="201">User successfully created</response>
+    /// <response code="400">If the registration data is invalid</response>
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -168,6 +97,6 @@ public class AuthController(
             return BadRequest(result.Error);
         }
 
-        return CreatedAtAction(nameof(Me), new { id = result.Value });
+        return Created($"/api/users/{result.Value}", new { id = result.Value });
     }
 }

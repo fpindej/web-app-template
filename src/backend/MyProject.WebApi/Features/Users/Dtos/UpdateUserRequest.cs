@@ -3,13 +3,13 @@ using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
 using MyProject.Application.Features.Authentication.Dtos;
 
-namespace MyProject.WebApi.Features.Authentication.Dtos.Profile;
+namespace MyProject.WebApi.Features.Users.Dtos;
 
 /// <summary>
 /// Represents a request to update the user's profile information.
 /// </summary>
 [UsedImplicitly]
-public class UpdateProfileRequest
+public class UpdateUserRequest
 {
     /// <summary>
     /// The first name of the user.

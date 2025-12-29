@@ -1,12 +1,12 @@
 using System.ComponentModel;
 using JetBrains.Annotations;
 
-namespace MyProject.WebApi.Features.Authentication.Dtos.Me;
+namespace MyProject.WebApi.Features.Users.Dtos;
 
 /// <summary>
-/// Represents the authenticated user's information.
+/// Represents the current user's information.
 /// </summary>
-public class MeResponse
+public class UserResponse
 {
     /// <summary>
     /// The unique identifier of the user.
