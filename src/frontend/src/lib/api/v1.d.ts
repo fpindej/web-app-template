@@ -190,6 +190,71 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/auth/profile': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['UpdateProfileRequest'];
+					'text/json': components['schemas']['UpdateProfileRequest'];
+					'application/*+json': components['schemas']['UpdateProfileRequest'];
+				};
+			};
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'text/plain': components['schemas']['MeResponse'];
+						'application/json': components['schemas']['MeResponse'];
+						'text/json': components['schemas']['MeResponse'];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'text/plain': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ProblemDetails'];
+						'text/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description Unauthorized */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'text/plain': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ProblemDetails'];
+						'text/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		trace?: never;
+	};
 	'/api/auth/register': {
 		parameters: {
 			query?: never;
@@ -256,8 +321,20 @@ export interface components {
 			 * @description The unique identifier of the user
 			 */
 			id?: string;
-			/** @description The username of the user */
+			/** @description The username of the user (same as email) */
 			username?: string;
+			/** @description The email address of the user (same as username) */
+			email?: string;
+			/** @description The first name of the user */
+			firstName?: null | string;
+			/** @description The last name of the user */
+			lastName?: null | string;
+			/** @description The phone number of the user */
+			phoneNumber?: null | string;
+			/** @description A short biography or description of the user */
+			bio?: null | string;
+			/** @description The URL to the user's avatar image */
+			avatarUrl?: null | string;
 			/** @description The roles assigned to the user */
 			roles?: string[];
 		};
@@ -280,6 +357,19 @@ export interface components {
 			firstName?: null | string;
 			/** @description The last name of the user (optional), maximum 255 characters */
 			lastName?: null | string;
+		};
+		UpdateProfileRequest: {
+			/** @description The first name of the user (optional), maximum 255 characters */
+			firstName?: null | string;
+			/** @description The last name of the user (optional), maximum 255 characters */
+			lastName?: null | string;
+			/** @description A short biography or description of the user (optional), maximum 1000 characters */
+			bio?: null | string;
+			/**
+			 * Format: uri
+			 * @description The URL to the user's avatar image (optional), must be a valid URL
+			 */
+			avatarUrl?: null | string;
 		};
 	};
 	responses: never;
