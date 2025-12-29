@@ -31,9 +31,9 @@
 		>
 			<Construction class="h-10 w-10 text-muted-foreground" />
 		</div>
-		<h2 class="text-2xl font-bold tracking-tight">{wipTitle ?? m.common_wip_title()}</h2>
+		<h2 class="text-2xl font-bold tracking-tight">{wipTitle ?? m.wip_title()}</h2>
 		<p class="mt-4 max-w-lg text-muted-foreground">
-			{wipDescription ?? m.common_wip_description()}
+			{wipDescription ?? m.wip_description()}
 		</p>
 	</Card.Root>
 </div>

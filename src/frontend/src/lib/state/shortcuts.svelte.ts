@@ -35,20 +35,20 @@ const SHORTCUTS: ShortcutConfig[] = [
 		key: ',',
 		meta: true,
 		action: ShortcutAction.Settings,
-		description: m.common_shortcut_settings
+		description: m.shortcuts_settings
 	},
 	{
 		key: 'l',
 		meta: true,
 		alt: true,
 		action: ShortcutAction.Logout,
-		description: m.common_shortcut_logout
+		description: m.shortcuts_logout
 	},
 	{
 		key: '?',
 		shift: true,
 		action: ShortcutAction.Help,
-		description: m.common_shortcut_help
+		description: m.shortcuts_help
 	}
 ];
 

@@ -67,18 +67,18 @@
 			} else {
 				let errorMessage = '';
 				if (response.status === 401) {
-					errorMessage = m.common_login_invalidCredentials();
+					errorMessage = m.auth_login_invalidCredentials();
 				} else {
-					errorMessage = apiError?.detail || apiError?.title || m.common_login_error();
+					errorMessage = apiError?.detail || apiError?.title || m.auth_login_error();
 				}
-				toast.error(m.common_login_failed(), {
+				toast.error(m.auth_login_failed(), {
 					description: errorMessage
 				});
 				triggerShake();
 			}
 		} catch {
-			toast.error(m.common_login_failed(), {
-				description: m.common_login_error()
+			toast.error(m.auth_login_failed(), {
+				description: m.auth_login_error()
 			});
 			triggerShake();
 		}
@@ -103,8 +103,8 @@
 				)}
 			>
 				<Card.Header>
-					<Card.Title class="text-center text-2xl">{m.common_login_title()}</Card.Title>
-					<Card.Description class="text-center">{m.common_login_subtitle()}</Card.Description>
+					<Card.Title class="text-center text-2xl">{m.auth_login_title()}</Card.Title>
+					<Card.Description class="text-center">{m.auth_login_subtitle()}</Card.Description>
 
 					<div class="mt-4 flex justify-center">
 						<div
@@ -117,7 +117,7 @@
 								)}
 							></div>
 							<span class="group-hover:hidden"
-								>{isApiOnline ? m.common_login_apiOnline() : m.common_login_apiOffline()}</span
+								>{isApiOnline ? m.auth_login_apiOnline() : m.auth_login_apiOffline()}</span
 							>
 							<span class="hidden group-hover:block">{apiUrl}</span>
 						</div>
@@ -126,7 +126,7 @@
 				<Card.Content>
 					<form class="space-y-6" onsubmit={login}>
 						<div class="grid gap-2">
-							<Label for="email">{m.common_login_email()}</Label>
+							<Label for="email">{m.auth_login_email()}</Label>
 							<Input
 								id="email"
 								type="email"
@@ -138,7 +138,7 @@
 						</div>
 
 						<div class="grid gap-2">
-							<Label for="password">{m.common_login_password()}</Label>
+							<Label for="password">{m.auth_login_password()}</Label>
 							<Input
 								id="password"
 								type="password"
@@ -150,17 +150,17 @@
 						</div>
 
 						<Button type="submit" class="w-full" disabled={!isApiOnline}>
-							{isApiOnline ? m.common_login_submit() : m.common_login_apiOffline()}
+							{isApiOnline ? m.auth_login_submit() : m.auth_login_apiOffline()}
 						</Button>
 					</form>
 					<div class="mt-4 text-center text-sm">
-						<span class="text-muted-foreground">{m.common_login_noAccount()}</span>
+						<span class="text-muted-foreground">{m.auth_login_noAccount()}</span>
 						<button
 							type="button"
 							class="ms-1 font-medium text-primary hover:underline"
 							onclick={() => (isRegisterOpen = true)}
 						>
-							{m.common_login_signUp()}
+							{m.auth_login_signUp()}
 						</button>
 					</div>
 				</Card.Content>
@@ -178,7 +178,7 @@
 				<Check class="h-12 w-12" />
 			</div>
 			<h2 class="text-3xl font-bold tracking-tight text-foreground">
-				{m.common_login_success()}
+				{m.auth_login_success()}
 			</h2>
 		</div>
 	{/if}

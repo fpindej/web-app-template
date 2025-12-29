@@ -7,8 +7,8 @@
 </script>
 
 <svelte:head>
-	<title>{m.common_meta_titleTemplate({ title: m.common_meta_profile_title() })}</title>
-	<meta name="description" content={m.common_meta_profile_description()} />
+	<title>{m.meta_titleTemplate({ title: m.meta_profile_title() })}</title>
+	<meta name="description" content={m.meta_profile_description()} />
 </svelte:head>
 
 <div class="space-y-6">

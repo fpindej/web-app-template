@@ -9,17 +9,17 @@
 
 	let items: { title: () => string; href: string; icon: Component<IconProps> }[] = [
 		{
-			title: m.common_dashboard,
+			title: m.nav_dashboard,
 			href: `${base}/`,
 			icon: LayoutDashboard
 		},
 		{
-			title: m.common_analytics,
+			title: m.nav_analytics,
 			href: `${base}/analytics`,
 			icon: ChartPie
 		},
 		{
-			title: m.common_reports,
+			title: m.nav_reports,
 			href: `${base}/reports`,
 			icon: FileText
 		}

@@ -19,7 +19,7 @@
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 				<a href="{base}/" class="flex items-center gap-2 text-lg font-semibold">
 					<Package2 class="h-6 w-6" />
-					<span class="">{m.common_appName()}</span>
+					<span class="">{m.app_name()}</span>
 				</a>
 			</div>
 			<div class="space-y-1">

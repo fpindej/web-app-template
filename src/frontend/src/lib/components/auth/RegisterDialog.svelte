@@ -44,7 +44,7 @@
 		error = null;
 
 		if (password !== confirmPassword) {
-			error = m.common_register_passwordMismatch();
+			error = m.auth_register_passwordMismatch();
 			isLoading = false;
 			return;
 		}
@@ -61,17 +61,17 @@
 			});
 
 			if (response.ok) {
-				toast.success(m.common_register_success());
+				toast.success(m.auth_register_success());
 				const registeredEmail = email;
 				open = false;
 				onSuccess?.(registeredEmail);
 			} else if (apiError) {
-				error = apiError.detail || apiError.title || m.common_register_failed();
+				error = apiError.detail || apiError.title || m.auth_register_failed();
 			} else {
-				error = m.common_register_failed();
+				error = m.auth_register_failed();
 			}
 		} catch {
-			error = m.common_register_failed();
+			error = m.auth_register_failed();
 		} finally {
 			isLoading = false;
 		}
@@ -81,9 +81,9 @@
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
 	<Dialog.Content class="sm:max-w-[425px]">
 		<Dialog.Header>
-			<Dialog.Title>{m.common_register_title()}</Dialog.Title>
+			<Dialog.Title>{m.auth_register_title()}</Dialog.Title>
 			<Dialog.Description>
-				{m.common_register_description()}
+				{m.auth_register_description()}
 			</Dialog.Description>
 		</Dialog.Header>
 		<form
@@ -98,7 +98,7 @@
 			{/if}
 			<div class="grid grid-cols-2 gap-4">
 				<div class="grid gap-2">
-					<Label for="firstName">{m.common_register_firstName()}</Label>
+					<Label for="firstName">{m.auth_register_firstName()}</Label>
 					<Input
 						id="firstName"
 						autocomplete="given-name"
@@ -107,7 +107,7 @@
 					/>
 				</div>
 				<div class="grid gap-2">
-					<Label for="lastName">{m.common_register_lastName()}</Label>
+					<Label for="lastName">{m.auth_register_lastName()}</Label>
 					<Input
 						id="lastName"
 						autocomplete="family-name"
@@ -117,7 +117,7 @@
 				</div>
 			</div>
 			<div class="grid gap-2">
-				<Label for="email">{m.common_register_email()}</Label>
+				<Label for="email">{m.auth_register_email()}</Label>
 				<Input
 					id="email"
 					type="email"
@@ -128,7 +128,7 @@
 				/>
 			</div>
 			<div class="grid gap-2">
-				<Label for="phone">{m.common_register_phone()}</Label>
+				<Label for="phone">{m.auth_register_phone()}</Label>
 				<Input
 					id="phone"
 					type="tel"
@@ -138,7 +138,7 @@
 				/>
 			</div>
 			<div class="grid gap-2">
-				<Label for="password">{m.common_register_password()}</Label>
+				<Label for="password">{m.auth_register_password()}</Label>
 				<Input
 					id="password"
 					type="password"
@@ -150,7 +150,7 @@
 				/>
 			</div>
 			<div class="grid gap-2">
-				<Label for="confirmPassword">{m.common_register_confirmPassword()}</Label>
+				<Label for="confirmPassword">{m.auth_register_confirmPassword()}</Label>
 				<Input
 					id="confirmPassword"
 					type="password"
@@ -166,7 +166,7 @@
 					{#if isLoading}
 						<Loader2 class="me-2 h-4 w-4 animate-spin" />
 					{/if}
-					{m.common_register_submit()}
+					{m.auth_register_submit()}
 				</Button>
 			</Dialog.Footer>
 		</form>

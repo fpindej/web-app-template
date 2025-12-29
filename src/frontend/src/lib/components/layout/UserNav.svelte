@@ -44,16 +44,16 @@
 		<DropdownMenu.Separator />
 		<DropdownMenu.Group>
 			<DropdownMenu.Item onclick={() => goto(`${base}/profile`)}>
-				{m.common_profile()}
+				{m.nav_profile()}
 			</DropdownMenu.Item>
 			<DropdownMenu.Item onclick={() => goto(`${base}/settings`)}>
-				{m.common_settings()}
+				{m.nav_settings()}
 				<DropdownMenu.Shortcut>{getShortcutSymbol(ShortcutAction.Settings)}</DropdownMenu.Shortcut>
 			</DropdownMenu.Item>
 		</DropdownMenu.Group>
 		<DropdownMenu.Separator />
 		<DropdownMenu.Item onclick={logout}>
-			{m.navbar_logout()}
+			{m.nav_logout()}
 			<DropdownMenu.Shortcut>{getShortcutSymbol(ShortcutAction.Logout)}</DropdownMenu.Shortcut>
 		</DropdownMenu.Item>
 	</DropdownMenu.Content>

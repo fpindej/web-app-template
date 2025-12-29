@@ -11,20 +11,20 @@
 
 <Card.Root>
 	<Card.Header>
-		<Card.Title>{m.profile_accountDetails_title()}</Card.Title>
-		<Card.Description>{m.profile_accountDetails_description()}</Card.Description>
+		<Card.Title>{m.profile_account_title()}</Card.Title>
+		<Card.Description>{m.profile_account_description()}</Card.Description>
 	</Card.Header>
 	<Card.Content class="space-y-6">
-		<InfoItem icon={UserIcon} label={m.profile_accountDetails_userId()}>
+		<InfoItem icon={UserIcon} label={m.profile_account_userId()}>
 			{user?.id}
 		</InfoItem>
 
-		<InfoItem icon={Shield} label={m.profile_accountDetails_roles()}>
+		<InfoItem icon={Shield} label={m.profile_account_roles()}>
 			<div class="mt-1 flex flex-wrap gap-2">
 				{#each user?.roles || [] as role (role)}
 					<Badge variant="secondary">{role}</Badge>
 				{:else}
-					<span>{m.profile_accountDetails_noRoles()}</span>
+					<span>{m.profile_account_noRoles()}</span>
 				{/each}
 			</div>
 		</InfoItem>

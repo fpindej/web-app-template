@@ -8,25 +8,25 @@
 	const features = [
 		{
 			title: m.dashboard_feature_auth_title,
-			desc: m.dashboard_feature_auth_desc,
+			desc: m.dashboard_feature_auth_description,
 			icon: ShieldCheck,
 			color: 'text-blue-500'
 		},
 		{
 			title: m.dashboard_feature_i18n_title,
-			desc: m.dashboard_feature_i18n_desc,
+			desc: m.dashboard_feature_i18n_description,
 			icon: Globe,
 			color: 'text-green-500'
 		},
 		{
 			title: m.dashboard_feature_ui_title,
-			desc: m.dashboard_feature_ui_desc,
+			desc: m.dashboard_feature_ui_description,
 			icon: Layout,
 			color: 'text-purple-500'
 		},
 		{
 			title: m.dashboard_feature_api_title,
-			desc: m.dashboard_feature_api_desc,
+			desc: m.dashboard_feature_api_description,
 			icon: FileCode,
 			color: 'text-orange-500'
 		}
@@ -41,8 +41,8 @@
 </script>
 
 <svelte:head>
-	<title>{m.common_meta_titleTemplate({ title: m.common_meta_dashboard_title() })}</title>
-	<meta name="description" content={m.common_meta_dashboard_description()} />
+	<title>{m.meta_titleTemplate({ title: m.meta_dashboard_title() })}</title>
+	<meta name="description" content={m.meta_dashboard_description()} />
 </svelte:head>
 
 <div class="space-y-8">
@@ -95,10 +95,10 @@
 				<div class="rounded-lg border bg-muted/50 p-4">
 					<div class="flex items-center gap-2 text-sm font-medium">
 						<ShieldCheck class="h-4 w-4 text-green-500" />
-						<span>{m.dashboard_serverSideAuth_authenticated()}</span>
+						<span>{m.dashboard_authenticated()}</span>
 					</div>
 					<div class="mt-2 text-xs text-muted-foreground">
-						{m.common_loggedInAs()}
+						{m.nav_loggedInAs()}
 						<span class="font-mono text-foreground">{data.user.username}</span>
 					</div>
 				</div>

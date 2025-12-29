@@ -50,22 +50,22 @@
 	 */
 	function getCountryName(code: string): string {
 		const countryNames: Record<string, () => string> = {
-			cz: m.common_country_cz,
-			sk: m.common_country_sk,
-			de: m.common_country_de,
-			at: m.common_country_at,
-			pl: m.common_country_pl,
-			gb: m.common_country_gb,
-			us: m.common_country_us,
-			fr: m.common_country_fr,
-			it: m.common_country_it,
-			es: m.common_country_es,
-			nl: m.common_country_nl,
-			be: m.common_country_be,
-			ch: m.common_country_ch,
-			hu: m.common_country_hu,
-			ro: m.common_country_ro,
-			ua: m.common_country_ua
+			cz: m.country_cz,
+			sk: m.country_sk,
+			de: m.country_de,
+			at: m.country_at,
+			pl: m.country_pl,
+			gb: m.country_gb,
+			us: m.country_us,
+			fr: m.country_fr,
+			it: m.country_it,
+			es: m.country_es,
+			nl: m.country_nl,
+			be: m.country_be,
+			ch: m.country_ch,
+			hu: m.country_hu,
+			ro: m.country_ro,
+			ua: m.country_ua
 		};
 		return countryNames[code]?.() ?? code.toUpperCase();
 	}

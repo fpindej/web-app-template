@@ -48,7 +48,7 @@
 	function handleUrlChange(value: string) {
 		avatarUrl = value;
 		if (value && !isValidAvatarUrl(value)) {
-			avatarUrlError = m.profile_personalInfo_avatarUrlInvalid();
+			avatarUrlError = m.profile_avatar_urlInvalid();
 		} else {
 			avatarUrlError = '';
 		}
@@ -56,7 +56,7 @@
 
 	async function handleSubmit() {
 		if (avatarUrl && !isValidAvatarUrl(avatarUrl)) {
-			avatarUrlError = m.profile_personalInfo_avatarUrlInvalid();
+			avatarUrlError = m.profile_avatar_urlInvalid();
 			return;
 		}
 
@@ -78,16 +78,15 @@
 			});
 
 			if (response.ok) {
-				toast.success(m.profile_personalInfo_avatarUpdateSuccess());
+				toast.success(m.profile_avatar_updateSuccess());
 				open = false;
 				await invalidateAll();
 			} else {
-				const errorMessage =
-					apiError?.detail || apiError?.title || m.profile_personalInfo_avatarUpdateError();
-				toast.error(m.profile_personalInfo_avatarUpdateError(), { description: errorMessage });
+				const errorMessage = apiError?.detail || apiError?.title || m.profile_avatar_updateError();
+				toast.error(m.profile_avatar_updateError(), { description: errorMessage });
 			}
 		} catch {
-			toast.error(m.profile_personalInfo_avatarUpdateError());
+			toast.error(m.profile_avatar_updateError());
 		} finally {
 			isLoading = false;
 		}
@@ -98,15 +97,15 @@
 	<Dialog.Trigger>
 		{#snippet child({ props })}
 			<Button {...props} variant="outline" size="sm" class="mt-2 w-full sm:w-auto">
-				{m.profile_personalInfo_changeAvatar()}
+				{m.profile_avatar_change()}
 			</Button>
 		{/snippet}
 	</Dialog.Trigger>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
-			<Dialog.Title>{m.profile_personalInfo_avatarDialogTitle()}</Dialog.Title>
+			<Dialog.Title>{m.profile_avatar_dialogTitle()}</Dialog.Title>
 			<Dialog.Description>
-				{m.profile_personalInfo_avatarDialogDescription()}
+				{m.profile_avatar_dialogDescription()}
 			</Dialog.Description>
 		</Dialog.Header>
 		<div class="grid gap-4 py-4">
@@ -121,19 +120,19 @@
 				</Avatar.Root>
 			</div>
 			<div class="grid gap-2">
-				<Label for="avatarUrl">{m.profile_personalInfo_avatarUrl()}</Label>
+				<Label for="avatarUrl">{m.profile_avatar_url()}</Label>
 				<Input
 					id="avatarUrl"
 					type="url"
 					value={avatarUrl}
 					oninput={(e) => handleUrlChange(e.currentTarget.value)}
-					placeholder={m.profile_personalInfo_avatarUrlPlaceholder()}
+					placeholder={m.profile_avatar_urlPlaceholder()}
 				/>
 				{#if avatarUrlError}
 					<p class="text-xs text-destructive">{avatarUrlError}</p>
 				{:else}
 					<p class="text-xs text-muted-foreground">
-						{m.profile_personalInfo_avatarUrlHint()}
+						{m.profile_avatar_urlHint()}
 					</p>
 				{/if}
 			</div>
@@ -142,7 +141,7 @@
 			<div>
 				{#if currentAvatarUrl}
 					<Button variant="destructive" onclick={handleRemove} disabled={isLoading}>
-						{m.profile_personalInfo_avatarRemove()}
+						{m.profile_avatar_remove()}
 					</Button>
 				{/if}
 			</div>
@@ -150,12 +149,12 @@
 				<Dialog.Close>
 					{#snippet child({ props })}
 						<Button {...props} variant="outline">
-							{m.profile_personalInfo_avatarCancel()}
+							{m.profile_avatar_cancel()}
 						</Button>
 					{/snippet}
 				</Dialog.Close>
 				<Button onclick={handleSubmit} disabled={isLoading || !!avatarUrlError}>
-					{m.profile_personalInfo_avatarSave()}
+					{m.profile_avatar_save()}
 				</Button>
 			</div>
 		</Dialog.Footer>

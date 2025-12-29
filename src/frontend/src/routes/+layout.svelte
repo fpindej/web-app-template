@@ -34,8 +34,8 @@
 <ShortcutsHelp />
 
 <svelte:head>
-	<title>{m.common_appName()}</title>
-	<meta name="description" content={m.common_meta_description()} />
+	<title>{m.app_name()}</title>
+	<meta name="description" content={m.meta_description()} />
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
