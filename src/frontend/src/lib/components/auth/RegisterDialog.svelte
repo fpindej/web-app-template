@@ -3,6 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import { PhoneInput } from '$lib/components/ui/phone-input';
 	import { browserClient } from '$lib/api/client';
 	import * as m from '$lib/paraglide/messages';
 	import { toast } from '$lib/components/ui/sonner';
@@ -129,13 +130,7 @@
 			</div>
 			<div class="grid gap-2">
 				<Label for="phone">{m.auth_register_phone()}</Label>
-				<Input
-					id="phone"
-					type="tel"
-					autocomplete="tel"
-					bind:value={phoneNumber}
-					disabled={isLoading}
-				/>
+				<PhoneInput id="phone" bind:value={phoneNumber} disabled={isLoading} />
 			</div>
 			<div class="grid gap-2">
 				<Label for="password">{m.auth_register_password()}</Label>
