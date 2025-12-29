@@ -74,6 +74,7 @@
 	"profile_personalInfo_bio": "Bio",
 	"profile_personalInfo_bioPlaceholder": "Tell us a little bit about yourself",
 	"profile_personalInfo_saving": "Saving...",
+	"profile_personalInfo_noEmail": "No email set",
 	"profile_personalInfo_saveChanges": "Save Changes",
 	"profile_accountDetails_title": "Account Details",
 	"profile_accountDetails_description": "Manage your account settings.",

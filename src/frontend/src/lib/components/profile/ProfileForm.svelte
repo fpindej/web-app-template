@@ -10,10 +10,11 @@
 
 	let { user }: { user: User | null | undefined } = $props();
 
-	// Mock data for placeholders
-	let fullName = $state('John Doe');
-	let email = $state('john.doe@example.com');
-	let bio = $state('Software Engineer based in San Francisco.');
+	// Form state - these fields would be populated from an extended profile API
+	// TODO: Add fullName, email, bio to the User schema when backend supports it
+	let fullName = $state('');
+	let email = $state('');
+	let bio = $state('');
 	let isLoading = $state(false);
 
 	function handleSubmit(e: Event) {
@@ -42,8 +43,8 @@
 					</Avatar.Root>
 				</div>
 				<div class="flex flex-col gap-1 text-center sm:text-left">
-					<h3 class="text-lg font-medium">{fullName}</h3>
-					<p class="text-sm text-muted-foreground">{email}</p>
+					<h3 class="text-lg font-medium">{fullName || user?.username || m.common_user()}</h3>
+					<p class="text-sm text-muted-foreground">{email || m.profile_personalInfo_noEmail()}</p>
 					<Button variant="outline" size="sm" class="mt-2 w-full sm:w-auto">
 						{m.profile_personalInfo_changeAvatar()}
 					</Button>
