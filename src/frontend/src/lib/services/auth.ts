@@ -10,7 +10,7 @@ export async function getUser(
 	const client = createApiClient(fetch, origin);
 
 	try {
-		const { data: user, response } = await client.GET('/api/auth/me');
+		const { data: user, response } = await client.GET('/api/users/me');
 		if (response.ok && user) {
 			return user;
 		}

@@ -71,6 +71,8 @@
 	"profile_personalInfo_lastNamePlaceholder": "Vaše příjmení",
 	"profile_personalInfo_email": "E-mail",
 	"profile_personalInfo_emailDescription": "Váš e-mail nelze zde změnit.",
+	"profile_personalInfo_phoneNumber": "Telefonní číslo",
+	"profile_personalInfo_phoneNumberPlaceholder": "+420 123 456 789",
 	"profile_personalInfo_bio": "Bio",
 	"profile_personalInfo_bioPlaceholder": "Napište něco o sobě",
 	"profile_personalInfo_saving": "Ukládání...",

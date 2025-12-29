@@ -4,6 +4,103 @@
  */
 
 export interface paths {
+	'/api/users/me': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'text/plain': components['schemas']['UserResponse'];
+						'application/json': components['schemas']['UserResponse'];
+						'text/json': components['schemas']['UserResponse'];
+					};
+				};
+				/** @description Unauthorized */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'text/plain': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ProblemDetails'];
+						'text/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['UpdateUserRequest'];
+					'text/json': components['schemas']['UpdateUserRequest'];
+					'application/*+json': components['schemas']['UpdateUserRequest'];
+				};
+			};
+			responses: {
+				/** @description OK */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'text/plain': components['schemas']['UserResponse'];
+						'application/json': components['schemas']['UserResponse'];
+						'text/json': components['schemas']['UserResponse'];
+					};
+				};
+				/** @description Bad Request */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'text/plain': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ProblemDetails'];
+						'text/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description Unauthorized */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'text/plain': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ProblemDetails'];
+						'text/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		trace?: never;
+	};
 	'/api/auth/login': {
 		parameters: {
 			query?: never;
@@ -142,119 +239,6 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/api/auth/me': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description OK */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'text/plain': components['schemas']['MeResponse'];
-						'application/json': components['schemas']['MeResponse'];
-						'text/json': components['schemas']['MeResponse'];
-					};
-				};
-				/** @description Unauthorized */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
-						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/auth/profile': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': components['schemas']['UpdateProfileRequest'];
-					'text/json': components['schemas']['UpdateProfileRequest'];
-					'application/*+json': components['schemas']['UpdateProfileRequest'];
-				};
-			};
-			responses: {
-				/** @description OK */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'text/plain': components['schemas']['MeResponse'];
-						'application/json': components['schemas']['MeResponse'];
-						'text/json': components['schemas']['MeResponse'];
-					};
-				};
-				/** @description Bad Request */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
-						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
-					};
-				};
-				/** @description Unauthorized */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
-						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
-					};
-				};
-			};
-		};
-		trace?: never;
-	};
 	'/api/auth/register': {
 		parameters: {
 			query?: never;
@@ -315,7 +299,42 @@ export interface components {
 			/** @description The password for authentication */
 			password: string;
 		};
-		MeResponse: {
+		ProblemDetails: {
+			type?: null | string;
+			title?: null | string;
+			/** Format: int32 */
+			status?: null | number | string;
+			detail?: null | string;
+			instance?: null | string;
+		};
+		RegisterRequest: {
+			/** @description The email address for the new account */
+			email: string;
+			/** @description The password for the new account, must be at least 6 characters */
+			password: string;
+			/** @description The phone number for the new account (optional), must be a valid European format */
+			phoneNumber?: null | string;
+			/** @description The first name of the user (optional), maximum 255 characters */
+			firstName?: null | string;
+			/** @description The last name of the user (optional), maximum 255 characters */
+			lastName?: null | string;
+		};
+		UpdateUserRequest: {
+			/** @description The first name of the user (optional), maximum 255 characters */
+			firstName?: null | string;
+			/** @description The last name of the user (optional), maximum 255 characters */
+			lastName?: null | string;
+			/** @description The phone number of the user (optional), must be a valid format */
+			phoneNumber?: null | string;
+			/** @description A short biography or description of the user (optional), maximum 1000 characters */
+			bio?: null | string;
+			/**
+			 * Format: uri
+			 * @description The URL to the user's avatar image (optional), must be a valid URL
+			 */
+			avatarUrl?: null | string;
+		};
+		UserResponse: {
 			/**
 			 * Format: uuid
 			 * @description The unique identifier of the user
@@ -337,39 +356,6 @@ export interface components {
 			avatarUrl?: null | string;
 			/** @description The roles assigned to the user */
 			roles?: string[];
-		};
-		ProblemDetails: {
-			type?: null | string;
-			title?: null | string;
-			/** Format: int32 */
-			status?: null | number | string;
-			detail?: null | string;
-			instance?: null | string;
-		};
-		RegisterRequest: {
-			/** @description The email address for the new account */
-			email: string;
-			/** @description The password for the new account, must be at least 6 characters */
-			password: string;
-			/** @description The phone number for the new account (optional), must be a valid European format */
-			phoneNumber?: null | string;
-			/** @description The first name of the user (optional), maximum 255 characters */
-			firstName?: null | string;
-			/** @description The last name of the user (optional), maximum 255 characters */
-			lastName?: null | string;
-		};
-		UpdateProfileRequest: {
-			/** @description The first name of the user (optional), maximum 255 characters */
-			firstName?: null | string;
-			/** @description The last name of the user (optional), maximum 255 characters */
-			lastName?: null | string;
-			/** @description A short biography or description of the user (optional), maximum 1000 characters */
-			bio?: null | string;
-			/**
-			 * Format: uri
-			 * @description The URL to the user's avatar image (optional), must be a valid URL
-			 */
-			avatarUrl?: null | string;
 		};
 	};
 	responses: never;

@@ -16,6 +16,7 @@
 	// Form state - synced with user prop changes
 	let firstName = $state('');
 	let lastName = $state('');
+	let phoneNumber = $state('');
 	let bio = $state('');
 	let isLoading = $state(false);
 
@@ -23,6 +24,7 @@
 	$effect(() => {
 		firstName = user?.firstName ?? '';
 		lastName = user?.lastName ?? '';
+		phoneNumber = user?.phoneNumber ?? '';
 		bio = user?.bio ?? '';
 	});
 
@@ -50,10 +52,11 @@
 		isLoading = true;
 
 		try {
-			const { response, error: apiError } = await browserClient.PATCH('/api/auth/profile', {
+			const { response, error: apiError } = await browserClient.PATCH('/api/users/me', {
 				body: {
 					firstName: firstName || null,
 					lastName: lastName || null,
+					phoneNumber: phoneNumber || null,
 					bio: bio || null
 				}
 			});
@@ -129,6 +132,17 @@
 							placeholder={m.profile_personalInfo_lastNamePlaceholder()}
 						/>
 					</div>
+				</div>
+
+				<div class="grid gap-2">
+					<Label for="phoneNumber">{m.profile_personalInfo_phoneNumber()}</Label>
+					<Input
+						id="phoneNumber"
+						type="tel"
+						autocomplete="tel"
+						bind:value={phoneNumber}
+						placeholder={m.profile_personalInfo_phoneNumberPlaceholder()}
+					/>
 				</div>
 
 				<div class="grid gap-2">
