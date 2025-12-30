@@ -239,14 +239,14 @@ configure_registry() {
 }
 
 prompt_bump_type() {
-    echo ""
-    echo -e "${BOLD}Version bump type:${NC}"
-    echo ""
-    echo "  [1] Patch  (0.1.0 → 0.1.1) - bug fixes"
-    echo "  [2] Minor  (0.1.0 → 0.2.0) - new features"
-    echo "  [3] Major  (0.1.0 → 1.0.0) - breaking changes"
-    echo "  [4] None   (rebuild current version)"
-    echo ""
+    echo "" >&2
+    echo -e "${BOLD}Version bump type:${NC}" >&2
+    echo "" >&2
+    echo "  [1] Patch  (0.1.0 → 0.1.1) - bug fixes" >&2
+    echo "  [2] Minor  (0.1.0 → 0.2.0) - new features" >&2
+    echo "  [3] Major  (0.1.0 → 1.0.0) - breaking changes" >&2
+    echo "  [4] None   (rebuild current version)" >&2
+    echo "" >&2
     read -p "$(echo -e "${BOLD}Choose [1-4]${NC} (default: 1): ")" choice
     
     case ${choice:-1} in
