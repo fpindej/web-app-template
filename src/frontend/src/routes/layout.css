@@ -156,38 +156,8 @@
 }
 
 /* -----------------------------------------------------------------------------
-   Pulse Animations
-   Slow, ambient pulsing for background glows and decorative elements.
-   ----------------------------------------------------------------------------- */
-@keyframes pulse-slow {
-	0%,
-	100% {
-		opacity: 0.2;
-	}
-	50% {
-		opacity: 0.4;
-	}
-}
-
-.animate-pulse-slow {
-	animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animation-delay-500 {
-	animation-delay: 0.5s;
-}
-
-.animation-delay-1000 {
-	animation-delay: 1s;
-}
-
-.animation-delay-2000 {
-	animation-delay: 2s;
-}
-
-/* -----------------------------------------------------------------------------
    Glow Effects
-   Ambient lighting effects for corners and backgrounds.
+   Static ambient lighting effects for corners and backgrounds.
    Usage: Add to a positioned container with overflow-hidden.
    ----------------------------------------------------------------------------- */
 .glow-top-end {
@@ -239,7 +209,7 @@
 	pointer-events: none;
 }
 
-/* Status-specific glows */
+/* Status-specific glows - for status indicators and themed elements */
 .glow-success {
 	position: absolute;
 	top: -1rem;
@@ -261,6 +231,15 @@
 	border-radius: 9999px;
 	background: hsl(var(--destructive) / 0.2);
 	filter: blur(32px);
+	pointer-events: none;
+}
+
+.glow-warning {
+	position: absolute;
+	inset: -1rem;
+	border-radius: 9999px;
+	background: hsl(var(--warning) / 0.15);
+	filter: blur(24px);
 	pointer-events: none;
 }
 

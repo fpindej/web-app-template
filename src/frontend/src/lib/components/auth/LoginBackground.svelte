@@ -9,10 +9,10 @@
 </script>
 
 <div class="relative min-h-screen overflow-hidden bg-background" role="presentation">
-	<!-- Subtle Ambient Glows - consistent with design system -->
+	<!-- Subtle Ambient Glows -->
 	<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-		<div class="glow-xl-top-end animate-pulse-slow opacity-60"></div>
-		<div class="glow-xl-bottom-start animate-pulse-slow animation-delay-2000 opacity-60"></div>
+		<div class="glow-xl-top-end"></div>
+		<div class="glow-xl-bottom-start"></div>
 	</div>
 
 	<div

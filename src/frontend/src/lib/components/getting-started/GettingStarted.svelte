@@ -144,10 +144,10 @@
 </script>
 
 <div class="relative space-y-8 pb-8">
-	<!-- Animated Background Gradient -->
+	<!-- Ambient Background Glows -->
 	<div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
-		<div class="glow-xl-top-end animate-pulse-slow"></div>
-		<div class="glow-xl-bottom-start animate-pulse-slow animation-delay-1000"></div>
+		<div class="glow-xl-top-end"></div>
+		<div class="glow-xl-bottom-start"></div>
 	</div>
 
 	<!-- Hero Section -->
