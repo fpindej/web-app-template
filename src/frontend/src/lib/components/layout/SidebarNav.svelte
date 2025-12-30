@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { LayoutDashboard, ChartPie, FileText, type IconProps } from '@lucide/svelte';
@@ -10,23 +10,23 @@
 	let items: { title: () => string; href: string; icon: Component<IconProps> }[] = [
 		{
 			title: m.nav_dashboard,
-			href: `${base}/`,
+			href: resolve('/'),
 			icon: LayoutDashboard
 		},
 		{
 			title: m.nav_analytics,
-			href: `${base}/analytics`,
+			href: resolve('/analytics'),
 			icon: ChartPie
 		},
 		{
 			title: m.nav_reports,
-			href: `${base}/reports`,
+			href: resolve('/reports'),
 			icon: FileText
 		}
 	];
 
 	function isActive(href: string, pathname: string) {
-		if (href === `${base}/`) {
+		if (href === resolve('/')) {
 			return pathname === href;
 		}
 		return pathname.startsWith(href);
@@ -38,7 +38,6 @@
 >
 	{#each items as item (item.href)}
 		{@const active = isActive(item.href, $page.url.pathname)}
-		<!-- eslint-disable svelte/no-navigation-without-resolve -->
 		<a
 			href={item.href}
 			class={cn(
@@ -54,6 +53,5 @@
 			<item.icon class="me-2 h-4 w-4" />
 			{item.title()}
 		</a>
-		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	{/each}
 </nav>

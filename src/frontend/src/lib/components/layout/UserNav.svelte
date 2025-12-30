@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import * as m from '$lib/paraglide/messages';
 	import type { User } from '$lib/types';
 	import { getShortcutSymbol, ShortcutAction } from '$lib/state/shortcuts.svelte';
@@ -21,7 +21,6 @@
 	}
 </script>
 
-<!-- eslint-disable svelte/no-navigation-without-resolve -->
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger>
 		{#snippet child({ props })}
@@ -43,10 +42,10 @@
 		</DropdownMenu.Label>
 		<DropdownMenu.Separator />
 		<DropdownMenu.Group>
-			<DropdownMenu.Item onclick={() => goto(`${base}/profile`)}>
+			<DropdownMenu.Item onclick={() => goto(resolve('/profile'))}>
 				{m.nav_profile()}
 			</DropdownMenu.Item>
-			<DropdownMenu.Item onclick={() => goto(`${base}/settings`)}>
+			<DropdownMenu.Item onclick={() => goto(resolve('/settings'))}>
 				{m.nav_settings()}
 				<DropdownMenu.Shortcut>{getShortcutSymbol(ShortcutAction.Settings)}</DropdownMenu.Shortcut>
 			</DropdownMenu.Item>

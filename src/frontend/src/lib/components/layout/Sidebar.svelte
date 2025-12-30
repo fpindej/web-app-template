@@ -2,7 +2,7 @@
 	import { cn } from '$lib/utils';
 	import { SidebarNav, ThemeToggle, LanguageSelector, UserNav } from '$lib/components/layout';
 	import { Package2 } from '@lucide/svelte';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import type { User } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
 
@@ -13,8 +13,7 @@
 	<div class="flex-1 overflow-auto py-4">
 		<div class="px-3 py-2">
 			<div class="mb-2 px-4">
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href="{base}/" class="flex items-center gap-2 text-lg font-semibold">
+				<a href={resolve('/')} class="flex items-center gap-2 text-lg font-semibold">
 					<Package2 class="h-6 w-6" />
 					<span class="">{m.app_name()}</span>
 				</a>

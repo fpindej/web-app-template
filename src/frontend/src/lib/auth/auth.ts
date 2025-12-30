@@ -1,5 +1,5 @@
 import { goto, invalidateAll } from '$app/navigation';
-import { base } from '$app/paths';
+import { resolve } from '$app/paths';
 import { browserClient, createApiClient } from '$lib/api/client';
 import type { User } from '$lib/types';
 
@@ -24,6 +24,5 @@ export async function getUser(
 export async function logout() {
 	await browserClient.POST('/api/auth/logout');
 	await invalidateAll();
-	// eslint-disable-next-line svelte/no-navigation-without-resolve
-	await goto(`${base}/login`);
+	await goto(resolve('/login'));
 }

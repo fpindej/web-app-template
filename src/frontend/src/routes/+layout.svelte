@@ -8,7 +8,7 @@
 	import { Toaster } from '$lib/components/ui/sonner';
 	import { globalShortcuts } from '$lib/state/shortcuts.svelte';
 	import { goto } from '$app/navigation';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { logout } from '$lib/auth';
 	import { ShortcutsHelp } from '$lib/components/layout';
 
@@ -19,8 +19,7 @@
 	});
 
 	async function handleSettings() {
-		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		await goto(`${base}/settings`);
+		await goto(resolve('/settings'));
 	}
 </script>
 

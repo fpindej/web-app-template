@@ -3,13 +3,12 @@
 	import * as Sheet from '$lib/components/ui/sheet';
 	import { Menu, Package2 } from '@lucide/svelte';
 	import { SidebarNav, ThemeToggle, LanguageSelector, UserNav } from '$lib/components/layout';
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import type { User } from '$lib/types';
 	let { user }: { user: User | null | undefined } = $props();
 	let open = $state(false);
 </script>
 
-<!-- eslint-disable svelte/no-navigation-without-resolve -->
 <header class="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 md:hidden">
 	<Sheet.Root bind:open>
 		<Sheet.Trigger>
@@ -22,7 +21,7 @@
 		</Sheet.Trigger>
 		<Sheet.Content side="left" class="flex flex-col">
 			<nav class="grid gap-2 text-lg font-medium">
-				<a href="{base}/" class="flex items-center gap-2 text-lg font-semibold">
+				<a href={resolve('/')} class="flex items-center gap-2 text-lg font-semibold">
 					<Package2 class="h-6 w-6" />
 					<span class="sr-only">MyProject</span>
 				</a>
