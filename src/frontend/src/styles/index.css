@@ -1,0 +1,28 @@
+/* =============================================================================
+   MAIN STYLESHEET
+   Entry point for all styles. Import order matters.
+   ============================================================================= */
+
+/* Tailwind base */
+@import 'tailwindcss';
+
+/* Tailwind plugins */
+@plugin 'tailwindcss-animate';
+
+/* Dark mode variant */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens and theme variables */
+@import './themes.css';
+
+/* Tailwind theme configuration */
+@import './tailwind.css';
+
+/* Base element styles */
+@import './base.css';
+
+/* Animations and keyframes */
+@import './animations.css';
+
+/* Utility classes */
+@import './utilities.css';

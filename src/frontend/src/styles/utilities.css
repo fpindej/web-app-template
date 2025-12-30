@@ -1,0 +1,165 @@
+/* =============================================================================
+   UTILITY CLASSES
+   Reusable utility classes for effects, glows, and interactive elements.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   Glow Effects
+   Ambient lighting effects for corners and backgrounds.
+   Usage: Add to a positioned container with overflow-hidden.
+   ----------------------------------------------------------------------------- */
+.glow-xl-top-end {
+	position: absolute;
+	top: -10rem;
+	inset-inline-end: -10rem;
+	width: 20rem;
+	height: 20rem;
+	border-radius: 9999px;
+	background: linear-gradient(to bottom left, hsl(var(--primary) / 0.2), hsl(280 70% 50% / 0.2));
+	filter: blur(48px);
+	pointer-events: none;
+}
+
+.glow-xl-bottom-start {
+	position: absolute;
+	bottom: -10rem;
+	inset-inline-start: -10rem;
+	width: 20rem;
+	height: 20rem;
+	border-radius: 9999px;
+	background: linear-gradient(to top right, hsl(200 70% 50% / 0.2), hsl(180 70% 50% / 0.2));
+	filter: blur(48px);
+	pointer-events: none;
+}
+
+/* Status-specific glows - for status indicators and themed elements */
+.glow-success {
+	position: absolute;
+	top: -1rem;
+	inset-inline-end: -1rem;
+	width: 5rem;
+	height: 5rem;
+	border-radius: 9999px;
+	background: hsl(var(--success) / 0.2);
+	filter: blur(32px);
+	pointer-events: none;
+}
+
+.glow-destructive {
+	position: absolute;
+	top: -1rem;
+	inset-inline-end: -1rem;
+	width: 5rem;
+	height: 5rem;
+	border-radius: 9999px;
+	background: hsl(var(--destructive) / 0.2);
+	filter: blur(32px);
+	pointer-events: none;
+}
+
+.glow-warning {
+	position: absolute;
+	inset: -1rem;
+	border-radius: 9999px;
+	background: hsl(var(--warning) / 0.15);
+	filter: blur(24px);
+	pointer-events: none;
+}
+
+/* -----------------------------------------------------------------------------
+   Card Hover Effects
+   Interactive lift and glow effects for cards and interactive elements.
+   ----------------------------------------------------------------------------- */
+.card-hover {
+	transition:
+		transform 0.3s ease,
+		box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+	transform: translateY(-2px);
+	box-shadow:
+		0 10px 25px -5px hsl(var(--primary) / 0.05),
+		0 8px 10px -6px hsl(var(--primary) / 0.05);
+}
+
+/* -----------------------------------------------------------------------------
+   Status Indicators
+   Dot and ping styles for online/offline indicators.
+   ----------------------------------------------------------------------------- */
+.status-indicator {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.status-indicator-dot {
+	width: 0.5rem;
+	height: 0.5rem;
+	border-radius: 9999px;
+}
+
+.status-indicator-ping {
+	position: absolute;
+	inset: 0;
+	border-radius: 9999px;
+	animation: status-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Status colors */
+.status-online .status-indicator-dot,
+.status-online .status-indicator-ping {
+	background-color: hsl(var(--success));
+}
+
+.status-offline .status-indicator-dot,
+.status-offline .status-indicator-ping {
+	background-color: hsl(var(--destructive));
+}
+
+.status-warning .status-indicator-dot,
+.status-warning .status-indicator-ping {
+	background-color: hsl(var(--warning));
+}
+
+/* Icon-based status with ping effect */
+.status-icon-container {
+	position: relative;
+	display: inline-flex;
+}
+
+.status-icon-ping {
+	position: absolute;
+	inset: 0;
+	animation: status-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* -----------------------------------------------------------------------------
+   Dialog & Modal Enhancements
+   Subtle glow effects for dialogs and modals.
+   ----------------------------------------------------------------------------- */
+[data-slot='dialog-content'] {
+	box-shadow:
+		0 25px 50px -12px hsl(var(--primary) / 0.08),
+		0 0 0 1px hsl(var(--border));
+}
+
+[data-slot='dialog-content']::before {
+	content: '';
+	position: absolute;
+	inset: -1px;
+	border-radius: inherit;
+	padding: 1px;
+	background: linear-gradient(
+		135deg,
+		hsl(var(--primary) / 0.15),
+		transparent 50%,
+		hsl(280 70% 50% / 0.1)
+	);
+	mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	mask-composite: exclude;
+	pointer-events: none;
+}
