@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Web API Template - Project Initialization Script
 
@@ -47,13 +47,13 @@
 param (
     [Alias("n")]
     [string]$Name,
-    
+
     [Alias("p")]
     [int]$Port = 13000,
-    
+
     [Alias("y")]
     [switch]$Yes,
-    
+
     [switch]$NoMigration,
     [switch]$NoCommit,
     [switch]$NoDocker,
@@ -62,70 +62,74 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-# ─────────────────────────────────────────────────────────────────────────────
+# Get script directory and ensure we're working from there
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Push-Location $ScriptDir
+
+try {
+
+# -----------------------------------------------------------------------------
 # Colors and Formatting
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 function Write-Header {
     param([string]$Text)
     Write-Host ""
-    Write-Host "══════════════════════════════════════════════════════════════" -ForegroundColor Blue
+    Write-Host "==============================================================" -ForegroundColor Blue
     Write-Host "  $Text" -ForegroundColor Blue
-    Write-Host "══════════════════════════════════════════════════════════════" -ForegroundColor Blue
+    Write-Host "==============================================================" -ForegroundColor Blue
 }
 
 function Write-Step {
     param([string]$Text)
     Write-Host ""
-    Write-Host "▶ $Text" -ForegroundColor Cyan
+    Write-Host ">> $Text" -ForegroundColor Cyan
 }
 
 function Write-SubStep {
     param([string]$Text)
-    Write-Host "  → $Text" -ForegroundColor DarkGray
+    Write-Host "   -> $Text" -ForegroundColor DarkGray
 }
 
 function Write-Success {
     param([string]$Text)
-    Write-Host "✓ $Text" -ForegroundColor Green
+    Write-Host "[OK] $Text" -ForegroundColor Green
 }
 
 function Write-Warning {
     param([string]$Text)
-    Write-Host "⚠ $Text" -ForegroundColor Yellow
+    Write-Host "[WARN] $Text" -ForegroundColor Yellow
 }
 
 function Write-ErrorMessage {
     param([string]$Text)
-    Write-Host "✗ $Text" -ForegroundColor Red
+    Write-Host "[ERROR] $Text" -ForegroundColor Red
 }
 
 function Write-Info {
     param([string]$Text)
-    Write-Host "ℹ $Text" -ForegroundColor DarkGray
+    Write-Host "[INFO] $Text" -ForegroundColor DarkGray
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Helper Functions
-# ─────────────────────────────────────────────────────────────────────────────
-
-# Prompt for yes/no with default. Returns $true or $false
+# -----------------------------------------------------------------------------
 function Read-YesNo {
     param(
         [string]$Question,
         [bool]$Default = $true
     )
-    
+
     if ($Yes) {
         return $Default
     }
-    
+
     $hint = if ($Default) { "[Y/n]" } else { "[y/N]" }
     $response = Read-Host "$Question $hint"
-    
+
     if ([string]::IsNullOrWhiteSpace($response)) {
         return $Default
     }
-    
+
     return $response.ToLower() -eq "y"
 }
 
@@ -134,14 +138,14 @@ function Read-Value {
         [string]$Question,
         [string]$Default = ""
     )
-    
+
     if ($Yes -and -not [string]::IsNullOrWhiteSpace($Default)) {
         return $Default
     }
-    
+
     $prompt = if ([string]::IsNullOrWhiteSpace($Default)) { $Question } else { "$Question [$Default]" }
     $response = Read-Host $prompt
-    
+
     if ([string]::IsNullOrWhiteSpace($response)) {
         return $Default
     }
@@ -150,11 +154,11 @@ function Read-Value {
 
 function Test-Prerequisites {
     $missing = @()
-    
+
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { $missing += "git" }
     if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { $missing += "dotnet" }
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { $missing += "docker" }
-    
+
     if ($missing.Count -gt 0) {
         Write-ErrorMessage "Missing required tools: $($missing -join ', ')"
         Write-Host "Please install them before running this script."
@@ -164,39 +168,38 @@ function Test-Prerequisites {
 
 function Test-ProjectName {
     param([string]$ProjectName)
-    
+
     if ([string]::IsNullOrWhiteSpace($ProjectName)) {
         Write-ErrorMessage "Project name cannot be empty"
         return $false
     }
-    
+
     if ($ProjectName -notmatch "^[A-Z][a-zA-Z0-9]*$") {
         Write-ErrorMessage "Project name must start with uppercase letter and contain only alphanumeric characters"
         Write-Info "Example: MyAwesomeApi, TodoApp, WebApi"
         return $false
     }
-    
+
     if ($ProjectName -eq "MyProject") {
         Write-ErrorMessage "Please choose a different name than 'MyProject'"
         return $false
     }
-    
+
     return $true
 }
 
 function Test-Port {
     param([int]$PortNumber)
-    
+
     if ($PortNumber -lt 1024 -or $PortNumber -gt 65530) {
         Write-ErrorMessage "Port must be between 1024 and 65530"
         return $false
     }
-    
+
     return $true
 }
 
-# Replace text in file without BOM
-function Set-FileContentNoBom {
+function Set-FileContent {
     param(
         [string]$Path,
         [string]$Content
@@ -205,9 +208,9 @@ function Set-FileContentNoBom {
     [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Main Script
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 Clear-Host
 Write-Header "Web API Template Initialization"
 
@@ -216,9 +219,9 @@ Write-Step "Checking prerequisites..."
 Test-Prerequisites
 Write-Success "All prerequisites found (git, dotnet, docker)"
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Configuration Phase
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 Write-Header "Configuration"
 
 # Project Name
@@ -226,7 +229,7 @@ while ($true) {
     if ([string]::IsNullOrWhiteSpace($Name)) {
         $Name = Read-Value "Project name (e.g., MyAwesomeApi)"
     }
-    
+
     if (Test-ProjectName $Name) {
         break
     }
@@ -239,7 +242,7 @@ while ($true) {
         $portInput = Read-Value "Base port" $Port.ToString()
         $Port = [int]$portInput
     }
-    
+
     if (Test-Port $Port) {
         break
     }
@@ -259,24 +262,24 @@ $DoCommit = if ($NoCommit) { $false } else { Read-YesNo "  Auto-commit changes t
 $StartDocker = if ($NoDocker) { $false } else { Read-YesNo "  Start docker compose after setup?" $false }
 $DeleteScripts = if ($KeepScripts) { $false } else { Read-YesNo "  Delete init scripts when done?" $true }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Summary & Confirmation
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
+# Summary and Confirmation
+# -----------------------------------------------------------------------------
 Write-Header "Summary"
 
 Write-Host ""
 Write-Host "  Project Configuration" -ForegroundColor White
-Write-Host "  ─────────────────────────────────────"
+Write-Host "  -------------------------------------"
 Write-Host "  Project Name:     " -NoNewline; Write-Host $Name -ForegroundColor Green
 Write-Host ""
 Write-Host "  Port Allocation" -ForegroundColor White
-Write-Host "  ─────────────────────────────────────"
+Write-Host "  -------------------------------------"
 Write-Host "  Frontend:         " -NoNewline; Write-Host $FrontendPort -ForegroundColor Cyan
 Write-Host "  API:              " -NoNewline; Write-Host $ApiPort -ForegroundColor Cyan
 Write-Host "  Database:         " -NoNewline; Write-Host $DbPort -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Actions" -ForegroundColor White
-Write-Host "  ─────────────────────────────────────"
+Write-Host "  -------------------------------------"
 Write-Host "  Create migration: " -NoNewline
 if ($CreateMigration) { Write-Host "Yes" -ForegroundColor Green } else { Write-Host "No" -ForegroundColor DarkGray }
 Write-Host "  Git commits:      " -NoNewline
@@ -293,58 +296,61 @@ if (-not $proceed) {
     exit 0
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Execution Phase
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 Write-Header "Executing"
+
+$OldName = "MyProject"
+$OldNameLower = "myproject"
+$NewName = $Name
+$NewNameLower = $Name.ToLower()
 
 # Step 1: Update Docker Ports
 Write-Step "Updating port configuration..."
 
-$dockerFile = "docker-compose.local.yml"
+$dockerFile = Join-Path $ScriptDir "docker-compose.local.yml"
 if (Test-Path $dockerFile) {
     $content = Get-Content $dockerFile -Raw
     $content = $content -replace "13000:3000", "${FrontendPort}:3000"
     $content = $content -replace "13002:8080", "${ApiPort}:8080"
     $content = $content -replace "13004:5432", "${DbPort}:5432"
-    Set-FileContentNoBom $dockerFile $content
+    Set-FileContent $dockerFile $content
     Write-SubStep "Updated docker-compose.local.yml"
 }
 
-$appSettingsDev = "src\backend\MyProject.WebApi\appsettings.Development.json"
+$appSettingsDev = Join-Path $ScriptDir "src\backend\MyProject.WebApi\appsettings.Development.json"
 if (Test-Path $appSettingsDev) {
     $content = Get-Content $appSettingsDev -Raw
     $content = $content -replace "Port=13004", "Port=$DbPort"
-    Set-FileContentNoBom $appSettingsDev $content
+    Set-FileContent $appSettingsDev $content
     Write-SubStep "Updated appsettings.Development.json"
 }
 
-$httpClientEnv = "src\backend\MyProject.WebApi\http-client.env.json"
+$httpClientEnv = Join-Path $ScriptDir "src\backend\MyProject.WebApi\http-client.env.json"
 if (Test-Path $httpClientEnv) {
     $content = Get-Content $httpClientEnv -Raw
     $content = $content -replace "localhost:13002", "localhost:$ApiPort"
-    Set-FileContentNoBom $httpClientEnv $content
+    Set-FileContent $httpClientEnv $content
     Write-SubStep "Updated http-client.env.json"
 }
 
-$frontendEnvExample = "src\frontend\.env.example"
-$frontendEnvLocal = "src\frontend\.env.local"
+$frontendEnvExample = Join-Path $ScriptDir "src\frontend\.env.example"
+$frontendEnvLocal = Join-Path $ScriptDir "src\frontend\.env.local"
 if (Test-Path $frontendEnvExample) {
     Copy-Item $frontendEnvExample $frontendEnvLocal -Force
     $content = Get-Content $frontendEnvLocal -Raw
     $content = $content -replace "localhost:13002", "localhost:$ApiPort"
-    Set-FileContentNoBom $frontendEnvLocal $content
+    Set-FileContent $frontendEnvLocal $content
     Write-SubStep "Created frontend .env.local"
 }
 
-# Update deploy.config.json with new project name
-$deployConfig = "deploy.config.json"
+$deployConfig = Join-Path $ScriptDir "deploy.config.json"
 if (Test-Path $deployConfig) {
-    $newNameLower = $Name.ToLower()
     $content = Get-Content $deployConfig -Raw
-    $content = $content -replace "myproject-api", "$newNameLower-api"
-    $content = $content -replace "myproject-frontend", "$newNameLower-frontend"
-    Set-FileContentNoBom $deployConfig $content
+    $content = $content -replace "myproject-api", "$NewNameLower-api"
+    $content = $content -replace "myproject-frontend", "$NewNameLower-frontend"
+    Set-FileContent $deployConfig $content
     Write-SubStep "Updated deploy.config.json"
 }
 
@@ -353,14 +359,8 @@ Write-Success "Port configuration complete"
 # Step 2: Rename Project
 Write-Step "Renaming project..."
 
-$OldName = "MyProject"
-$OldNameLower = "myproject"
-$NewName = $Name
-$NewNameLower = $Name.ToLower()
-
-# Get all files excluding binary, git, and init scripts
 Write-SubStep "Replacing text content..."
-$files = Get-ChildItem -Path . -Recurse -File | Where-Object {
+$files = Get-ChildItem -Path $ScriptDir -Recurse -File | Where-Object {
     $_.FullName -notmatch "[\\/]\.git[\\/]" -and
     $_.FullName -notmatch "[\\/]bin[\\/]" -and
     $_.FullName -notmatch "[\\/]obj[\\/]" -and
@@ -374,13 +374,13 @@ foreach ($file in $files) {
     try {
         $content = [System.IO.File]::ReadAllText($file.FullName)
         $originalContent = $content
-        
+
         if ($content -match $OldName -or $content -match $OldNameLower) {
             $content = $content -replace $OldName, $NewName
             $content = $content -replace $OldNameLower, $NewNameLower
-            
+
             if ($content -ne $originalContent) {
-                Set-FileContentNoBom $file.FullName $content
+                Set-FileContent $file.FullName $content
             }
         }
     }
@@ -389,9 +389,8 @@ foreach ($file in $files) {
     }
 }
 
-# Rename files and directories (deepest first by sorting path length descending)
 Write-SubStep "Renaming files and directories..."
-$items = Get-ChildItem -Path . -Recurse | Where-Object {
+$items = Get-ChildItem -Path $ScriptDir -Recurse | Where-Object {
     $_.FullName -notmatch "[\\/]\.git[\\/]" -and
     $_.FullName -notmatch "[\\/]bin[\\/]" -and
     $_.FullName -notmatch "[\\/]obj[\\/]" -and
@@ -404,7 +403,7 @@ $items = Get-ChildItem -Path . -Recurse | Where-Object {
 foreach ($item in $items) {
     $newItemName = $item.Name -replace $OldName, $NewName
     $newItemName = $newItemName -replace $OldNameLower, $NewNameLower
-    
+
     if ($newItemName -ne $item.Name) {
         try {
             Rename-Item -Path $item.FullName -NewName $newItemName -ErrorAction Stop
@@ -420,49 +419,100 @@ Write-Success "Project renamed to $NewName"
 # Step 3: Git Commit (Rename)
 if ($DoCommit) {
     Write-Step "Committing rename changes..."
-    git add . 2>$null
-    git commit -m "chore: rename project from $OldName to $NewName" 2>$null
+    $ErrorActionPreference = "Continue"
+    git add . 2>&1 | Out-Null
+    git commit -m "chore: rename project from $OldName to $NewName" 2>&1 | Out-Null
+    $ErrorActionPreference = "Stop"
     Write-Success "Changes committed"
 }
 
 # Step 4: Create Migration
 if ($CreateMigration) {
     Write-Step "Creating initial migration..."
-    
-    $migrationDir = "src\backend\$NewName.Infrastructure\Features\Postgres\Migrations"
-    
+
+    $migrationDir = Join-Path $ScriptDir "src/backend/$NewName.Infrastructure/Features/Postgres/Migrations"
+
     if (Test-Path $migrationDir) {
         Write-SubStep "Clearing existing migrations..."
-        Remove-Item "$migrationDir\*" -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item "$migrationDir/*" -Recurse -Force -ErrorAction SilentlyContinue
     }
     else {
         New-Item -ItemType Directory -Path $migrationDir -Force | Out-Null
     }
-    
+
+    # Temporarily allow errors for external commands
+    $ErrorActionPreference = "Continue"
+    $migrationFailed = $false
+
+    # Change to backend directory where NuGet.Config lives
+    $backendDir = Join-Path $ScriptDir "src/backend"
+    Push-Location $backendDir
+
     Write-SubStep "Restoring dotnet tools..."
-    dotnet tool restore 2>$null | Out-Null
-    
-    Write-SubStep "Restoring dependencies..."
-    dotnet restore "src\backend\$NewName.WebApi" 2>$null | Out-Null
-    
-    Write-SubStep "Building project..."
-    dotnet build "src\backend\$NewName.WebApi" --no-restore -v q 2>$null | Out-Null
-    
-    Write-SubStep "Running ef migrations add..."
-    dotnet ef migrations add Initial `
-        --project "src\backend\$NewName.Infrastructure" `
-        --startup-project "src\backend\$NewName.WebApi" `
-        --output-dir Features/Postgres/Migrations `
-        --no-build 2>$null | Out-Null
-    
-    Write-Success "Migration 'Initial' created"
-    
-    # Commit migration
-    if ($DoCommit) {
-        Write-SubStep "Committing migration..."
-        git add . 2>$null
-        git commit -m "chore: add initial database migration" 2>$null
-        Write-Success "Migration committed"
+    $output = dotnet tool restore 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-SubStep "Tool restore failed, retrying..."
+        # Try from root with explicit config
+        Pop-Location
+        $output = dotnet tool restore --configfile "src/backend/NuGet.Config" 2>&1
+        Push-Location $backendDir
+        if ($LASTEXITCODE -ne 0) {
+            $migrationFailed = $true
+            Write-ErrorMessage "Failed to restore dotnet tools"
+            Write-Host $output -ForegroundColor DarkGray
+        }
+    }
+
+    Pop-Location
+
+    if (-not $migrationFailed) {
+        Write-SubStep "Restoring dependencies..."
+        $output = dotnet restore "src/backend/$NewName.WebApi" 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            $migrationFailed = $true
+            Write-ErrorMessage "Restore failed"
+            Write-Host $output -ForegroundColor DarkGray
+        }
+    }
+
+    if (-not $migrationFailed) {
+        Write-SubStep "Building project..."
+        $output = dotnet build "src/backend/$NewName.WebApi" --no-restore -v q 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            $migrationFailed = $true
+            Write-ErrorMessage "Build failed"
+            Write-Host $output -ForegroundColor DarkGray
+        }
+    }
+
+    if (-not $migrationFailed) {
+        Write-SubStep "Running ef migrations add..."
+        $output = dotnet ef migrations add Initial --project "src/backend/$NewName.Infrastructure" --startup-project "src/backend/$NewName.WebApi" --output-dir Features/Postgres/Migrations --no-build 2>&1
+        
+        if ($LASTEXITCODE -ne 0) {
+            $migrationFailed = $true
+            Write-ErrorMessage "Migration creation failed"
+            Write-Host $output -ForegroundColor DarkGray
+        }
+    }
+
+    $ErrorActionPreference = "Stop"
+
+    if ($migrationFailed) {
+        Write-Warning "Migration step failed. You can create it manually later with:"
+        Write-Host "  dotnet ef migrations add Initial --project src/backend/$NewName.Infrastructure --startup-project src/backend/$NewName.WebApi --output-dir Features/Postgres/Migrations" -ForegroundColor DarkGray
+    }
+    else {
+        Write-Success "Migration 'Initial' created"
+
+        if ($DoCommit) {
+            Write-SubStep "Committing migration..."
+            $ErrorActionPreference = "Continue"
+            $null = git add . 2>&1
+            $null = git commit -m "chore: add initial database migration" 2>&1
+            $ErrorActionPreference = "Stop"
+            Write-Success "Migration committed"
+        }
     }
 }
 
@@ -470,49 +520,68 @@ if ($CreateMigration) {
 if ($DeleteScripts) {
     Write-Step "Cleaning up init scripts..."
     
-    # Schedule deletion after script completes (Windows workaround)
-    $scriptPath = $MyInvocation.MyCommand.Path
-    $bashScript = Join-Path (Split-Path $scriptPath -Parent) "init.sh"
+    $initPs1 = Join-Path $ScriptDir "init.ps1"
+    $initSh = Join-Path $ScriptDir "init.sh"
     
-    # Create a cleanup script that runs after this script exits
-    $cleanupScript = @"
-Start-Sleep -Milliseconds 500
-Remove-Item -Path '$scriptPath' -Force -ErrorAction SilentlyContinue
-Remove-Item -Path '$bashScript' -Force -ErrorAction SilentlyContinue
-if ('$DoCommit' -eq 'True') {
-    Set-Location '$(Get-Location)'
-    git add . 2>`$null
-    git commit -m 'chore: remove initialization scripts' 2>`$null
-}
-Remove-Item -Path '`$PSCommandPath' -Force -ErrorAction SilentlyContinue
-"@
+    $ErrorActionPreference = "Continue"
     
-    $cleanupPath = Join-Path $env:TEMP "cleanup-init-$(Get-Random).ps1"
-    Set-FileContentNoBom $cleanupPath $cleanupScript
+    # Stage both files for deletion in git BEFORE physically removing them
+    # This ensures both show up in the commit
+    if ($DoCommit) {
+        # Use git rm to stage deletions (files will be removed from index but we handle physical deletion separately)
+        if (Test-Path $initSh) {
+            git rm -f "init.sh" 2>&1 | Out-Null
+        }
+        # Stage init.ps1 for deletion but keep it on disk for now (script is still running)
+        git rm --cached "init.ps1" 2>&1 | Out-Null
+        
+        git commit -m "chore: remove initialization scripts" 2>&1 | Out-Null
+        Write-Success "Deletion committed to git"
+    }
+    else {
+        # No commit - just delete init.sh directly
+        if (Test-Path $initSh) {
+            Remove-Item $initSh -Force
+        }
+    }
     
-    # Start cleanup script in background
-    Start-Process powershell -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", $cleanupPath -WindowStyle Hidden
+    $ErrorActionPreference = "Stop"
     
     Write-Success "Init scripts will be removed"
+    
+    # Schedule self-deletion after script exits
+    # Use -EncodedCommand to avoid escaping issues with paths
+    $cleanupScript = "Start-Sleep -Seconds 2; Remove-Item -LiteralPath '$initPs1' -Force -ErrorAction SilentlyContinue"
+    $encodedCmd = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cleanupScript))
+    Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-EncodedCommand", $encodedCmd
 }
 
 # Step 6: Start Docker
 if ($StartDocker) {
     Write-Step "Starting Docker containers..."
+    $ErrorActionPreference = "Continue"
     docker compose -f docker-compose.local.yml up -d --build
-    Write-Success "Docker containers started"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Docker failed to start. Is Docker Desktop running?"
+        Write-Info "You can start containers manually later with:"
+        Write-Host "  docker compose -f docker-compose.local.yml up -d --build" -ForegroundColor DarkGray
+    }
+    else {
+        Write-Success "Docker containers started"
+    }
+    $ErrorActionPreference = "Stop"
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Complete!
-# ─────────────────────────────────────────────────────────────────────────────
-Write-Header "Setup Complete! 🎉"
+# -----------------------------------------------------------------------------
+Write-Header "Setup Complete!"
 
 Write-Host ""
 Write-Host "  Your project is ready!" -ForegroundColor White
 Write-Host ""
 Write-Host "  Quick Start" -ForegroundColor White
-Write-Host "  ─────────────────────────────────────"
+Write-Host "  -------------------------------------"
 Write-Host "  # Start the development environment" -ForegroundColor DarkGray
 Write-Host "  docker compose -f docker-compose.local.yml up -d --build"
 Write-Host ""
@@ -521,10 +590,15 @@ Write-Host "  cd src\backend\$NewName.WebApi"
 Write-Host "  dotnet run"
 Write-Host ""
 Write-Host "  URLs" -ForegroundColor White
-Write-Host "  ─────────────────────────────────────"
+Write-Host "  -------------------------------------"
 Write-Host "  Frontend:  " -NoNewline; Write-Host "http://localhost:$FrontendPort" -ForegroundColor Cyan
 Write-Host "  API:       " -NoNewline; Write-Host "http://localhost:$ApiPort" -ForegroundColor Cyan
 Write-Host "  API Docs:  " -NoNewline; Write-Host "http://localhost:$ApiPort/scalar" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  Happy coding! 🚀" -ForegroundColor DarkGray
+Write-Host "  Happy coding!" -ForegroundColor DarkGray
 Write-Host ""
+
+}
+finally {
+    Pop-Location
+}
