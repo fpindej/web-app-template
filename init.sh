@@ -378,6 +378,14 @@ if [ -f "src/frontend/.env.example" ]; then
     print_substep "Created frontend .env.local"
 fi
 
+# Update deploy.config.json with new project name
+if [ -f "deploy.config.json" ]; then
+    NEW_NAME_LOWER=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
+    sed_inplace "s/myproject-api/${NEW_NAME_LOWER}-api/g" deploy.config.json
+    sed_inplace "s/myproject-frontend/${NEW_NAME_LOWER}-frontend/g" deploy.config.json
+    print_substep "Updated deploy.config.json"
+fi
+
 print_success "Port configuration complete"
 
 # Step 2: Rename Project
