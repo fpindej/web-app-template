@@ -24,23 +24,36 @@ export function renderMarkdown(md: string): string {
 			.replace(/\*([^*]+)\*/g, '<em>$1</em>')
 			// Links
 			.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline">$1</a>')
-			// Tables (simple)
-			.replace(/^\|(.+)\|$/gm, (match) => {
-				const cells = match
-					.split('|')
-					.filter((c) => c.trim())
-					.map((c) => c.trim());
-				if (cells.every((c) => /^[-:]+$/.test(c))) {
-					return ''; // Skip separator row
-				}
-				const cellTag = cells.length > 0 ? 'td' : 'th';
-				return `<tr>${cells.map((c) => `<${cellTag} class="border px-3 py-2">${c}</${cellTag}>`).join('')}</tr>`;
+			// Tables - process complete table blocks
+			.replace(/(\|.+\|\n)+/g, (tableBlock) => {
+				const rows = tableBlock.trim().split('\n');
+				if (rows.length < 2) return tableBlock;
+
+				const parseRow = (row: string) =>
+					row
+						.split('|')
+						.filter((c) => c.trim())
+						.map((c) => c.trim());
+
+				const headerCells = parseRow(rows[0]);
+				const headerHtml = `<thead><tr>${headerCells.map((c) => `<th class="border border-border bg-muted/50 px-3 py-2 text-start font-semibold">${c}</th>`).join('')}</tr></thead>`;
+
+				// Skip separator row (row 1), process data rows (row 2+)
+				const bodyRows = rows.slice(2);
+				const bodyHtml =
+					bodyRows.length > 0
+						? `<tbody>${bodyRows
+								.map(
+									(row) =>
+										`<tr>${parseRow(row)
+											.map((c) => `<td class="border border-border px-3 py-2">${c}</td>`)
+											.join('')}</tr>`
+								)
+								.join('')}</tbody>`
+						: '';
+
+				return `<table class="w-full border-collapse my-4">${headerHtml}${bodyHtml}</table>`;
 			})
-			// Wrap consecutive table rows
-			.replace(
-				/(<tr>[\s\S]*?<\/tr>\n?)+/g,
-				'<table class="w-full border-collapse border my-4">$&</table>'
-			)
 			// Unordered lists
 			.replace(/^- (.+)$/gm, '<li class="ms-4">$1</li>')
 			.replace(/(<li[\s\S]*?<\/li>\n?)+/g, '<ul class="list-disc my-2">$&</ul>')
