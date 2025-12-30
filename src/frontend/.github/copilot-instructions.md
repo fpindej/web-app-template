@@ -340,6 +340,28 @@ if (isValidationProblemDetails(apiError)) {
 </button>
 ```
 
+### Animations & Reduced Motion
+
+Always respect `prefers-reduced-motion` for accessibility. Use Tailwind's `motion-safe:` variant for animations:
+
+```html
+<!-- ✅ Correct - only animates if user hasn't requested reduced motion -->
+<div class="motion-safe:duration-300 motion-safe:animate-in motion-safe:fade-in">
+	<!-- ❌ Wrong - animates regardless of user preference -->
+	<div class="duration-300 animate-in fade-in"></div>
+</div>
+```
+
+For custom CSS animations in `layout.css`, disable them in the reduced motion media query:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+	.animate-custom {
+		animation: none;
+	}
+}
+```
+
 ---
 
 ## Internationalization (i18n)

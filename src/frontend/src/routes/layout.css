@@ -156,6 +156,18 @@
 }
 
 /* -----------------------------------------------------------------------------
+   Reduced Motion
+   Respect user's motion preferences for accessibility.
+   ----------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+	.animate-shake,
+	.animate-glow-pulse,
+	.animate-pulse-ring {
+		animation: none;
+	}
+}
+
+/* -----------------------------------------------------------------------------
    Glow Pulse Animation
    Slow, ambient pulsing for background glows on specific pages (login, etc).
    ----------------------------------------------------------------------------- */
