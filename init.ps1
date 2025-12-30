@@ -420,8 +420,8 @@ Write-Success "Project renamed to $NewName"
 if ($DoCommit) {
     Write-Step "Committing rename changes..."
     $ErrorActionPreference = "Continue"
-    git add . 2>&1 | Out-Null
-    git commit -m "chore: rename project from $OldName to $NewName" 2>&1 | Out-Null
+    $null = git add . 2>&1
+    $null = git commit -m "chore: rename project from $OldName to $NewName" 2>&1
     $ErrorActionPreference = "Stop"
     Write-Success "Changes committed"
 }
@@ -444,26 +444,18 @@ if ($CreateMigration) {
     $ErrorActionPreference = "Continue"
     $migrationFailed = $false
 
-    # Change to backend directory where NuGet.Config lives
-    $backendDir = Join-Path $ScriptDir "src/backend"
-    Push-Location $backendDir
-
     Write-SubStep "Restoring dotnet tools..."
-    $output = dotnet tool restore 2>&1
+    # Try tool restore with explicit config file since root may not have NuGet sources
+    $output = dotnet tool restore --configfile "src/backend/NuGet.Config" 2>&1
     if ($LASTEXITCODE -ne 0) {
-        Write-SubStep "Tool restore failed, retrying..."
-        # Try from root with explicit config
-        Pop-Location
-        $output = dotnet tool restore --configfile "src/backend/NuGet.Config" 2>&1
-        Push-Location $backendDir
+        # Fallback: try without config (maybe global sources exist)
+        $output = dotnet tool restore 2>&1
         if ($LASTEXITCODE -ne 0) {
             $migrationFailed = $true
             Write-ErrorMessage "Failed to restore dotnet tools"
             Write-Host $output -ForegroundColor DarkGray
         }
     }
-
-    Pop-Location
 
     if (-not $migrationFailed) {
         Write-SubStep "Restoring dependencies..."
@@ -530,12 +522,12 @@ if ($DeleteScripts) {
     if ($DoCommit) {
         # Use git rm to stage deletions (files will be removed from index but we handle physical deletion separately)
         if (Test-Path $initSh) {
-            git rm -f "init.sh" 2>&1 | Out-Null
+            $null = git rm -f "init.sh" 2>&1
         }
         # Stage init.ps1 for deletion but keep it on disk for now (script is still running)
-        git rm --cached "init.ps1" 2>&1 | Out-Null
+        $null = git rm --cached "init.ps1" 2>&1
         
-        git commit -m "chore: remove initialization scripts" 2>&1 | Out-Null
+        $null = git commit -m "chore: remove initialization scripts" 2>&1
         Write-Success "Deletion committed to git"
     }
     else {

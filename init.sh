@@ -463,7 +463,8 @@ if [[ "$CREATE_MIGRATION" == "y" ]]; then
     fi
     
     print_substep "Restoring dotnet tools..."
-    dotnet tool restore >/dev/null 2>&1
+    # Use explicit config file since root may not have NuGet sources
+    dotnet tool restore --configfile "src/backend/NuGet.Config" >/dev/null 2>&1 || dotnet tool restore >/dev/null 2>&1
     
     print_substep "Restoring dependencies..."
     dotnet restore "src/backend/$NEW_NAME.WebApi" >/dev/null 2>&1
