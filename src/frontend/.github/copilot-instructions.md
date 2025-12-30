@@ -10,7 +10,7 @@ You are an expert SvelteKit developer working on a production-grade application.
 | --------- | ------------------------------ | ----------------------------------------- |
 | Framework | SvelteKit + **Svelte 5 Runes** | `$state`, `$props`, `$effect`, `$derived` |
 | Language  | TypeScript (Strict)            | No `any`, define interfaces               |
-| Styling   | Tailwind CSS 4                 | CSS variables in `layout.css`             |
+| Styling   | Tailwind CSS 4                 | CSS variables in `src/styles/`            |
 | UI        | shadcn-svelte (`bits-ui`)      | Headless, accessible components           |
 | i18n      | `paraglide-js`                 | Type-safe `m.domain_feature_key()`        |
 | API       | `openapi-fetch`                | Type-safe client from OpenAPI spec        |
@@ -352,7 +352,7 @@ Always respect `prefers-reduced-motion` for accessibility. Use Tailwind's `motio
 </div>
 ```
 
-For custom CSS animations in `layout.css`, disable them in the reduced motion media query:
+For custom CSS animations in `src/styles/animations.css`, disable them in the reduced motion media query:
 
 ```css
 @media (prefers-reduced-motion: reduce) {

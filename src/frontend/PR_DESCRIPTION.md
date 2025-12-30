@@ -27,7 +27,7 @@ This PR represents a comprehensive refactoring and improvement of the frontend c
 
 ### Design System
 
-- **Global CSS utilities** - Added `layout.css` with design tokens, animations, and effects
+- **Global CSS utilities** - Modular CSS in `src/styles/` with design tokens, animations, and effects
 - **Glow effects** - Subtle glow utilities for status indicators and interactive elements
 - **Pulsing animations** - Purposeful pulse animations for online indicators
 - **Card hover states** - Consistent hover effects across card components
@@ -72,7 +72,7 @@ This PR represents a comprehensive refactoring and improvement of the frontend c
 - `src/lib/components/common/StatusIndicator.svelte`
 - `src/lib/state/shake.svelte.ts` - Shake animation utilities
 - `src/lib/config/i18n.ts` - Language metadata
-- `src/routes/layout.css` - Global design system styles
+- `src/styles/*.css` - Modular design system styles (themes, animations, utilities)
 
 ### Refactored
 
