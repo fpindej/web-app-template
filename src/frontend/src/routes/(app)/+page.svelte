@@ -36,7 +36,8 @@
 		m.dashboard_guide_step1,
 		m.dashboard_guide_step2,
 		m.dashboard_guide_step3,
-		m.dashboard_guide_step4
+		m.dashboard_guide_step4,
+		m.dashboard_guide_step5
 	];
 </script>
 

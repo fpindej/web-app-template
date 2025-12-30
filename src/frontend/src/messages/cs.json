@@ -140,10 +140,11 @@
 	"dashboard_feature_api_description": "Integrace OpenAPI s automaticky generovanými typy pro váš .NET backend.",
 
 	"dashboard_guide_title": "Jak začít",
-	"dashboard_guide_step1": "Prozkoumejte složku `src/routes` a strukturu stránek.",
-	"dashboard_guide_step2": "Podívejte se do `src/lib/components` na znovupoužitelné komponenty.",
-	"dashboard_guide_step3": "Upravte překlady v `src/messages`.",
-	"dashboard_guide_step4": "Backend je postaven na .NET. Při změně API spusťte `npm run api:generate` pro aktualizaci klienta.",
+	"dashboard_guide_step1": "Funkce jsou seskupeny podle domény v `src/lib/components/`. Pro odstranění funkce smažte její složku, routu a klíče překladů.",
+	"dashboard_guide_step2": "Při změně backend API spusťte `npm run api:generate` pro přegenerování TypeScript typů.",
+	"dashboard_guide_step3": "Použijte `npx shadcn-svelte@next add <component>` pro přidání nových UI komponent ze shadcn.",
+	"dashboard_guide_step4": "Před commitem spusťte `npm run format && npm run lint && npm run check && npm run build`.",
+	"dashboard_guide_step5": "Podívejte se do `.github/copilot-instructions.md` pro detailní konvence a vzory.",
 
 	"error_403_title": "Tudy neprojdeš!",
 	"error_403_description": "Nemáte oprávnění k prohlížení této stránky. Ale snaha se cení.",

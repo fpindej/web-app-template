@@ -139,11 +139,12 @@
 	"dashboard_feature_api_title": "Type-Safe API Client",
 	"dashboard_feature_api_description": "OpenAPI integration with auto-generated types for your .NET backend.",
 
-	"dashboard_guide_title": "How to start?",
-	"dashboard_guide_step1": "Explore the `src/routes` folder to see how pages are structured.",
-	"dashboard_guide_step2": "Check `src/lib/components` for reusable UI elements.",
-	"dashboard_guide_step3": "Edit `src/messages` to update translations.",
-	"dashboard_guide_step4": "The backend is built with .NET. Run `npm run api:generate` to update the client when the API changes.",
+	"dashboard_guide_title": "Getting Started",
+	"dashboard_guide_step1": "Features are grouped by domain in `src/lib/components/`. To remove a feature, delete its folder, route, and translation keys.",
+	"dashboard_guide_step2": "Run `npm run api:generate` when the backend API changes to regenerate TypeScript types.",
+	"dashboard_guide_step3": "Use `npx shadcn-svelte@next add <component>` to add new UI components from shadcn.",
+	"dashboard_guide_step4": "Before committing, run `npm run format && npm run lint && npm run check && npm run build`.",
+	"dashboard_guide_step5": "Check `.github/copilot-instructions.md` for detailed coding conventions and patterns.",
 
 	"error_403_title": "You Shall Not Pass!",
 	"error_403_description": "You don't have permission to be here. Nice try though, we appreciate the effort.",
