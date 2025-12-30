@@ -9,7 +9,12 @@
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import { Button } from '$lib/components/ui/button';
 
-	let { class: className, user }: { class?: string; user: User | null | undefined } = $props();
+	interface Props {
+		class?: string;
+		user: User | null | undefined;
+	}
+
+	let { class: className, user }: Props = $props();
 
 	let collapsed = $derived(sidebarState.collapsed);
 </script>

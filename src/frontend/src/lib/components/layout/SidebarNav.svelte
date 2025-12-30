@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { cn } from '$lib/utils';
 	import { buttonVariants } from '$lib/components/ui/button';
@@ -10,9 +10,10 @@
 
 	interface Props {
 		collapsed?: boolean;
+		onNavigate?: () => void;
 	}
 
-	let { collapsed = false }: Props = $props();
+	let { collapsed = false, onNavigate }: Props = $props();
 
 	let items: { title: () => string; href: string; icon: Component<IconProps> }[] = [
 		{
@@ -43,7 +44,7 @@
 <!-- eslint-disable svelte/no-navigation-without-resolve -- hrefs are pre-resolved using resolve() in items array -->
 <nav class={cn('grid gap-1', collapsed ? 'justify-center px-2' : 'px-2')}>
 	{#each items as item (item.href)}
-		{@const active = isActive(item.href, $page.url.pathname)}
+		{@const active = isActive(item.href, page.url.pathname)}
 		{#if collapsed}
 			<Tooltip.Root>
 				<Tooltip.Trigger>
@@ -60,6 +61,7 @@
 							)}
 							aria-current={active ? 'page' : undefined}
 							aria-label={item.title()}
+							onclick={onNavigate}
 							{...props}
 						>
 							<item.icon class="h-4 w-4" />
@@ -82,6 +84,7 @@
 					'justify-start'
 				)}
 				aria-current={active ? 'page' : undefined}
+				onclick={onNavigate}
 			>
 				<item.icon class="me-2 h-4 w-4" />
 				{item.title()}

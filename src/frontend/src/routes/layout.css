@@ -39,7 +39,6 @@
 	--sidebar-ring: 217.2 91.2% 59.8%;
 
 	--sidebar-width-md: 220px;
-	--sidebar-width-lg: 280px;
 	--sidebar-width-collapsed: 68px;
 }
 
@@ -154,6 +153,18 @@
 
 .animate-shake {
 	animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* -----------------------------------------------------------------------------
+   Reduced Motion
+   Respect user's motion preferences for accessibility.
+   ----------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+	.animate-shake,
+	.animate-glow-pulse,
+	.animate-pulse-ring {
+		animation: none;
+	}
 }
 
 /* -----------------------------------------------------------------------------

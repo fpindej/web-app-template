@@ -1,5 +1,6 @@
 import type { RequestHandler } from './$types';
 import { SERVER_CONFIG } from '$lib/config/server';
+import { isFetchErrorWithCode } from '$lib/api';
 
 export const fallback: RequestHandler = async ({ request, params, url, fetch }) => {
 	const targetUrl = `${SERVER_CONFIG.API_URL}/api/${params.path}${url.search}`;
@@ -24,9 +25,7 @@ export const fallback: RequestHandler = async ({ request, params, url, fetch }) 
 	} catch (err) {
 		console.error('Proxy error:', err);
 
-		// Check if it's a connection error (e.g. backend down)
-		// @ts-expect-error - cause is not typed in standard Error but exists in fetch errors
-		if (err?.cause?.code === 'ECONNREFUSED') {
+		if (isFetchErrorWithCode(err, 'ECONNREFUSED')) {
 			return new Response(JSON.stringify({ message: 'Backend unavailable' }), {
 				status: 503,
 				headers: { 'Content-Type': 'application/json' }

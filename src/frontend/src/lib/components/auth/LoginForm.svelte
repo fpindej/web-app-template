@@ -121,6 +121,7 @@
 								required
 								bind:value={email}
 								class="bg-background/50"
+								aria-invalid={shake.active}
 							/>
 						</div>
 
@@ -133,6 +134,7 @@
 								required
 								bind:value={password}
 								class="bg-background/50"
+								aria-invalid={shake.active}
 							/>
 						</div>
 

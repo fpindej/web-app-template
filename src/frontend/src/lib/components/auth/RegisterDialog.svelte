@@ -163,6 +163,7 @@
 					bind:value={phoneNumber}
 					disabled={isLoading}
 					class={fieldShakes.class('phoneNumber')}
+					aria-invalid={!!fieldErrors.phoneNumber}
 				/>
 				{#if fieldErrors.phoneNumber}
 					<p class="text-xs text-destructive">{fieldErrors.phoneNumber}</p>

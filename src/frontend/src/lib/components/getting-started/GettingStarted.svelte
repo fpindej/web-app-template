@@ -282,9 +282,9 @@
 				{#each quickCommands as command (command.id)}
 					<button
 						onclick={() => copyToClipboard(command.cmd, command.id)}
-						class="group relative flex items-center justify-between gap-2 rounded-lg border bg-muted/30 p-3 text-start transition-all hover:border-primary/50 hover:bg-muted/50 sm:gap-4 sm:p-4"
+						class="group relative flex items-center justify-between gap-2 overflow-hidden rounded-lg border bg-muted/30 p-3 text-start transition-all hover:border-primary/50 hover:bg-muted/50 sm:gap-4 sm:p-4"
 					>
-						<div class="min-w-0 flex-1 space-y-1">
+						<div class="min-w-0 flex-1 space-y-1 overflow-hidden">
 							<div class="text-xs text-muted-foreground sm:text-sm">{command.label()}</div>
 							<code class="block truncate font-mono text-xs sm:text-sm">{command.cmd}</code>
 						</div>
@@ -353,12 +353,12 @@
 					</div>
 
 					<!-- Code Snippet -->
-					<div class="rounded-lg border bg-zinc-950 p-3 sm:p-4 dark:bg-zinc-900">
-						<div class="mb-2 flex items-center gap-2 text-xs text-zinc-500">
-							<div class="h-2 w-2 rounded-full bg-zinc-600"></div>
+					<div class="rounded-lg border bg-muted p-3 sm:p-4">
+						<div class="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
+							<div class="h-2 w-2 rounded-full bg-muted-foreground/50"></div>
 							<span>{m.gettingStarted_removal_i18nKeys()}</span>
 						</div>
-						<pre class="overflow-x-auto text-xs sm:text-sm"><code class="text-zinc-300"
+						<pre class="overflow-x-auto text-xs sm:text-sm"><code class="text-foreground"
 								>{`// src/messages/en.json & cs.json
 // Remove these key patterns:
 "dashboard_*"         // All dashboard keys

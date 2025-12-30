@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
@@ -45,8 +45,8 @@
 		}
 	}
 
-	let status = $derived($page.status);
-	let message = $derived($page.error?.message);
+	let status = $derived(page.status);
+	let message = $derived(page.error?.message);
 	let content = $derived(getErrorContent(status));
 	let Icon = $derived(content.icon);
 </script>

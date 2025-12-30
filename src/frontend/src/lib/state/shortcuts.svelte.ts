@@ -15,7 +15,8 @@ export const shortcutsState = new ShortcutsState();
 export const ShortcutAction = {
 	Settings: 'settings',
 	Logout: 'logout',
-	Help: 'help'
+	Help: 'help',
+	ToggleSidebar: 'toggleSidebar'
 } as const;
 
 export type ShortcutActionType = (typeof ShortcutAction)[keyof typeof ShortcutAction];
@@ -40,9 +41,15 @@ const SHORTCUTS: ShortcutConfig[] = [
 	{
 		key: 'l',
 		meta: true,
-		alt: true,
+		shift: true,
 		action: ShortcutAction.Logout,
 		description: m.shortcuts_logout
+	},
+	{
+		key: '[',
+		meta: true,
+		action: ShortcutAction.ToggleSidebar,
+		description: m.shortcuts_toggleSidebar
 	},
 	{
 		key: '?',

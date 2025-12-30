@@ -93,3 +93,48 @@ export function getErrorMessage(error: unknown, fallback: string): string {
 	}
 	return fallback;
 }
+
+/**
+ * Represents a fetch error with a typed cause containing the error code.
+ * Node.js fetch errors (and some browser implementations) include a `cause`
+ * property with additional error details.
+ */
+export interface FetchErrorCause {
+	code?: string;
+	errno?: number;
+	syscall?: string;
+	hostname?: string;
+	message?: string;
+}
+
+/**
+ * Type guard to check if an error has a fetch error cause with a code.
+ * Useful for detecting network errors like ECONNREFUSED, ETIMEDOUT, etc.
+ *
+ * @example
+ * ```ts
+ * try {
+ *   await fetch(url);
+ * } catch (err) {
+ *   if (isFetchErrorWithCode(err, 'ECONNREFUSED')) {
+ *     return new Response('Backend unavailable', { status: 503 });
+ *   }
+ * }
+ * ```
+ */
+export function isFetchErrorWithCode(error: unknown, code: string): boolean {
+	if (typeof error !== 'object' || error === null) return false;
+	const cause = (error as { cause?: FetchErrorCause }).cause;
+	return cause?.code === code;
+}
+
+/**
+ * Extracts the error code from a fetch error's cause, if present.
+ *
+ * @returns The error code string, or undefined if not a fetch error with cause
+ */
+export function getFetchErrorCode(error: unknown): string | undefined {
+	if (typeof error !== 'object' || error === null) return undefined;
+	const cause = (error as { cause?: FetchErrorCause }).cause;
+	return cause?.code;
+}

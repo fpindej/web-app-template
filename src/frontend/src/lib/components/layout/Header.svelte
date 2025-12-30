@@ -5,7 +5,12 @@
 	import { SidebarNav, ThemeToggle, LanguageSelector, UserNav } from '$lib/components/layout';
 	import { resolve } from '$app/paths';
 	import type { User } from '$lib/types';
-	let { user }: { user: User | null | undefined } = $props();
+
+	interface Props {
+		user: User | null | undefined;
+	}
+
+	let { user }: Props = $props();
 	let open = $state(false);
 </script>
 
@@ -25,7 +30,7 @@
 					<Package2 class="h-6 w-6" />
 					<span class="sr-only">MyProject</span>
 				</a>
-				<SidebarNav />
+				<SidebarNav onNavigate={() => (open = false)} />
 			</nav>
 		</Sheet.Content>
 	</Sheet.Root>

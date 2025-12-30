@@ -104,9 +104,10 @@
 							placeholder={m.profile_personalInfo_firstNamePlaceholder()}
 							class={fieldShakes.class('firstName')}
 							aria-invalid={!!fieldErrors.firstName}
+							aria-describedby={fieldErrors.firstName ? 'firstName-error' : undefined}
 						/>
 						{#if fieldErrors.firstName}
-							<p class="text-xs text-destructive">{fieldErrors.firstName}</p>
+							<p id="firstName-error" class="text-xs text-destructive">{fieldErrors.firstName}</p>
 						{/if}
 					</div>
 					<div class="grid gap-2">
@@ -118,9 +119,10 @@
 							placeholder={m.profile_personalInfo_lastNamePlaceholder()}
 							class={fieldShakes.class('lastName')}
 							aria-invalid={!!fieldErrors.lastName}
+							aria-describedby={fieldErrors.lastName ? 'lastName-error' : undefined}
 						/>
 						{#if fieldErrors.lastName}
-							<p class="text-xs text-destructive">{fieldErrors.lastName}</p>
+							<p id="lastName-error" class="text-xs text-destructive">{fieldErrors.lastName}</p>
 						{/if}
 					</div>
 				</div>
@@ -133,9 +135,10 @@
 						placeholder="123 456 789"
 						class={fieldShakes.class('phoneNumber')}
 						aria-invalid={!!fieldErrors.phoneNumber}
+						aria-describedby={fieldErrors.phoneNumber ? 'phoneNumber-error' : undefined}
 					/>
 					{#if fieldErrors.phoneNumber}
-						<p class="text-xs text-destructive">{fieldErrors.phoneNumber}</p>
+						<p id="phoneNumber-error" class="text-xs text-destructive">{fieldErrors.phoneNumber}</p>
 					{/if}
 				</div>
 
@@ -147,9 +150,10 @@
 						placeholder={m.profile_personalInfo_bioPlaceholder()}
 						class={fieldShakes.class('bio')}
 						aria-invalid={!!fieldErrors.bio}
+						aria-describedby={fieldErrors.bio ? 'bio-error' : undefined}
 					/>
 					{#if fieldErrors.bio}
-						<p class="text-xs text-destructive">{fieldErrors.bio}</p>
+						<p id="bio-error" class="text-xs text-destructive">{fieldErrors.bio}</p>
 					{/if}
 				</div>
 

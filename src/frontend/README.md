@@ -121,12 +121,15 @@ const { data, error } = await browserClient.GET('/api/users/me');
 **Styling** - Use Tailwind with logical properties for RTL support:
 
 ```html
-<!-- ✅ Use logical properties -->
+<!-- Use logical properties -->
 <div class="ms-4 ps-2 text-start">
-	<!-- ❌ Avoid physical properties -->
+	<!-- Avoid physical properties -->
 	<div class="ml-4 pl-2 text-left"></div>
 </div>
 ```
+
+✅ Logical: `ms-*`, `me-*`, `ps-*`, `pe-*`, `text-start`  
+❌ Physical: `ml-*`, `mr-*`, `pl-*`, `pr-*`, `text-left`
 
 ### Adding UI Components
 
@@ -139,13 +142,16 @@ npx shadcn-svelte@next add <component-name>
 ### Import Conventions
 
 ```typescript
-// ✅ Use barrel exports
+// Use barrel exports
 import { Header, Sidebar } from '$lib/components/layout';
 import { browserClient } from '$lib/api';
 
-// ❌ Don't import directly from files
+// Don't import directly from files
 import Header from '$lib/components/layout/Header.svelte';
 ```
+
+✅ Use barrel exports from `index.ts`  
+❌ Don't import directly from `.svelte` files
 
 ## Quality Checks
 

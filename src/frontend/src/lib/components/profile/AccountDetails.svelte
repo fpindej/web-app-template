@@ -6,7 +6,11 @@
 	import type { User } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
 
-	let { user }: { user: User | null | undefined } = $props();
+	interface Props {
+		user: User | null | undefined;
+	}
+
+	let { user }: Props = $props();
 </script>
 
 <Card.Root class="card-hover">

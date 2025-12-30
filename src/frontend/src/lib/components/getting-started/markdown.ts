@@ -11,7 +11,7 @@ export function renderMarkdown(md: string): string {
 			.replace(/>/g, '&gt;')
 			// Code blocks (```lang ... ```)
 			.replace(/```(\w*)\n([\s\S]*?)```/g, (_m, _lang, code) => {
-				return `<pre class="rounded-lg bg-zinc-950 dark:bg-zinc-900 p-4 overflow-x-auto"><code class="text-sm text-zinc-300">${code.trim()}</code></pre>`;
+				return `<pre class="rounded-lg bg-muted p-4 overflow-x-auto"><code class="text-sm text-foreground">${code.trim()}</code></pre>`;
 			})
 			// Inline code
 			.replace(/`([^`]+)`/g, '<code class="rounded bg-muted px-1.5 py-0.5 text-sm">$1</code>')

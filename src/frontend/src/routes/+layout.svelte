@@ -12,6 +12,7 @@
 	import { resolve } from '$app/paths';
 	import { logout } from '$lib/auth';
 	import { ShortcutsHelp } from '$lib/components/layout';
+	import { toggleSidebar } from '$lib/state';
 
 	let { children } = $props();
 
@@ -27,7 +28,8 @@
 <svelte:window
 	use:globalShortcuts={{
 		settings: handleSettings,
-		logout: logout
+		logout: logout,
+		toggleSidebar: toggleSidebar
 	}}
 />
 
