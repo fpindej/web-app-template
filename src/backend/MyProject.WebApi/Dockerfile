@@ -12,7 +12,7 @@ WORKDIR /src
 # Copy solution-wide config files
 COPY ["Directory.Build.props", "."]
 COPY ["Directory.Packages.props", "."]
-COPY ["NuGet.Config", "."]
+COPY ["nuget.config", "."]
 
 # Copy csproj files
 COPY ["MyProject.Domain/MyProject.Domain.csproj", "MyProject.Domain/"]

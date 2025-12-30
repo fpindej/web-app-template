@@ -464,7 +464,7 @@ if [[ "$CREATE_MIGRATION" == "y" ]]; then
     
     print_substep "Restoring dotnet tools..."
     # Use explicit config file since root may not have NuGet sources, fallback to default
-    if ! dotnet tool restore --configfile "src/backend/NuGet.Config" >/dev/null 2>&1; then
+    if ! dotnet tool restore --configfile "src/backend/nuget.config" >/dev/null 2>&1; then
         dotnet tool restore >/dev/null 2>&1 || true
     fi
     

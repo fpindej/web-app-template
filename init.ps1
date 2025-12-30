@@ -446,7 +446,7 @@ if ($CreateMigration) {
 
     Write-SubStep "Restoring dotnet tools..."
     # Try tool restore with explicit config file since root may not have NuGet sources
-    $output = dotnet tool restore --configfile "src/backend/NuGet.Config" 2>&1
+    $output = dotnet tool restore --configfile "src/backend/nuget.config" 2>&1
     if ($LASTEXITCODE -ne 0) {
         # Fallback: try without config (maybe global sources exist)
         $output = dotnet tool restore 2>&1
