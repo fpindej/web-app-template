@@ -255,6 +255,86 @@ function Test-Docker {
     return $result
 }
 
+function Test-DockerLogin {
+    param([string]$Registry)
+    
+    # For Docker Hub (no hostname or docker.io), check if logged in
+    $ErrorActionPreference = "Continue"
+    
+    # Try to get auth status - docker config contains auth info
+    $configPath = Join-Path $env:USERPROFILE ".docker\config.json"
+    if (Test-Path $configPath) {
+        $dockerConfig = Get-Content $configPath -Raw | ConvertFrom-Json
+        
+        # Check for Docker Hub auth (stored as "https://index.docker.io/v1/")
+        if ($Registry -notmatch "/") {
+            # Simple username = Docker Hub
+            if ($dockerConfig.auths.PSObject.Properties.Name -contains "https://index.docker.io/v1/") {
+                $ErrorActionPreference = "Stop"
+                return $true
+            }
+        }
+        else {
+            # Custom registry (e.g., ghcr.io/user)
+            $registryHost = ($Registry -split "/")[0]
+            foreach ($auth in $dockerConfig.auths.PSObject.Properties.Name) {
+                if ($auth -match $registryHost) {
+                    $ErrorActionPreference = "Stop"
+                    return $true
+                }
+            }
+        }
+    }
+    
+    $ErrorActionPreference = "Stop"
+    return $false
+}
+
+function Request-DockerLogin {
+    param([string]$Registry)
+    
+    Write-Host ""
+    Write-Warning "Not logged in to Docker registry"
+    Write-Host ""
+    
+    # Determine which registry to login to
+    if ($Registry -notmatch "/") {
+        # Simple username = Docker Hub
+        Write-Host "  You need to login to Docker Hub to push images." -ForegroundColor White
+        Write-Host ""
+        Write-Host "  Run this command:" -ForegroundColor DarkGray
+        Write-Host "    docker login" -ForegroundColor Cyan
+    }
+    elseif ($Registry -match "^ghcr\.io/") {
+        # GitHub Container Registry
+        Write-Host "  You need to login to GitHub Container Registry." -ForegroundColor White
+        Write-Host ""
+        Write-Host "  1. Create a Personal Access Token at:" -ForegroundColor DarkGray
+        Write-Host "     https://github.com/settings/tokens" -ForegroundColor Cyan
+        Write-Host "     (with 'write:packages' scope)" -ForegroundColor DarkGray
+        Write-Host ""
+        Write-Host "  2. Run this command:" -ForegroundColor DarkGray
+        Write-Host "     docker login ghcr.io -u YOUR_GITHUB_USERNAME" -ForegroundColor Cyan
+    }
+    else {
+        # Other registry
+        $registryHost = ($Registry -split "/")[0]
+        Write-Host "  You need to login to: $registryHost" -ForegroundColor White
+        Write-Host ""
+        Write-Host "  Run this command:" -ForegroundColor DarkGray
+        Write-Host "    docker login $registryHost" -ForegroundColor Cyan
+    }
+    
+    Write-Host ""
+    
+    $retry = Read-Host "Press Enter after logging in to continue (or 'q' to quit)"
+    if ($retry -eq 'q') {
+        return $false
+    }
+    
+    return Test-DockerLogin $Registry
+}
+
 function Build-Backend {
     param(
         [string]$Version,
@@ -306,10 +386,13 @@ function Build-Backend {
     
     Push-Location "src\backend"
     try {
-        $result = & docker @buildArgs 2>&1
-        if ($LASTEXITCODE -ne 0) {
+        $ErrorActionPreference = "Continue"
+        & docker @buildArgs
+        $buildExitCode = $LASTEXITCODE
+        $ErrorActionPreference = "Stop"
+        
+        if ($buildExitCode -ne 0) {
             Write-ErrorMessage "Backend build failed"
-            Write-Host $result -ForegroundColor Red
             return $false
         }
     }
@@ -369,10 +452,13 @@ function Build-Frontend {
     
     Push-Location "src\frontend"
     try {
-        $result = & docker @buildArgs 2>&1
-        if ($LASTEXITCODE -ne 0) {
+        $ErrorActionPreference = "Continue"
+        & docker @buildArgs
+        $buildExitCode = $LASTEXITCODE
+        $ErrorActionPreference = "Stop"
+        
+        if ($buildExitCode -ne 0) {
             Write-ErrorMessage "Frontend build failed"
-            Write-Host $result -ForegroundColor Red
             return $false
         }
     }
@@ -482,6 +568,18 @@ $proceed = Read-YesNo "Proceed with deployment?" $true
 if (-not $proceed) {
     Write-Warning "Aborted by user"
     exit 0
+}
+
+# Check Docker login if pushing
+if ($DoPush) {
+    if (-not (Test-DockerLogin $Config.registry)) {
+        $loggedIn = Request-DockerLogin $Config.registry
+        if (-not $loggedIn) {
+            Write-ErrorMessage "Docker login required to push images"
+            exit 1
+        }
+        Write-Success "Docker login verified"
+    }
 }
 
 # Execute
