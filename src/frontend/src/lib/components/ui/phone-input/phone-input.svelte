@@ -23,6 +23,8 @@
 		disabled?: boolean;
 		/** Whether the field has an error */
 		'aria-invalid'?: boolean;
+		/** ID of the element describing this input (for errors) */
+		'aria-describedby'?: string;
 		/** Additional CSS classes for the input */
 		class?: string;
 	}
@@ -33,6 +35,7 @@
 		id,
 		disabled = false,
 		'aria-invalid': ariaInvalid,
+		'aria-describedby': ariaDescribedby,
 		class: className
 	}: Props = $props();
 
@@ -128,6 +131,7 @@
 		{placeholder}
 		{disabled}
 		aria-invalid={ariaInvalid}
+		aria-describedby={ariaDescribedby}
 		class={cn('flex-1', className)}
 	/>
 </div>
