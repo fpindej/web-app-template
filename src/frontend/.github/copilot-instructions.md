@@ -531,6 +531,19 @@ npm run build    # Verify production build succeeds
 
 If any command fails, fix the issues before committing. This prevents broken commits from entering the repository.
 
+### Review Before Committing
+
+Before running the pre-commit checks, review your changes:
+
+1. **Consistency**: Do the changes align with existing patterns in the codebase?
+2. **Completeness**: Are all related files updated (components, types, translations)?
+3. **Dead code**: When deleting or refactoring, check for orphaned code:
+   - Unused imports
+   - Unused translation keys in `messages/*.json`
+   - Unused components or utilities
+   - Orphaned type definitions
+4. **Naming**: Do new files/functions follow existing conventions?
+
 ---
 
 ## Common Patterns
