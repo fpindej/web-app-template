@@ -6,6 +6,7 @@
 	import { initTheme } from '$lib/state/theme.svelte';
 	import * as m from '$lib/paraglide/messages';
 	import { Toaster } from '$lib/components/ui/sonner';
+	import * as Tooltip from '$lib/components/ui/tooltip';
 	import { globalShortcuts } from '$lib/state/shortcuts.svelte';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -38,5 +39,7 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<Toaster />
-{@render children()}
+<Tooltip.Provider>
+	<Toaster />
+	{@render children()}
+</Tooltip.Provider>
