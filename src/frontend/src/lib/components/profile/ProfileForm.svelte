@@ -8,8 +8,8 @@
 	import { ProfileHeader } from '$lib/components/profile';
 	import type { User } from '$lib/types';
 	import * as m from '$lib/paraglide/messages';
-	import { browserClient } from '$lib/api/client';
-	import { toast } from 'svelte-sonner';
+	import { browserClient } from '$lib/api';
+	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
 	import { isValidationProblemDetails, mapFieldErrors, getErrorMessage } from '$lib/api';
 	import { createFieldShakes } from '$lib/state';

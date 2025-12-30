@@ -5,8 +5,8 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import * as m from '$lib/paraglide/messages';
-	import { browserClient } from '$lib/api/client';
-	import { toast } from 'svelte-sonner';
+	import { browserClient } from '$lib/api';
+	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
 	import { createFieldShakes } from '$lib/state';
 

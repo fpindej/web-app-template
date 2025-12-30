@@ -1,6 +1,6 @@
 import { goto, invalidateAll } from '$app/navigation';
 import { resolve } from '$app/paths';
-import { browserClient, createApiClient } from '$lib/api/client';
+import { browserClient, createApiClient } from '$lib/api';
 import type { User } from '$lib/types';
 
 export async function getUser(

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { browserClient } from '$lib/api/client';
+	import { browserClient } from '$lib/api';
 	import { cn } from '$lib/utils';
 	import { createShake } from '$lib/state';
 	import { onMount } from 'svelte';
