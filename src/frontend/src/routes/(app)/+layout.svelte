@@ -14,7 +14,7 @@
 </script>
 
 <div
-	class="grid h-dvh w-full transition-[grid-template-columns] duration-300 md:grid-cols-[var(--sidebar-width)_1fr]"
+	class="grid h-dvh w-full overflow-x-hidden transition-[grid-template-columns] duration-300 md:grid-cols-[var(--sidebar-width)_1fr]"
 	style="--sidebar-width: {collapsed
 		? 'var(--sidebar-width-collapsed)'
 		: 'var(--sidebar-width-md)'};"

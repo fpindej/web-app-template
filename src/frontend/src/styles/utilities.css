@@ -18,6 +18,7 @@
 	background: linear-gradient(to bottom left, hsl(var(--primary) / 0.2), hsl(280 70% 50% / 0.2));
 	filter: blur(48px);
 	pointer-events: none;
+	-webkit-transform: translateZ(0); /* Safari compositing fix */
 }
 
 .glow-xl-bottom-start {
@@ -30,6 +31,7 @@
 	background: linear-gradient(to top right, hsl(200 70% 50% / 0.2), hsl(180 70% 50% / 0.2));
 	filter: blur(48px);
 	pointer-events: none;
+	-webkit-transform: translateZ(0); /* Safari compositing fix */
 }
 
 /* Status-specific glows - for status indicators and themed elements */
