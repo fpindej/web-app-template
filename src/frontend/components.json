@@ -5,7 +5,7 @@
 	"tsx": false,
 	"tailwind": {
 		"config": "vite.config.ts",
-		"css": "src/routes/layout.css",
+		"css": "src/styles/index.css",
 		"baseColor": "slate",
 		"cssVariables": true,
 		"prefix": ""

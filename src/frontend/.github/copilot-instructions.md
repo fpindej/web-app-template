@@ -10,7 +10,7 @@ You are an expert SvelteKit developer working on a production-grade application.
 | --------- | ------------------------------ | ----------------------------------------- |
 | Framework | SvelteKit + **Svelte 5 Runes** | `$state`, `$props`, `$effect`, `$derived` |
 | Language  | TypeScript (Strict)            | No `any`, define interfaces               |
-| Styling   | Tailwind CSS 4                 | CSS variables in `layout.css`             |
+| Styling   | Tailwind CSS 4                 | CSS variables in `src/styles/`            |
 | UI        | shadcn-svelte (`bits-ui`)      | Headless, accessible components           |
 | i18n      | `paraglide-js`                 | Type-safe `m.domain_feature_key()`        |
 | API       | `openapi-fetch`                | Type-safe client from OpenAPI spec        |
@@ -113,38 +113,47 @@ After generating:
 ## Project Structure
 
 ```
-src/lib/
-├── api/                    # API client & error handling
-│   ├── client.ts           # createApiClient(), browserClient
-│   ├── error-handling.ts   # isValidationProblemDetails(), mapFieldErrors()
-│   └── v1.d.ts             # Generated OpenAPI types
+src/
+├── lib/
+│   ├── api/                    # API client & error handling
+│   │   ├── client.ts           # createApiClient(), browserClient
+│   │   ├── error-handling.ts   # isValidationProblemDetails(), mapFieldErrors()
+│   │   └── v1.d.ts             # Generated OpenAPI types
+│   │
+│   ├── auth/                   # Authentication feature
+│   │   └── auth.ts             # getUser(), logout()
+│   │
+│   ├── config/                 # Configuration
+│   │   ├── i18n.ts             # LANGUAGE_METADATA (client-safe)
+│   │   ├── index.ts            # Client-safe exports only
+│   │   └── server.ts           # SERVER_CONFIG (import directly, not from barrel)
+│   │
+│   ├── state/                  # Reactive state (.svelte.ts files)
+│   │   ├── shake.svelte.ts     # createShake(), createFieldShakes()
+│   │   ├── shortcuts.svelte.ts # Keyboard shortcuts
+│   │   └── theme.svelte.ts     # getTheme(), setTheme(), toggleTheme()
+│   │
+│   ├── types/                  # Type aliases
+│   │   └── index.ts            # User, etc.
+│   │
+│   ├── utils/                  # Pure utility functions
+│   │   ├── platform.ts         # IS_MAC, IS_WINDOWS
+│   │   └── ui.ts               # cn() for class merging
+│   │
+│   └── components/
+│       ├── ui/                 # shadcn components (presentational only)
+│       ├── auth/               # LoginForm, RegisterDialog
+│       ├── layout/             # Header, Sidebar, UserNav
+│       ├── profile/            # ProfileForm, AvatarDialog
+│       └── common/             # Shared components
 │
-├── auth/                   # Authentication feature
-│   └── auth.ts             # getUser(), logout()
-│
-├── config/                 # Configuration
-│   ├── i18n.ts             # LANGUAGE_METADATA (client-safe)
-│   ├── index.ts            # Client-safe exports only
-│   └── server.ts           # SERVER_CONFIG (import directly, not from barrel)
-│
-├── state/                  # Reactive state (.svelte.ts files)
-│   ├── shake.svelte.ts     # createShake(), createFieldShakes()
-│   ├── shortcuts.svelte.ts # Keyboard shortcuts
-│   └── theme.svelte.ts     # getTheme(), setTheme(), toggleTheme()
-│
-├── types/                  # Type aliases
-│   └── index.ts            # User, etc.
-│
-├── utils/                  # Pure utility functions
-│   ├── platform.ts         # IS_MAC, IS_WINDOWS
-│   └── ui.ts               # cn() for class merging
-│
-└── components/
-    ├── ui/                 # shadcn components (presentational only)
-    ├── auth/               # LoginForm, RegisterDialog
-    ├── layout/             # Header, Sidebar, UserNav
-    ├── profile/            # ProfileForm, AvatarDialog
-    └── common/             # Shared components
+└── styles/                     # Global CSS (imported in +layout.svelte)
+    ├── index.css               # Entry point - imports all modules
+    ├── themes.css              # CSS variables for light/dark themes
+    ├── tailwind.css            # Tailwind @theme inline configuration
+    ├── base.css                # @layer base styles
+    ├── animations.css          # Keyframes and animation utilities
+    └── utilities.css           # Reusable effect classes
 ```
 
 ### Import Rules
@@ -301,6 +310,64 @@ if (isValidationProblemDetails(apiError)) {
 
 ## Styling (Tailwind 4)
 
+### CSS Architecture
+
+Styles are organized in `src/styles/` for modularity and future extensibility (e.g., user theme preferences):
+
+| File             | Purpose                                  | When to Edit                                 |
+| ---------------- | ---------------------------------------- | -------------------------------------------- |
+| `themes.css`     | CSS custom properties (`:root`, `.dark`) | Adding new color tokens                      |
+| `tailwind.css`   | `@theme inline` mappings to CSS vars     | Extending Tailwind's design system           |
+| `base.css`       | `@layer base` element styles             | Global element resets                        |
+| `animations.css` | `@keyframes` and animation classes       | Adding new animations                        |
+| `utilities.css`  | Reusable effect classes                  | Glow effects, card hovers, status indicators |
+| `index.css`      | Entry point (imports all above)          | Rarely - only to add new modules             |
+
+**Adding a new theme variable:**
+
+```css
+/* 1. Define in themes.css */
+:root {
+  --accent: 210 40% 50%;
+}
+.dark {
+  --accent: 210 40% 60%;
+}
+
+/* 2. Map in tailwind.css */
+@theme inline {
+  --color-accent: hsl(var(--accent));
+}
+
+/* 3. Use in components */
+<div class="bg-accent text-accent-foreground">
+```
+
+**Adding a new animation:**
+
+```css
+/* In animations.css */
+@keyframes slide-in {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+.animate-slide-in {
+	animation: slide-in 0.3s ease-out;
+}
+
+/* Always respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.animate-slide-in {
+		animation: none;
+	}
+}
+```
+
 ### RTL Support - Use Logical Properties
 
 ```html
@@ -352,7 +419,7 @@ Always respect `prefers-reduced-motion` for accessibility. Use Tailwind's `motio
 </div>
 ```
 
-For custom CSS animations in `layout.css`, disable them in the reduced motion media query:
+For custom CSS animations in `src/styles/animations.css`, disable them in the reduced motion media query:
 
 ```css
 @media (prefers-reduced-motion: reduce) {

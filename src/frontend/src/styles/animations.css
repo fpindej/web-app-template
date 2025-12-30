@@ -1,0 +1,106 @@
+/* =============================================================================
+   ANIMATIONS
+   Keyframe definitions and animation utility classes.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   Shake Animation
+   Error feedback animation for form fields.
+   ----------------------------------------------------------------------------- */
+@keyframes shake {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	20% {
+		transform: translateX(-10px);
+	}
+	40% {
+		transform: translateX(10px);
+	}
+	60% {
+		transform: translateX(-10px);
+	}
+	80% {
+		transform: translateX(10px);
+	}
+}
+
+.animate-shake {
+	animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* -----------------------------------------------------------------------------
+   Glow Pulse Animation
+   Slow, ambient pulsing for background glows on specific pages (login, etc).
+   ----------------------------------------------------------------------------- */
+@keyframes glow-pulse {
+	0%,
+	100% {
+		opacity: 0.4;
+	}
+	50% {
+		opacity: 0.7;
+	}
+}
+
+.animate-glow-pulse {
+	animation: glow-pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animation-delay-2000 {
+	animation-delay: 2s;
+}
+
+/* -----------------------------------------------------------------------------
+   Pulse Ring Animation
+   Expanding ring effect for attention-drawing elements (work in progress, etc).
+   ----------------------------------------------------------------------------- */
+@keyframes pulse-ring {
+	0% {
+		transform: scale(1);
+		opacity: 0.6;
+	}
+	50% {
+		transform: scale(1.15);
+		opacity: 0.3;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 0.6;
+	}
+}
+
+.animate-pulse-ring {
+	animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* -----------------------------------------------------------------------------
+   Status Ping Animation
+   Pulsing effects for online/offline and status indicators.
+   ----------------------------------------------------------------------------- */
+@keyframes status-ping {
+	0% {
+		transform: scale(1);
+		opacity: 0.8;
+	}
+	75%,
+	100% {
+		transform: scale(2);
+		opacity: 0;
+	}
+}
+
+/* -----------------------------------------------------------------------------
+   Reduced Motion
+   Respect user's motion preferences for accessibility.
+   ----------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+	.animate-shake,
+	.animate-glow-pulse,
+	.animate-pulse-ring,
+	.status-indicator-ping,
+	.status-icon-ping {
+		animation: none;
+	}
+}

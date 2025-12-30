@@ -1,0 +1,18 @@
+/* =============================================================================
+   BASE STYLES
+   Global element defaults and resets.
+   ============================================================================= */
+
+@layer base {
+	:where(*, ::before, ::after) {
+		@apply border-border outline-ring/50;
+	}
+
+	body {
+		@apply bg-background text-foreground;
+	}
+
+	:focus-visible {
+		@apply outline-2 outline-ring/50;
+	}
+}
