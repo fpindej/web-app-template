@@ -1,14 +1,23 @@
 <script lang="ts">
 	import { Header, Sidebar } from '$lib/components/layout';
 	import { page } from '$app/state';
+	import { onMount } from 'svelte';
+	import { initSidebar, isCollapsed } from '$lib/state';
 
 	let { children, data } = $props();
+
+	onMount(() => {
+		initSidebar();
+	});
 </script>
 
 <div
-	class="grid h-dvh w-full md:grid-cols-[var(--sidebar-width-md)_1fr] lg:grid-cols-[var(--sidebar-width-lg)_1fr]"
+	class="grid h-dvh w-full transition-[grid-template-columns] duration-300 md:grid-cols-[var(--sidebar-width)_1fr]"
+	style="--sidebar-width: {isCollapsed()
+		? 'var(--sidebar-width-collapsed)'
+		: 'var(--sidebar-width-md)'};"
 >
-	<div class="hidden border-r bg-muted/40 md:block">
+	<div class="hidden border-e bg-muted/40 md:block">
 		<Sidebar class="h-full" user={data.user} />
 	</div>
 	<div class="flex flex-col overflow-hidden">

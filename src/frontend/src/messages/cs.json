@@ -25,6 +25,8 @@
 	"nav_settings": "Nastavení",
 	"nav_logout": "Odhlásit se",
 	"nav_loggedInAs": "Přihlášen jako",
+	"nav_collapse": "Sbalit postranní panel",
+	"nav_expand": "Rozbalit postranní panel",
 
 	"common_user": "Uživatel",
 	"common_language": "Jazyk",

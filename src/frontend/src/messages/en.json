@@ -25,6 +25,8 @@
 	"nav_settings": "Settings",
 	"nav_logout": "Logout",
 	"nav_loggedInAs": "Logged in as",
+	"nav_collapse": "Collapse sidebar",
+	"nav_expand": "Expand sidebar",
 
 	"common_user": "User",
 	"common_language": "Language",
