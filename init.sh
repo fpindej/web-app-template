@@ -356,7 +356,7 @@ sed_inplace() {
 print_step "Updating port configuration..."
 
 if [ -f "docker-compose.local.yml" ]; then
-    sed_inplace "s/13000:3000/$FRONTEND_PORT:3000/g" docker-compose.local.yml
+    sed_inplace "s/13000:5173/$FRONTEND_PORT:5173/g" docker-compose.local.yml
     sed_inplace "s/13002:8080/$API_PORT:8080/g" docker-compose.local.yml
     sed_inplace "s/13004:5432/$DB_PORT:5432/g" docker-compose.local.yml
     print_substep "Updated docker-compose.local.yml"

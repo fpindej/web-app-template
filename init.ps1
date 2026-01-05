@@ -312,7 +312,7 @@ Write-Step "Updating port configuration..."
 $dockerFile = Join-Path $ScriptDir "docker-compose.local.yml"
 if (Test-Path $dockerFile) {
     $content = Get-Content $dockerFile -Raw
-    $content = $content -replace "13000:3000", "${FrontendPort}:3000"
+    $content = $content -replace "13000:5173", "${FrontendPort}:5173"
     $content = $content -replace "13002:8080", "${ApiPort}:8080"
     $content = $content -replace "13004:5432", "${DbPort}:5432"
     Set-FileContent $dockerFile $content
