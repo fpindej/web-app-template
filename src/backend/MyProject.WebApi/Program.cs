@@ -7,8 +7,8 @@ using MyProject.Infrastructure.Caching.Extensions;
 using MyProject.Infrastructure.Cookies.Extensions;
 using MyProject.Infrastructure.Identity.Extensions;
 using MyProject.WebApi.Extensions;
+using MyProject.WebApi.Features.OpenApi.Extensions;
 using MyProject.WebApi.Middlewares;
-using Scalar.AspNetCore;
 using Serilog;
 using LoggerConfigurationExtensions = MyProject.Infrastructure.Logging.Extensions.LoggerConfigurationExtensions;
 
@@ -73,7 +73,7 @@ try
     builder.Services.AddHealthChecks();
 
     Log.Debug("ConfigureServices => Setting AddApiDefinition");
-    builder.Services.AddApiDefinition();
+    builder.AddOpenApiSpecification();
 
     var app = builder.Build();
 
@@ -93,16 +93,8 @@ try
     }
     else
     {
-        Log.Debug("Setting MapOpenApi");
-        app.MapOpenApi();
-
-        Log.Debug("Setting MapScalarApiReference");
-        app.MapScalarApiReference(opt =>
-        {
-            opt.WithTitle("MyProject API");
-            opt.WithTheme(ScalarTheme.Mars);
-            opt.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-        });
+        Log.Debug("Setting Scalar OpenApi Documentation");
+        app.UseOpenApiDocumentation();
     }
 
     if (app.Environment.IsDevelopment())
