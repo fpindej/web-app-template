@@ -352,30 +352,30 @@ sed_inplace() {
     fi
 }
 
-# Step 1: Update Docker Ports
+# Files to exclude from content replacement (binary files, init scripts, git)
+EXCLUDE_PATTERNS="--exclude-dir=.git --exclude-dir=bin --exclude-dir=obj --exclude-dir=node_modules --exclude=*.png --exclude=*.jpg --exclude=*.ico --exclude=*.woff --exclude=*.woff2 --exclude=init.sh --exclude=init.ps1"
+
+# Step 1: Update Ports (substitute placeholders across all files)
 print_step "Updating port configuration..."
-
-if [ -f "docker-compose.local.yml" ]; then
-    sed_inplace "s/13000:5173/$FRONTEND_PORT:5173/g" docker-compose.local.yml
-    sed_inplace "s/13002:8080/$API_PORT:8080/g" docker-compose.local.yml
-    sed_inplace "s/13004:5432/$DB_PORT:5432/g" docker-compose.local.yml
-    print_substep "Updated docker-compose.local.yml"
-fi
-
-if [ -f "src/backend/MyProject.WebApi/appsettings.Development.json" ]; then
-    sed_inplace "s/Port=13004/Port=$DB_PORT/g" src/backend/MyProject.WebApi/appsettings.Development.json
-    print_substep "Updated appsettings.Development.json"
-fi
-
-if [ -f "src/backend/MyProject.WebApi/http-client.env.json" ]; then
-    sed_inplace "s/localhost:13002/localhost:$API_PORT/g" src/backend/MyProject.WebApi/http-client.env.json
-    print_substep "Updated http-client.env.json"
-fi
 
 if [ -f "src/frontend/.env.example" ]; then
     cp src/frontend/.env.example src/frontend/.env.local
-    sed_inplace "s/localhost:13002/localhost:$API_PORT/g" src/frontend/.env.local
-    print_substep "Created frontend .env.local"
+    print_substep "Created frontend .env.local from .env.example"
+fi
+
+print_substep "Replacing port placeholders..."
+if [ "$OS" = "Darwin" ]; then
+    # macOS
+    grep -rIl --null "{INIT_FRONTEND_PORT}\|{INIT_API_PORT}\|{INIT_DB_PORT}" . $EXCLUDE_PATTERNS 2>/dev/null | xargs -0 sed -i '' \
+        -e "s/{INIT_FRONTEND_PORT}/$FRONTEND_PORT/g" \
+        -e "s/{INIT_API_PORT}/$API_PORT/g" \
+        -e "s/{INIT_DB_PORT}/$DB_PORT/g" 2>/dev/null || true
+else
+    # Linux
+    grep -rIl --null "{INIT_FRONTEND_PORT}\|{INIT_API_PORT}\|{INIT_DB_PORT}" . $EXCLUDE_PATTERNS 2>/dev/null | xargs -0 sed -i \
+        -e "s/{INIT_FRONTEND_PORT}/$FRONTEND_PORT/g" \
+        -e "s/{INIT_API_PORT}/$API_PORT/g" \
+        -e "s/{INIT_DB_PORT}/$DB_PORT/g" 2>/dev/null || true
 fi
 
 # Update deploy.config.json with new project name
@@ -395,9 +395,6 @@ OLD_NAME="MyProject"
 OLD_NAME_LOWER="myproject"
 NEW_NAME="$PROJECT_NAME"
 NEW_NAME_LOWER=$(echo "$NEW_NAME" | tr '[:upper:]' '[:lower:]')
-
-# Files to exclude from content replacement (binary files, init scripts, git)
-EXCLUDE_PATTERNS="--exclude-dir=.git --exclude-dir=bin --exclude-dir=obj --exclude-dir=node_modules --exclude=*.png --exclude=*.jpg --exclude=*.ico --exclude=*.woff --exclude=*.woff2 --exclude=init.sh --exclude=init.ps1"
 
 # Replace text content in files
 print_substep "Replacing text content..."

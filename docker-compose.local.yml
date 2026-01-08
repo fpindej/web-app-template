@@ -29,7 +29,7 @@ services:
     environment: *api-environment
     <<: *common-settings
     ports:
-      - "13002:8080"
+      - "{INIT_API_PORT}:8080"
     depends_on:
         - db
 
@@ -41,7 +41,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "13004:5432"
+      - "{INIT_DB_PORT}:5432"
 
   frontend:
     build:
@@ -53,7 +53,7 @@ services:
       - ./src/frontend:/app
       - frontend_node_modules:/app/node_modules
     ports:
-      - "13000:5173"
+      - "{INIT_FRONTEND_PORT}:5173"
     depends_on:
       - api
     <<: *common-settings

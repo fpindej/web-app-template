@@ -12,7 +12,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "eslint . && prettier --check .",
 		"format": "prettier --write .",
-		"api:generate": "openapi-typescript http://localhost:13002/openapi/v1.json -o ./src/lib/api/v1.d.ts && prettier --write ./src/lib/api/v1.d.ts"
+		"api:generate": "openapi-typescript http://localhost:{INIT_API_PORT}/openapi/v1.json -o ./src/lib/api/v1.d.ts && prettier --write ./src/lib/api/v1.d.ts"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",

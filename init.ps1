@@ -306,43 +306,45 @@ $OldNameLower = "myproject"
 $NewName = $Name
 $NewNameLower = $Name.ToLower()
 
-# Step 1: Update Docker Ports
+# Step 1: Update Ports (substitute placeholders across all files)
 Write-Step "Updating port configuration..."
-
-$dockerFile = Join-Path $ScriptDir "docker-compose.local.yml"
-if (Test-Path $dockerFile) {
-    $content = Get-Content $dockerFile -Raw
-    $content = $content -replace "13000:5173", "${FrontendPort}:5173"
-    $content = $content -replace "13002:8080", "${ApiPort}:8080"
-    $content = $content -replace "13004:5432", "${DbPort}:5432"
-    Set-FileContent $dockerFile $content
-    Write-SubStep "Updated docker-compose.local.yml"
-}
-
-$appSettingsDev = Join-Path $ScriptDir "src\backend\MyProject.WebApi\appsettings.Development.json"
-if (Test-Path $appSettingsDev) {
-    $content = Get-Content $appSettingsDev -Raw
-    $content = $content -replace "Port=13004", "Port=$DbPort"
-    Set-FileContent $appSettingsDev $content
-    Write-SubStep "Updated appsettings.Development.json"
-}
-
-$httpClientEnv = Join-Path $ScriptDir "src\backend\MyProject.WebApi\http-client.env.json"
-if (Test-Path $httpClientEnv) {
-    $content = Get-Content $httpClientEnv -Raw
-    $content = $content -replace "localhost:13002", "localhost:$ApiPort"
-    Set-FileContent $httpClientEnv $content
-    Write-SubStep "Updated http-client.env.json"
-}
 
 $frontendEnvExample = Join-Path $ScriptDir "src\frontend\.env.example"
 $frontendEnvLocal = Join-Path $ScriptDir "src\frontend\.env.local"
 if (Test-Path $frontendEnvExample) {
     Copy-Item $frontendEnvExample $frontendEnvLocal -Force
-    $content = Get-Content $frontendEnvLocal -Raw
-    $content = $content -replace "localhost:13002", "localhost:$ApiPort"
-    Set-FileContent $frontendEnvLocal $content
-    Write-SubStep "Created frontend .env.local"
+    Write-SubStep "Created frontend .env.local from .env.example"
+}
+
+Write-SubStep "Replacing port placeholders..."
+$files = Get-ChildItem -Path $ScriptDir -Recurse -File | Where-Object {
+    $_.FullName -notmatch "[\\/]\.git[\\/]" -and
+    $_.FullName -notmatch "[\\/]bin[\\/]" -and
+    $_.FullName -notmatch "[\\/]obj[\\/]" -and
+    $_.FullName -notmatch "[\\/]node_modules[\\/]" -and
+    $_.Name -ne "init.ps1" -and
+    $_.Name -ne "init.sh" -and
+    $_.Extension -notmatch "\.(png|jpg|jpeg|ico|gif|woff|woff2|ttf|eot)$"
+}
+
+foreach ($file in $files) {
+    try {
+        $content = [System.IO.File]::ReadAllText($file.FullName)
+        $originalContent = $content
+
+        if ($content -match "\{INIT_FRONTEND_PORT\}|\{INIT_API_PORT\}|\{INIT_DB_PORT\}") {
+            $content = $content -replace "\{INIT_FRONTEND_PORT\}", $FrontendPort
+            $content = $content -replace "\{INIT_API_PORT\}", $ApiPort
+            $content = $content -replace "\{INIT_DB_PORT\}", $DbPort
+
+            if ($content -ne $originalContent) {
+                Set-FileContent $file.FullName $content
+            }
+        }
+    }
+    catch {
+        # Skip files that can't be read
+    }
 }
 
 $deployConfig = Join-Path $ScriptDir "deploy.config.json"
