@@ -383,6 +383,14 @@ fi
 
 print_success "Port configuration complete"
 
+# Commit port configuration changes
+if [[ "$DO_COMMIT" == "y" ]]; then
+    print_step "Committing port configuration..."
+    git add . >/dev/null 2>&1
+    git commit -m "chore: configure ports (frontend: $FRONTEND_PORT, api: $API_PORT, db: $DB_PORT)" >/dev/null 2>&1
+    print_success "Port configuration committed"
+fi
+
 # Project name variables (needed throughout the script)
 OLD_NAME="MyProject"
 OLD_NAME_LOWER="myproject"

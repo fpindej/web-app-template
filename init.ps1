@@ -353,6 +353,16 @@ if ((Test-Path $deployConfig) -and ($NewName -ne "MyProject")) {
 
 Write-Success "Port configuration complete"
 
+# Commit port configuration changes
+if ($DoCommit) {
+    Write-Step "Committing port configuration..."
+    $ErrorActionPreference = "Continue"
+    $null = git add . 2>&1
+    $null = git commit -m "chore: configure ports (frontend: $FrontendPort, api: $ApiPort, db: $DbPort)" 2>&1
+    $ErrorActionPreference = "Stop"
+    Write-Success "Port configuration committed"
+}
+
 # Step 2: Rename Project (skip if name is already MyProject)
 if ($NewName -eq "MyProject") {
     Write-Step "Skipping rename (project name is already MyProject)"
