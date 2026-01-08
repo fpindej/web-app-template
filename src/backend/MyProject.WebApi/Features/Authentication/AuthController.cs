@@ -1,3 +1,5 @@
+#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
+
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.Features.Authentication;
 using MyProject.Infrastructure.Features.Authentication.Constants;
@@ -17,7 +19,6 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// Authenticates a user and returns a http-only cookie with the JWT access token and a refresh token
     /// </summary>
     /// <param name="request">The login credentials</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>Authentication response (access token and refresh token set in HttpOnly cookies)</returns>
     /// <response code="200">Returns success response (access token and refresh token set in HttpOnly cookies)</response>
     /// <response code="400">If the credentials are invalid or improperly formatted</response>
@@ -41,7 +42,6 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// <summary>
     /// Refreshes the authentication tokens using the refresh token from cookies
     /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>Success response with refreshed tokens set in HttpOnly cookies</returns>
     /// <response code="200">Returns success response with refreshed tokens set in HttpOnly cookies</response>
     /// <response code="401">If the refresh token is invalid, expired, or missing</response>
@@ -81,7 +81,6 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// Registers a new user account
     /// </summary>
     /// <param name="request">The registration details</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>Created response with the new user's ID</returns>
     /// <response code="201">User successfully created</response>
     /// <response code="400">If the registration data is invalid</response>
