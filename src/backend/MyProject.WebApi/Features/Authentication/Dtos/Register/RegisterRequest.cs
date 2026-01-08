@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
 
@@ -15,37 +14,34 @@ public class RegisterRequest
     /// </summary>
     [Required]
     [EmailAddress]
-    [Description("The email address for the new account")]
-    public string Email { get; init; } = string.Empty;
+    [MaxLength(255)]
+    public string Email { get; [UsedImplicitly] init; } = string.Empty;
 
     /// <summary>
     /// The password for the new account.
     /// </summary>
     [Required]
-    [DataType(DataType.Password)]
     [MinLength(6)]
-    [Description("The password for the new account, must be at least 6 characters")]
-    public string Password { get; init; } = string.Empty;
+    [MaxLength(255)]
+    public string Password { get; [UsedImplicitly] init; } = string.Empty;
 
     /// <summary>
     /// The phone number for the new account.
     /// </summary>
+    [MaxLength(20)]
     [RegularExpression(@"^(\+\d{1,3})? ?\d{6,14}$",
-        ErrorMessage = "Phone number must be a valid European format (e.g. +420123456789)")]
-    [Description("The phone number for the new account (optional), must be a valid European format")]
-    public string? PhoneNumber { get; init; }
+        ErrorMessage = "Phone number must be a valid format (e.g. +420123456789)")]
+    public string? PhoneNumber { get; [UsedImplicitly] init; }
 
     /// <summary>
     /// The first name of the user.
     /// </summary>
     [MaxLength(255)]
-    [Description("The first name of the user (optional), maximum 255 characters")]
-    public string? FirstName { get; init; }
+    public string? FirstName { get; [UsedImplicitly] init; }
 
     /// <summary>
     /// The last name of the user.
     /// </summary>
     [MaxLength(255)]
-    [Description("The last name of the user (optional), maximum 255 characters")]
-    public string? LastName { get; init; }
+    public string? LastName { get; [UsedImplicitly] init; }
 }

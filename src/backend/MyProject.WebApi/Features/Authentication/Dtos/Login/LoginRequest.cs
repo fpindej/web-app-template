@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
 
@@ -13,16 +12,14 @@ public class LoginRequest
     /// The username for authentication.
     /// </summary>
     [Required]
-    [Description("The username for authentication (email)")]
     [EmailAddress]
-    [DataType(DataType.EmailAddress)]
+    [MaxLength(255)]
     public string Username { get; [UsedImplicitly] init; } = string.Empty;
 
     /// <summary>
     /// The password for authentication.
     /// </summary>
     [Required]
-    [DataType(DataType.Password)]
-    [Description("The password for authentication")]
+    [MaxLength(255)]
     public string Password { get; [UsedImplicitly] init; } = string.Empty;
 }

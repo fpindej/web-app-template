@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
 using MyProject.Application.Features.Authentication.Dtos;
@@ -15,38 +14,34 @@ public class UpdateUserRequest
     /// The first name of the user.
     /// </summary>
     [MaxLength(255)]
-    [Description("The first name of the user (optional), maximum 255 characters")]
-    public string? FirstName { get; init; }
+    public string? FirstName { get; [UsedImplicitly] init; }
 
     /// <summary>
     /// The last name of the user.
     /// </summary>
     [MaxLength(255)]
-    [Description("The last name of the user (optional), maximum 255 characters")]
-    public string? LastName { get; init; }
+    public string? LastName { get; [UsedImplicitly] init; }
 
     /// <summary>
     /// The phone number of the user.
     /// </summary>
+    [MaxLength(20)]
     [RegularExpression(@"^(\+\d{1,3})? ?\d{6,14}$",
         ErrorMessage = "Phone number must be a valid format (e.g. +420123456789)")]
-    [Description("The phone number of the user (optional), must be a valid format")]
-    public string? PhoneNumber { get; init; }
+    public string? PhoneNumber { get; [UsedImplicitly] init; }
 
     /// <summary>
     /// A short biography or description of the user.
     /// </summary>
     [MaxLength(1000)]
-    [Description("A short biography or description of the user (optional), maximum 1000 characters")]
-    public string? Bio { get; init; }
+    public string? Bio { get; [UsedImplicitly] init; }
 
     /// <summary>
     /// The URL to the user's avatar image.
     /// </summary>
     [MaxLength(500)]
     [Url]
-    [Description("The URL to the user's avatar image (optional), must be a valid URL")]
-    public string? AvatarUrl { get; init; }
+    public string? AvatarUrl { get; [UsedImplicitly] init; }
 
     /// <summary>
     /// Converts the request to an application layer input.
