@@ -9,6 +9,7 @@ This document provides AI agents with context about the codebase structure, conv
 | **Framework** | .NET 10 / C# 13 |
 | **Architecture** | Clean Architecture (4 layers) |
 | **Database** | PostgreSQL + EF Core |
+| **Caching** | Redis (IDistributedCache) |
 | **Auth** | JWT in HttpOnly cookies |
 | **Validation** | FluentValidation |
 | **Logging** | Serilog |
@@ -314,6 +315,7 @@ chmod +x init.sh
 |---------|---------|--------------|
 | Web API | `BasePort + 2` | 13002 |
 | PostgreSQL | `BasePort + 4` | 13004 |
+| Redis | `BasePort + 6` | 13006 |
 
 ### Files Modified by Init Script
 
