@@ -27,7 +27,10 @@ public static class ServiceCollectionExtensions
         }
         else
         {
-            services.AddDistributedMemoryCache();
+            services.AddDistributedMemoryCache(options =>
+            {
+                options.SizeLimit = redisOptions?.InMemorySizeLimit;
+            });
         }
 
         services.AddScoped<ICacheService, CacheService>();

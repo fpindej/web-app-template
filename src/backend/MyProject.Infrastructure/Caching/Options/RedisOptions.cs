@@ -23,6 +23,12 @@ public sealed class RedisOptions : IValidatableObject
     /// </summary>
     public string InstanceName { get; init; } = string.Empty;
 
+    /// <summary>
+    /// Gets or sets the size limit for in-memory cache (when Redis is disabled).
+    /// Set to null for no limit (not recommended for production).
+    /// </summary>
+    public int? InMemorySizeLimit { get; init; } = 1024;
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (Enabled && string.IsNullOrWhiteSpace(ConnectionString))
