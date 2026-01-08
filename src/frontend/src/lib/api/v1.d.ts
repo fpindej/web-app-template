@@ -11,6 +11,7 @@ export interface paths {
 			path?: never;
 			cookie?: never;
 		};
+		/** Gets the current authenticated user's information */
 		get: {
 			parameters: {
 				query?: never;
@@ -20,7 +21,7 @@ export interface paths {
 			};
 			requestBody?: never;
 			responses: {
-				/** @description OK */
+				/** @description Returns user information */
 				200: {
 					headers: {
 						[name: string]: unknown;
@@ -31,7 +32,7 @@ export interface paths {
 						'text/json': components['schemas']['UserResponse'];
 					};
 				};
-				/** @description Unauthorized */
+				/** @description If the user is not authenticated */
 				401: {
 					headers: {
 						[name: string]: unknown;
@@ -49,6 +50,7 @@ export interface paths {
 		delete?: never;
 		options?: never;
 		head?: never;
+		/** Updates the current authenticated user's profile information */
 		patch: {
 			parameters: {
 				query?: never;
@@ -56,6 +58,7 @@ export interface paths {
 				path?: never;
 				cookie?: never;
 			};
+			/** @description The profile update request */
 			requestBody: {
 				content: {
 					'application/json': components['schemas']['UpdateUserRequest'];
@@ -64,7 +67,7 @@ export interface paths {
 				};
 			};
 			responses: {
-				/** @description OK */
+				/** @description Returns updated user information */
 				200: {
 					headers: {
 						[name: string]: unknown;
@@ -75,7 +78,7 @@ export interface paths {
 						'text/json': components['schemas']['UserResponse'];
 					};
 				};
-				/** @description Bad Request */
+				/** @description If the request is invalid */
 				400: {
 					headers: {
 						[name: string]: unknown;
@@ -86,7 +89,7 @@ export interface paths {
 						'text/json': components['schemas']['ProblemDetails'];
 					};
 				};
-				/** @description Unauthorized */
+				/** @description If the user is not authenticated */
 				401: {
 					headers: {
 						[name: string]: unknown;
@@ -110,6 +113,7 @@ export interface paths {
 		};
 		get?: never;
 		put?: never;
+		/** Authenticates a user and returns a http-only cookie with the JWT access token and a refresh token */
 		post: {
 			parameters: {
 				query?: never;
@@ -117,6 +121,7 @@ export interface paths {
 				path?: never;
 				cookie?: never;
 			};
+			/** @description The login credentials */
 			requestBody: {
 				content: {
 					'application/json': components['schemas']['LoginRequest'];
@@ -125,14 +130,14 @@ export interface paths {
 				};
 			};
 			responses: {
-				/** @description OK */
+				/** @description Returns success response (access token and refresh token set in HttpOnly cookies) */
 				200: {
 					headers: {
 						[name: string]: unknown;
 					};
 					content?: never;
 				};
-				/** @description Bad Request */
+				/** @description If the credentials are invalid or improperly formatted */
 				400: {
 					headers: {
 						[name: string]: unknown;
@@ -143,7 +148,7 @@ export interface paths {
 						'text/json': components['schemas']['ProblemDetails'];
 					};
 				};
-				/** @description Unauthorized */
+				/** @description If the credentials are invalid */
 				401: {
 					headers: {
 						[name: string]: unknown;
@@ -171,6 +176,7 @@ export interface paths {
 		};
 		get?: never;
 		put?: never;
+		/** Refreshes the authentication tokens using the refresh token from cookies */
 		post: {
 			parameters: {
 				query?: never;
@@ -180,14 +186,14 @@ export interface paths {
 			};
 			requestBody?: never;
 			responses: {
-				/** @description OK */
+				/** @description Returns success response with refreshed tokens set in HttpOnly cookies */
 				200: {
 					headers: {
 						[name: string]: unknown;
 					};
 					content?: never;
 				};
-				/** @description Unauthorized */
+				/** @description If the refresh token is invalid, expired, or missing */
 				401: {
 					headers: {
 						[name: string]: unknown;
@@ -215,6 +221,7 @@ export interface paths {
 		};
 		get?: never;
 		put?: never;
+		/** Logs out the current user by clearing authentication cookies */
 		post: {
 			parameters: {
 				query?: never;
@@ -224,7 +231,7 @@ export interface paths {
 			};
 			requestBody?: never;
 			responses: {
-				/** @description No Content */
+				/** @description A 204 No Content response */
 				204: {
 					headers: {
 						[name: string]: unknown;
@@ -248,6 +255,7 @@ export interface paths {
 		};
 		get?: never;
 		put?: never;
+		/** Registers a new user account */
 		post: {
 			parameters: {
 				query?: never;
@@ -255,6 +263,7 @@ export interface paths {
 				path?: never;
 				cookie?: never;
 			};
+			/** @description The registration details */
 			requestBody: {
 				content: {
 					'application/json': components['schemas']['RegisterRequest'];
@@ -263,14 +272,14 @@ export interface paths {
 				};
 			};
 			responses: {
-				/** @description Created */
+				/** @description User successfully created */
 				201: {
 					headers: {
 						[name: string]: unknown;
 					};
 					content?: never;
 				};
-				/** @description Bad Request */
+				/** @description If the registration data is invalid */
 				400: {
 					headers: {
 						[name: string]: unknown;
@@ -293,68 +302,72 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
 	schemas: {
+		/** @description Represents a user login request with credentials. */
 		LoginRequest: {
-			/** @description The username for authentication (email) */
+			/** @description The username for authentication. */
 			username: string;
-			/** @description The password for authentication */
+			/** @description The password for authentication. */
 			password: string;
 		};
 		ProblemDetails: {
 			type?: null | string;
 			title?: null | string;
 			/** Format: int32 */
-			status?: null | number | string;
+			status?: null | number;
 			detail?: null | string;
 			instance?: null | string;
 		};
+		/** @description Represents a request to register a new user account. */
 		RegisterRequest: {
-			/** @description The email address for the new account */
+			/** @description The email address for the new account. */
 			email: string;
-			/** @description The password for the new account, must be at least 6 characters */
+			/** @description The password for the new account. */
 			password: string;
-			/** @description The phone number for the new account (optional), must be a valid European format */
+			/** @description The phone number for the new account. */
 			phoneNumber?: null | string;
-			/** @description The first name of the user (optional), maximum 255 characters */
+			/** @description The first name of the user. */
 			firstName?: null | string;
-			/** @description The last name of the user (optional), maximum 255 characters */
+			/** @description The last name of the user. */
 			lastName?: null | string;
 		};
+		/** @description Represents a request to update the user's profile information. */
 		UpdateUserRequest: {
-			/** @description The first name of the user (optional), maximum 255 characters */
+			/** @description The first name of the user. */
 			firstName?: null | string;
-			/** @description The last name of the user (optional), maximum 255 characters */
+			/** @description The last name of the user. */
 			lastName?: null | string;
-			/** @description The phone number of the user (optional), must be a valid format */
+			/** @description The phone number of the user. */
 			phoneNumber?: null | string;
-			/** @description A short biography or description of the user (optional), maximum 1000 characters */
+			/** @description A short biography or description of the user. */
 			bio?: null | string;
 			/**
 			 * Format: uri
-			 * @description The URL to the user's avatar image (optional), must be a valid URL
+			 * @description The URL to the user's avatar image.
 			 */
 			avatarUrl?: null | string;
 		};
+		/** @description Represents the current user's information. */
 		UserResponse: {
 			/**
 			 * Format: uuid
-			 * @description The unique identifier of the user
+			 * @description The unique identifier of the user.
 			 */
 			id?: string;
-			/** @description The username of the user (same as email) */
+			/** @description The username of the user (same as email). */
 			username?: string;
-			/** @description The email address of the user (same as username) */
+			/** @description The email address of the user (same as username). */
 			email?: string;
-			/** @description The first name of the user */
+			/** @description The first name of the user. */
 			firstName?: null | string;
-			/** @description The last name of the user */
+			/** @description The last name of the user. */
 			lastName?: null | string;
-			/** @description The phone number of the user */
+			/** @description The phone number of the user. */
 			phoneNumber?: null | string;
-			/** @description A short biography or description of the user */
+			/** @description A short biography or description of the user. */
 			bio?: null | string;
-			/** @description The URL to the user's avatar image */
+			/** @description The URL to the user's avatar image. */
 			avatarUrl?: null | string;
-			/** @description The roles assigned to the user */
+			/** @description The roles assigned to the user. */
 			roles?: string[];
 		};
 	};
