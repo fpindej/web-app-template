@@ -180,11 +180,6 @@ function Test-ProjectName {
         return $false
     }
 
-    if ($ProjectName -eq "MyProject") {
-        Write-ErrorMessage "Please choose a different name than 'MyProject'"
-        return $false
-    }
-
     return $true
 }
 
@@ -348,7 +343,7 @@ foreach ($file in $files) {
 }
 
 $deployConfig = Join-Path $ScriptDir "deploy.config.json"
-if (Test-Path $deployConfig) {
+if ((Test-Path $deployConfig) -and ($NewName -ne "MyProject")) {
     $content = Get-Content $deployConfig -Raw
     $content = $content -replace "myproject-api", "$NewNameLower-api"
     $content = $content -replace "myproject-frontend", "$NewNameLower-frontend"
@@ -358,74 +353,78 @@ if (Test-Path $deployConfig) {
 
 Write-Success "Port configuration complete"
 
-# Step 2: Rename Project
-Write-Step "Renaming project..."
+# Step 2: Rename Project (skip if name is already MyProject)
+if ($NewName -eq "MyProject") {
+    Write-Step "Skipping rename (project name is already MyProject)"
+} else {
+    Write-Step "Renaming project..."
 
-Write-SubStep "Replacing text content..."
-$files = Get-ChildItem -Path $ScriptDir -Recurse -File | Where-Object {
-    $_.FullName -notmatch "[\\/]\.git[\\/]" -and
-    $_.FullName -notmatch "[\\/]bin[\\/]" -and
-    $_.FullName -notmatch "[\\/]obj[\\/]" -and
-    $_.FullName -notmatch "[\\/]node_modules[\\/]" -and
-    $_.Name -ne "init.ps1" -and
-    $_.Name -ne "init.sh" -and
-    $_.Extension -notmatch "\.(png|jpg|jpeg|ico|gif|woff|woff2|ttf|eot)$"
-}
+    Write-SubStep "Replacing text content..."
+    $files = Get-ChildItem -Path $ScriptDir -Recurse -File | Where-Object {
+        $_.FullName -notmatch "[\\/]\.git[\\/]" -and
+        $_.FullName -notmatch "[\\/]bin[\\/]" -and
+        $_.FullName -notmatch "[\\/]obj[\\/]" -and
+        $_.FullName -notmatch "[\\/]node_modules[\\/]" -and
+        $_.Name -ne "init.ps1" -and
+        $_.Name -ne "init.sh" -and
+        $_.Extension -notmatch "\.(png|jpg|jpeg|ico|gif|woff|woff2|ttf|eot)$"
+    }
 
-foreach ($file in $files) {
-    try {
-        $content = [System.IO.File]::ReadAllText($file.FullName)
-        $originalContent = $content
+    foreach ($file in $files) {
+        try {
+            $content = [System.IO.File]::ReadAllText($file.FullName)
+            $originalContent = $content
 
-        if ($content -match $OldName -or $content -match $OldNameLower) {
-            $content = $content -replace $OldName, $NewName
-            $content = $content -replace $OldNameLower, $NewNameLower
+            if ($content -match $OldName -or $content -match $OldNameLower) {
+                $content = $content -replace $OldName, $NewName
+                $content = $content -replace $OldNameLower, $NewNameLower
 
-            if ($content -ne $originalContent) {
-                Set-FileContent $file.FullName $content
+                if ($content -ne $originalContent) {
+                    Set-FileContent $file.FullName $content
+                }
+            }
+        }
+        catch {
+            # Skip files that can't be read (binary, locked, etc.)
+        }
+    }
+
+    Write-SubStep "Renaming files and directories..."
+    $items = Get-ChildItem -Path $ScriptDir -Recurse | Where-Object {
+        $_.FullName -notmatch "[\\/]\.git[\\/]" -and
+        $_.FullName -notmatch "[\\/]bin[\\/]" -and
+        $_.FullName -notmatch "[\\/]obj[\\/]" -and
+        $_.FullName -notmatch "[\\/]node_modules[\\/]" -and
+        $_.Name -ne "init.ps1" -and
+        $_.Name -ne "init.sh" -and
+        ($_.Name -match $OldName -or $_.Name -match $OldNameLower)
+    } | Sort-Object { $_.FullName.Length } -Descending
+
+    foreach ($item in $items) {
+        $newItemName = $item.Name -replace $OldName, $NewName
+        $newItemName = $newItemName -replace $OldNameLower, $NewNameLower
+
+        if ($newItemName -ne $item.Name) {
+            try {
+                Rename-Item -Path $item.FullName -NewName $newItemName -ErrorAction Stop
+            }
+            catch {
+                # Item may have already been moved as part of parent directory rename
             }
         }
     }
-    catch {
-        # Skip files that can't be read (binary, locked, etc.)
+
+    Write-Success "Project renamed to $NewName"
+
+    # Step 3: Git Commit (Rename)
+    if ($DoCommit) {
+        Write-Step "Committing rename changes..."
+        $ErrorActionPreference = "Continue"
+        $null = git add . 2>&1
+        $null = git commit -m "chore: rename project from $OldName to $NewName" 2>&1
+        $ErrorActionPreference = "Stop"
+        Write-Success "Changes committed"
     }
-}
-
-Write-SubStep "Renaming files and directories..."
-$items = Get-ChildItem -Path $ScriptDir -Recurse | Where-Object {
-    $_.FullName -notmatch "[\\/]\.git[\\/]" -and
-    $_.FullName -notmatch "[\\/]bin[\\/]" -and
-    $_.FullName -notmatch "[\\/]obj[\\/]" -and
-    $_.FullName -notmatch "[\\/]node_modules[\\/]" -and
-    $_.Name -ne "init.ps1" -and
-    $_.Name -ne "init.sh" -and
-    ($_.Name -match $OldName -or $_.Name -match $OldNameLower)
-} | Sort-Object { $_.FullName.Length } -Descending
-
-foreach ($item in $items) {
-    $newItemName = $item.Name -replace $OldName, $NewName
-    $newItemName = $newItemName -replace $OldNameLower, $NewNameLower
-
-    if ($newItemName -ne $item.Name) {
-        try {
-            Rename-Item -Path $item.FullName -NewName $newItemName -ErrorAction Stop
-        }
-        catch {
-            # Item may have already been moved as part of parent directory rename
-        }
-    }
-}
-
-Write-Success "Project renamed to $NewName"
-
-# Step 3: Git Commit (Rename)
-if ($DoCommit) {
-    Write-Step "Committing rename changes..."
-    $ErrorActionPreference = "Continue"
-    $null = git add . 2>&1
-    $null = git commit -m "chore: rename project from $OldName to $NewName" 2>&1
-    $ErrorActionPreference = "Stop"
-    Write-Success "Changes committed"
 }
 
 # Step 4: Create Migration
