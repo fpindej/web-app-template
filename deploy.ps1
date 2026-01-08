@@ -239,12 +239,42 @@ function Show-ConfigureRegistry {
         $Config.registry = Read-Value "Docker registry (e.g., myusername, ghcr.io/myuser)" $Config.registry
         $Config.backendImage = Read-Value "Backend image name" $Config.backendImage
         $Config.frontendImage = Read-Value "Frontend image name" $Config.frontendImage
-        $Config.platform = Read-Value "Target platform" $Config.platform
+        $Config.platform = Read-Platform $Config.platform
         Save-Config $Config
         Write-Success "Configuration saved"
     }
     
     return $Config
+}
+
+function Read-Platform {
+    param([string]$Current)
+    
+    Write-Host ""
+    Write-Host "Target platform:" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  [1] linux/amd64    - Intel/AMD servers, most cloud VMs, WSL2"
+    Write-Host "  [2] linux/arm64    - Apple Silicon (M1/M2/M3), AWS Graviton"
+    Write-Host "  [3] linux/arm64/v8 - Raspberry Pi 4/5 (64-bit)"
+    Write-Host "  [4] linux/arm/v7   - Raspberry Pi 2/3, older ARM devices (32-bit)"
+    Write-Host "  [5] Custom         - Enter manually"
+    Write-Host ""
+    Write-Host "  Current: $Current" -ForegroundColor DarkGray
+    Write-Host ""
+    $choice = Read-Host "Choose [1-5] (default: keep current)"
+    
+    switch ($choice) {
+        "1" { return "linux/amd64" }
+        "2" { return "linux/arm64" }
+        "3" { return "linux/arm64/v8" }
+        "4" { return "linux/arm/v7" }
+        "5" { 
+            $custom = Read-Host "Enter platform"
+            if ([string]::IsNullOrWhiteSpace($custom)) { return $Current }
+            return $custom
+        }
+        default { return $Current }
+    }
 }
 
 function Read-BumpType {
