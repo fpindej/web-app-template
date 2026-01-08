@@ -169,14 +169,15 @@ create_default_config() {
     if [ -d "src/backend" ]; then
         detected_name=$(find src/backend -maxdepth 1 -type d -name "*.WebApi" 2>/dev/null | head -1 | xargs basename 2>/dev/null | sed 's/.WebApi//' || echo "")
     fi
-    detected_name=${detected_name:-"myproject"}
-    local detected_lower=$(echo "$detected_name" | tr '[:upper:]' '[:lower:]')
+    detected_name=${detected_name:-"MyProject"}
+    # Convert PascalCase to kebab-case
+    local detected_slug=$(echo "$detected_name" | sed 's/\([a-z]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]')
     
     cat > "$CONFIG_FILE" << EOF
 {
   "registry": "myusername",
-  "backendImage": "${detected_lower}-api",
-  "frontendImage": "${detected_lower}-frontend",
+  "backendImage": "${detected_slug}-api",
+  "frontendImage": "${detected_slug}-frontend",
   "backendVersion": "0.1.0",
   "frontendVersion": "0.1.0",
   "platform": "linux/amd64"

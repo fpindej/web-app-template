@@ -189,17 +189,18 @@ function Get-Config {
         Write-Warning "Config file not found. Creating default..."
         
         # Try to detect project name
-        $detectedName = "myproject"
+        $detectedName = "MyProject"
         $webApiDir = Get-ChildItem -Path "src\backend" -Directory -Filter "*.WebApi" -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($webApiDir) {
             $detectedName = $webApiDir.Name -replace '\.WebApi$', ''
-            $detectedName = $detectedName.ToLower()
         }
+        # Convert PascalCase to kebab-case
+        $detectedSlug = ($detectedName -creplace '([a-z])([A-Z])', '$1-$2').ToLower()
         
         $defaultConfig = @{
             registry = "myusername"
-            backendImage = "$detectedName-api"
-            frontendImage = "$detectedName-frontend"
+            backendImage = "$detectedSlug-api"
+            frontendImage = "$detectedSlug-frontend"
             backendVersion = "0.1.0"
             frontendVersion = "0.1.0"
             platform = "linux/amd64"
