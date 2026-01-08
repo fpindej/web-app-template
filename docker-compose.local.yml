@@ -3,6 +3,9 @@ name: {INIT_PROJECT_SLUG}-local
 x-api-environment: &api-environment
   ASPNETCORE_ENVIRONMENT: Development
   ConnectionStrings__Database: Host=db;Port=5432;Database={INIT_PROJECT_SLUG};Username=admin;Password=pwd
+  Redis__Enabled: true
+  Redis__ConnectionString: redis:6379
+  Redis__InstanceName: "{INIT_PROJECT_SLUG}:"
   Authentication__Jwt__ExpiresInMinutes: 100
   Authentication__Jwt__RefreshTokenExpiresInDays: 7
 
@@ -30,7 +33,18 @@ services:
     ports:
       - "{INIT_API_PORT}:8080"
     depends_on:
-        - db
+      - db
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: {INIT_PROJECT_SLUG}-local-redis
+    <<: *common-settings
+    ports:
+      - "{INIT_REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
 
   db:
     image: postgres:15-alpine
@@ -60,6 +74,8 @@ services:
 volumes:
   db_data:
     name: {INIT_PROJECT_SLUG}-local-db-data
+  redis_data:
+    name: {INIT_PROJECT_SLUG}-local-redis-data
   frontend_node_modules:
     name: {INIT_PROJECT_SLUG}-local-frontend-node-modules
 
