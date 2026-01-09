@@ -10,10 +10,7 @@ internal class CacheService(
     IDistributedCache distributedCache,
     IOptions<CachingOptions> cachingOptions) : ICacheService
 {
-    private readonly DistributedCacheEntryOptions _defaultOptions = new()
-    {
-        AbsoluteExpirationRelativeToNow = cachingOptions.Value.DefaultExpiration
-    };
+    private readonly TimeSpan _defaultExpiration = cachingOptions.Value.DefaultExpiration;
 
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
@@ -62,7 +59,10 @@ internal class CacheService(
     {
         if (options is null)
         {
-            return _defaultOptions;
+            return new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = _defaultExpiration
+            };
         }
 
         return new DistributedCacheEntryOptions
