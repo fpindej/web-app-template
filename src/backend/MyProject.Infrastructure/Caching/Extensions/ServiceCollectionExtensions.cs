@@ -45,29 +45,20 @@ public static class ServiceCollectionExtensions
 
     private static ConfigurationOptions BuildConfigurationOptions(RedisOptions redisOptions)
     {
-        var configurationOptions = new ConfigurationOptions
-        {
-            DefaultDatabase = redisOptions.DefaultDatabase,
-            Ssl = redisOptions.UseSsl,
-            AbortOnConnectFail = redisOptions.AbortOnConnectFail,
-            ConnectTimeout = redisOptions.ConnectTimeoutMs,
-            SyncTimeout = redisOptions.SyncTimeoutMs,
-            AsyncTimeout = redisOptions.AsyncTimeoutMs,
-            ConnectRetry = redisOptions.ConnectRetry,
-            KeepAlive = redisOptions.KeepAliveSeconds
-        };
+        // Parse the connection string using StackExchange.Redis built-in parser
+        // Supports formats like: "localhost:6379" or "host1:6379,host2:6379" or full connection strings
+        var configurationOptions = ConfigurationOptions.Parse(redisOptions.ConnectionString);
 
-        // Parse connection string (host:port or host:port,host:port for cluster)
-        foreach (var endpoint in redisOptions.ConnectionString.Split(','))
-        {
-            var trimmed = endpoint.Trim();
-            if (!string.IsNullOrEmpty(trimmed))
-            {
-                configurationOptions.EndPoints.Add(trimmed);
-            }
-        }
+        // Override with explicit options from configuration
+        configurationOptions.DefaultDatabase = redisOptions.DefaultDatabase;
+        configurationOptions.Ssl = redisOptions.UseSsl;
+        configurationOptions.AbortOnConnectFail = redisOptions.AbortOnConnectFail;
+        configurationOptions.ConnectTimeout = redisOptions.ConnectTimeoutMs;
+        configurationOptions.SyncTimeout = redisOptions.SyncTimeoutMs;
+        configurationOptions.AsyncTimeout = redisOptions.AsyncTimeoutMs;
+        configurationOptions.ConnectRetry = redisOptions.ConnectRetry;
+        configurationOptions.KeepAlive = redisOptions.KeepAliveSeconds;
 
-        // Set password if provided
         if (!string.IsNullOrWhiteSpace(redisOptions.Password))
         {
             configurationOptions.Password = redisOptions.Password;
