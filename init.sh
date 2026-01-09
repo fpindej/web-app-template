@@ -131,6 +131,7 @@ show_help() {
     echo "  Frontend:   BASE_PORT      (e.g., 13000)"
     echo "  API:        BASE_PORT + 2  (e.g., 13002)"
     echo "  Database:   BASE_PORT + 4  (e.g., 13004)"
+    echo "  Redis:      BASE_PORT + 6  (e.g., 13006)"
     echo ""
     echo "Examples:"
     echo "  ./init.sh --name MyApi --port 14000 --yes"
@@ -280,6 +281,7 @@ done
 FRONTEND_PORT=$BASE_PORT
 API_PORT=$((BASE_PORT + 2))
 DB_PORT=$((BASE_PORT + 4))
+REDIS_PORT=$((BASE_PORT + 6))
 
 # Convert PascalCase to kebab-case (MyAwesomeApi -> my-awesome-api)
 to_kebab_case() {
@@ -323,6 +325,7 @@ echo -e "
   Frontend:         ${CYAN}$FRONTEND_PORT${NC}
   API:              ${CYAN}$API_PORT${NC}
   Database:         ${CYAN}$DB_PORT${NC}
+  Redis:            ${CYAN}$REDIS_PORT${NC}
   
   ${BOLD}Actions${NC}
   ─────────────────────────────────────
@@ -368,17 +371,19 @@ fi
 print_substep "Replacing port placeholders..."
 if [ "$OS" = "Darwin" ]; then
     # macOS
-    grep -rIl --null "{INIT_FRONTEND_PORT}\|{INIT_API_PORT}\|{INIT_DB_PORT}\|{INIT_PROJECT_SLUG}" . $EXCLUDE_PATTERNS 2>/dev/null | xargs -0 sed -i '' \
+    grep -rIl --null "{INIT_FRONTEND_PORT}\|{INIT_API_PORT}\|{INIT_DB_PORT}\|{INIT_REDIS_PORT}\|{INIT_PROJECT_SLUG}" . $EXCLUDE_PATTERNS 2>/dev/null | xargs -0 sed -i '' \
         -e "s/{INIT_FRONTEND_PORT}/$FRONTEND_PORT/g" \
         -e "s/{INIT_API_PORT}/$API_PORT/g" \
         -e "s/{INIT_DB_PORT}/$DB_PORT/g" \
+        -e "s/{INIT_REDIS_PORT}/$REDIS_PORT/g" \
         -e "s/{INIT_PROJECT_SLUG}/$PROJECT_SLUG/g" 2>/dev/null || true
 else
     # Linux
-    grep -rIl --null "{INIT_FRONTEND_PORT}\|{INIT_API_PORT}\|{INIT_DB_PORT}\|{INIT_PROJECT_SLUG}" . $EXCLUDE_PATTERNS 2>/dev/null | xargs -0 sed -i \
+    grep -rIl --null "{INIT_FRONTEND_PORT}\|{INIT_API_PORT}\|{INIT_DB_PORT}\|{INIT_REDIS_PORT}\|{INIT_PROJECT_SLUG}" . $EXCLUDE_PATTERNS 2>/dev/null | xargs -0 sed -i \
         -e "s/{INIT_FRONTEND_PORT}/$FRONTEND_PORT/g" \
         -e "s/{INIT_API_PORT}/$API_PORT/g" \
         -e "s/{INIT_DB_PORT}/$DB_PORT/g" \
+        -e "s/{INIT_REDIS_PORT}/$REDIS_PORT/g" \
         -e "s/{INIT_PROJECT_SLUG}/$PROJECT_SLUG/g" 2>/dev/null || true
 fi
 
@@ -388,7 +393,7 @@ print_success "Port configuration complete"
 if [[ "$DO_COMMIT" == "y" ]]; then
     print_step "Committing port configuration..."
     git add . >/dev/null 2>&1
-    git commit -m "chore: configure project (slug: $PROJECT_SLUG, ports: $FRONTEND_PORT/$API_PORT/$DB_PORT)" >/dev/null 2>&1
+    git commit -m "chore: configure project (slug: $PROJECT_SLUG, ports: $FRONTEND_PORT/$API_PORT/$DB_PORT/$REDIS_PORT)" >/dev/null 2>&1
     print_success "Port configuration committed"
 fi
 

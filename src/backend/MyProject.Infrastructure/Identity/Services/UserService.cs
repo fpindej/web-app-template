@@ -13,6 +13,9 @@ internal class UserService(
     IUserContext userContext,
     ICacheService cacheService) : IUserService
 {
+    private static readonly CacheEntryOptions UserCacheOptions =
+        CacheEntryOptions.AbsoluteExpireIn(TimeSpan.FromMinutes(1));
+
     public async Task<Result<UserOutput>> GetCurrentUserAsync()
     {
         var userId = userContext.UserId;
@@ -51,7 +54,7 @@ internal class UserService(
 
         // NOTE: UserOutput (including roles) is cached to improve performance.
         // Role or permission changes may take up to this duration to be reflected.
-        await cacheService.SetAsync(cacheKey, output, TimeSpan.FromMinutes(1));
+        await cacheService.SetAsync(cacheKey, output, UserCacheOptions);
 
         return Result<UserOutput>.Success(output);
     }

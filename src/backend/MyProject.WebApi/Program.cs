@@ -42,7 +42,7 @@ try
         builder.Services.AddUserContext();
 
         Log.Debug("Adding caching");
-        builder.Services.AddCaching();
+        builder.Services.AddCaching(builder.Configuration);
 
         Log.Debug("Adding cookie services");
         builder.Services.AddCookieServices();

@@ -14,7 +14,7 @@
 
 .PARAMETER Port
     Base port for Docker services. Default is 13000.
-    Frontend: PORT, API: PORT+2, Database: PORT+4
+    Frontend: PORT, API: PORT+2, Database: PORT+4, Redis: PORT+6
 
 .PARAMETER Yes
     Accept all defaults without prompting (non-interactive mode).
@@ -247,6 +247,7 @@ while ($true) {
 $FrontendPort = $Port
 $ApiPort = $Port + 2
 $DbPort = $Port + 4
+$RedisPort = $Port + 6
 
 # Convert PascalCase to kebab-case (MyAwesomeApi -> my-awesome-api)
 function ConvertTo-KebabCase {
@@ -280,6 +281,7 @@ Write-Host "  -------------------------------------"
 Write-Host "  Frontend:         " -NoNewline; Write-Host $FrontendPort -ForegroundColor Cyan
 Write-Host "  API:              " -NoNewline; Write-Host $ApiPort -ForegroundColor Cyan
 Write-Host "  Database:         " -NoNewline; Write-Host $DbPort -ForegroundColor Cyan
+Write-Host "  Redis:            " -NoNewline; Write-Host $RedisPort -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Actions" -ForegroundColor White
 Write-Host "  -------------------------------------"
@@ -335,10 +337,11 @@ foreach ($file in $files) {
         $content = [System.IO.File]::ReadAllText($file.FullName)
         $originalContent = $content
 
-        if ($content -match "\{INIT_FRONTEND_PORT\}|\{INIT_API_PORT\}|\{INIT_DB_PORT\}|\{INIT_PROJECT_SLUG\}") {
+        if ($content -match "\{INIT_FRONTEND_PORT\}|\{INIT_API_PORT\}|\{INIT_DB_PORT\}|\{INIT_REDIS_PORT\}|\{INIT_PROJECT_SLUG\}") {
             $content = $content -replace "\{INIT_FRONTEND_PORT\}", $FrontendPort
             $content = $content -replace "\{INIT_API_PORT\}", $ApiPort
             $content = $content -replace "\{INIT_DB_PORT\}", $DbPort
+            $content = $content -replace "\{INIT_REDIS_PORT\}", $RedisPort
             $content = $content -replace "\{INIT_PROJECT_SLUG\}", $ProjectSlug
 
             if ($content -ne $originalContent) {
@@ -358,7 +361,7 @@ if ($DoCommit) {
     Write-Step "Committing port configuration..."
     $ErrorActionPreference = "Continue"
     $null = git add . 2>&1
-    $null = git commit -m "chore: configure project (slug: $ProjectSlug, ports: $FrontendPort/$ApiPort/$DbPort)" 2>&1
+    $null = git commit -m "chore: configure project (slug: $ProjectSlug, ports: $FrontendPort/$ApiPort/$DbPort/$RedisPort)" 2>&1
     $ErrorActionPreference = "Stop"
     Write-Success "Port configuration committed"
 }
