@@ -569,6 +569,7 @@ echo -e "
   Frontend:  ${CYAN}http://localhost:$FRONTEND_PORT${NC}
   API:       ${CYAN}http://localhost:$API_PORT${NC}
   API Docs:  ${CYAN}http://localhost:$API_PORT/scalar${NC}
+  Seq:       ${CYAN}http://localhost:$SEQ_PORT${NC}
   
   ${DIM}Happy coding! 🚀${NC}
 "

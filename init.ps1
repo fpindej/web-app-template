@@ -603,6 +603,7 @@ Write-Host "  -------------------------------------"
 Write-Host "  Frontend:  " -NoNewline; Write-Host "http://localhost:$FrontendPort" -ForegroundColor Cyan
 Write-Host "  API:       " -NoNewline; Write-Host "http://localhost:$ApiPort" -ForegroundColor Cyan
 Write-Host "  API Docs:  " -NoNewline; Write-Host "http://localhost:$ApiPort/scalar" -ForegroundColor Cyan
+Write-Host "  Seq:       " -NoNewline; Write-Host "http://localhost:$SeqPort" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Happy coding!" -ForegroundColor DarkGray
 Write-Host ""
