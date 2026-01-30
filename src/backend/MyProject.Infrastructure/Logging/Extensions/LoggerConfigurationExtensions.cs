@@ -35,16 +35,9 @@ public static class LoggerConfigurationExtensions
 
     public static void SetupLogger(IConfiguration configuration, LoggerConfiguration loggerConfiguration)
     {
+        // ReadFrom.Configuration picks up WriteTo sinks from appsettings (e.g., Seq in Development)
         loggerConfiguration
             .ReadFrom.Configuration(configuration)
             .WriteTo.Async(a => a.Console(theme: AnsiConsoleTheme.Code, outputTemplate: OutputTemplate));
-
-        // Configure Seq if ServerUrl is provided (localhost development only)
-        var seqServerUrl = configuration["Serilog:Seq:ServerUrl"];
-        if (!string.IsNullOrWhiteSpace(seqServerUrl))
-        {
-            var seqApiKey = configuration["Serilog:Seq:ApiKey"];
-            loggerConfiguration.WriteTo.Seq(seqServerUrl, apiKey: seqApiKey);
-        }
     }
 }
