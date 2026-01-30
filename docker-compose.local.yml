@@ -90,8 +90,6 @@ services:
       - api
     <<: *common-settings
 
-    
-
 volumes:
   db_data:
     name: {INIT_PROJECT_SLUG}-local-db-data
