@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.Identity;
 using MyProject.WebApi.Features.Users.Dtos;
+using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Features.Users;
 
@@ -22,9 +23,9 @@ public class UsersController(IUserService userService) : ControllerBase
     [HttpGet("me")]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<UserResponse>> GetCurrentUser()
+    public async Task<ActionResult<UserResponse>> GetCurrentUser(CancellationToken cancellationToken)
     {
-        var userResult = await userService.GetCurrentUserAsync();
+        var userResult = await userService.GetCurrentUserAsync(cancellationToken);
 
         if (!userResult.IsSuccess)
         {
@@ -44,15 +45,17 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <response code="401">If the user is not authenticated</response>
     [HttpPatch("me")]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<UserResponse>> UpdateCurrentUser([FromBody] UpdateUserRequest request)
+    public async Task<ActionResult<UserResponse>> UpdateCurrentUser(
+        [FromBody] UpdateUserRequest request,
+        CancellationToken cancellationToken)
     {
-        var result = await userService.UpdateProfileAsync(request.ToInput());
+        var result = await userService.UpdateProfileAsync(request.ToInput(), cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return BadRequest(new ErrorResponse { Message = result.Error });
         }
 
         return Ok(result.Value!.ToResponse());

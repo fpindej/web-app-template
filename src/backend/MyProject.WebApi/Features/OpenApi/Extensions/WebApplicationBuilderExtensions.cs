@@ -10,8 +10,11 @@ internal static class WebApplicationBuilderExtensions
         builder.Services.AddOpenApi("v1", opt =>
         {
             opt.AddDocumentTransformer<ProjectDocumentTransformer>();
+            opt.AddDocumentTransformer<CleanupDocumentTransformer>();
+            opt.AddOperationTransformer<CamelCaseQueryParameterTransformer>();
             opt.AddSchemaTransformer<EnumSchemaTransformer>();
-            opt.AddSchemaTransformer<NumericSchemaTransformer>(); });
+            opt.AddSchemaTransformer<NumericSchemaTransformer>();
+        });
 
         return builder;
     }

@@ -1,10 +1,9 @@
-#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
-
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.Features.Authentication;
 using MyProject.Infrastructure.Features.Authentication.Constants;
 using MyProject.WebApi.Features.Authentication.Dtos.Login;
 using MyProject.WebApi.Features.Authentication.Dtos.Register;
+using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Features.Authentication;
 
@@ -25,15 +24,15 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// <response code="401">If the credentials are invalid</response>
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
         var result = await authenticationService.Login(request.Username, request.Password, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Unauthorized(result.Error);
+            return Unauthorized(new ErrorResponse { Message = result.Error });
         }
 
         return Ok();
@@ -47,19 +46,19 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// <response code="401">If the refresh token is invalid, expired, or missing</response>
     [HttpPost("refresh")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> Refresh(CancellationToken cancellationToken)
     {
         if (!Request.Cookies.TryGetValue(CookieNames.RefreshToken, out var refreshToken))
         {
-            return Unauthorized(new { message = "Refresh token is missing." });
+            return Unauthorized(new ErrorResponse { Message = "Refresh token is missing." });
         }
 
         var result = await authenticationService.RefreshTokenAsync(refreshToken, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return Unauthorized(new { message = result.Error });
+            return Unauthorized(new ErrorResponse { Message = result.Error });
         }
 
         return Ok();
@@ -69,11 +68,12 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// Logs out the current user by clearing authentication cookies
     /// </summary>
     /// <returns>A 204 No Content response</returns>
+    /// <response code="204">Successfully logged out</response>
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> Logout()
+    public async Task<ActionResult> Logout(CancellationToken cancellationToken)
     {
-        await authenticationService.Logout();
+        await authenticationService.Logout(cancellationToken);
         return NoContent();
     }
 
@@ -86,14 +86,14 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// <response code="400">If the registration data is invalid</response>
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
-        var result = await authenticationService.Register(request.ToRegisterInput());
+        var result = await authenticationService.Register(request.ToRegisterInput(), cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return BadRequest(result.Error);
+            return BadRequest(new ErrorResponse { Message = result.Error });
         }
 
         return Created($"/api/users/{result.Value}", new { id = result.Value });

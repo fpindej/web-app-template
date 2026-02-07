@@ -16,7 +16,7 @@ internal class UserService(
     private static readonly CacheEntryOptions UserCacheOptions =
         CacheEntryOptions.AbsoluteExpireIn(TimeSpan.FromMinutes(1));
 
-    public async Task<Result<UserOutput>> GetCurrentUserAsync()
+    public async Task<Result<UserOutput>> GetCurrentUserAsync(CancellationToken cancellationToken = default)
     {
         var userId = userContext.UserId;
 
@@ -69,7 +69,7 @@ internal class UserService(
         return await userManager.GetRolesAsync(user);
     }
 
-    public async Task<Result<UserOutput>> UpdateProfileAsync(UpdateProfileInput input)
+    public async Task<Result<UserOutput>> UpdateProfileAsync(UpdateProfileInput input, CancellationToken cancellationToken = default)
     {
         var userId = userContext.UserId;
 

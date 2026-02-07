@@ -10,6 +10,11 @@ public class ExceptionHandlingMiddleware(
     ILogger<ExceptionHandlingMiddleware> logger,
     IHostEnvironment env)
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     public async Task Invoke(HttpContext context)
     {
         try
@@ -45,7 +50,7 @@ public class ExceptionHandlingMiddleware(
             Details = env.IsDevelopment() ? exception.StackTrace : null
         };
 
-        var payload = JsonSerializer.Serialize(errorResponse);
+        var payload = JsonSerializer.Serialize(errorResponse, JsonOptions);
 
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;

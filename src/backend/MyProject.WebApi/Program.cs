@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -60,7 +61,11 @@ try
     builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
     Log.Debug("Adding Controllers");
-    builder.Services.AddControllers();
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
 
     Log.Debug("Adding FluentValidation");
     builder.Services.AddFluentValidationAutoValidation();

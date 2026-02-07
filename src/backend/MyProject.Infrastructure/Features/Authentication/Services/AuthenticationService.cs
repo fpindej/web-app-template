@@ -71,7 +71,7 @@ internal class AuthenticationService(
         return Result.Success();
     }
 
-    public async Task<Result<Guid>> Register(RegisterInput input)
+    public async Task<Result<Guid>> Register(RegisterInput input, CancellationToken cancellationToken = default)
     {
         var user = new ApplicationUser
         {
@@ -101,7 +101,7 @@ internal class AuthenticationService(
         return Result<Guid>.Success(user.Id);
     }
 
-    public async Task Logout()
+    public async Task Logout(CancellationToken cancellationToken = default)
     {
         // Get user ID before clearing cookies
         var userId = userContext.UserId;

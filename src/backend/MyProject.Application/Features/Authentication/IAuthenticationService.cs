@@ -18,14 +18,16 @@ public interface IAuthenticationService
     /// Registers a new user.
     /// </summary>
     /// <param name="input">The registration input.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A result indicating success or failure.</returns>
-    Task<Result<Guid>> Register(RegisterInput input);
+    Task<Result<Guid>> Register(RegisterInput input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Logs out the current user by clearing cookies and revoking tokens.
     /// </summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task Logout();
+    Task Logout(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Refreshes the access token using a refresh token.
