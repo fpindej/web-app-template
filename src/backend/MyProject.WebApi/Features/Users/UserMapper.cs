@@ -3,7 +3,7 @@ using MyProject.WebApi.Features.Users.Dtos;
 
 namespace MyProject.WebApi.Features.Users;
 
-public static class UserMapper
+internal static class UserMapper
 {
     public static UserResponse ToResponse(this UserOutput user) => new()
     {
