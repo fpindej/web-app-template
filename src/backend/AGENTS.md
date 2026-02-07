@@ -268,7 +268,7 @@ public static class ServiceCollectionExtensions
 }
 ```
 
-Then call from `Program.cs`:
+Then call from `Program.cs` (typically via a wrapper extension that calls this internally):
 
 ```csharp
 builder.Services.AddIdentityServices(builder.Configuration);
