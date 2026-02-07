@@ -404,15 +404,18 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// <summary>
     /// Authenticates a user and sets HttpOnly cookie tokens.
     /// </summary>
+    /// <param name="request">The login credentials</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <response code="200">Returns success (tokens set in HttpOnly cookies)</response>
+    /// <response code="401">If the credentials are invalid</response>
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        var result = await authenticationService.Login(request.Username, request.Password, ct);
+        var result = await authenticationService.Login(request.Username, request.Password, cancellationToken);
         if (!result.IsSuccess)
-            return Unauthorized(result.Error);
+            return Unauthorized(new ErrorResponse { Message = result.Error });
         return Ok();
     }
 }
@@ -420,8 +423,10 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
 
 Rules:
 - Always include `/// <summary>` XML docs — these generate OpenAPI descriptions consumed by the frontend
-- Always include `[ProducesResponseType]` for all possible status codes
-- Always accept `CancellationToken` on async endpoints
+- Always include `[ProducesResponseType]` for all possible status codes — with `typeof(ErrorResponse)` on error codes that return a body (400, 401, etc.)
+- Always accept `CancellationToken` as the last parameter on async endpoints — include `/// <param name="cancellationToken">` to avoid `CS1573` warnings (ASP.NET automatically excludes it from the OAS output)
+- **Never return anonymous objects or raw strings** from controllers — always use a defined DTO (`ErrorResponse` for errors, typed response DTOs for success). Anonymous objects produce untyped schemas in the OAS.
+- **Never use `#pragma warning disable`** for XML doc warnings — fix the docs instead
 - Use primary constructors for dependency injection
 - Map requests to inputs via mapper extension methods: `request.ToRegisterInput()`
 
@@ -468,6 +473,8 @@ public class ErrorResponse
     public string? Details { get; init; } // Stack trace — Development only
 }
 ```
+
+`ErrorResponse` is the **only** error body type across the entire API — both controllers and middleware return it. The middleware serializes with explicit `JsonNamingPolicy.CamelCase` to match ASP.NET's controller serialization. Never return raw strings, anonymous objects, or other shapes for errors.
 
 ## Repository & Unit of Work
 
@@ -751,17 +758,19 @@ Use these alongside FluentValidation — data annotations feed the spec, FluentV
 Before adding or modifying any endpoint, verify:
 
 - [ ] `/// <summary>` on the controller action describing what it does
-- [ ] `/// <param>` for every parameter
+- [ ] `/// <param>` for every parameter (including `CancellationToken` — ASP.NET excludes it from OAS automatically)
 - [ ] `/// <response code="...">` for every possible status code
-- [ ] `[ProducesResponseType]` for every status code, with `typeof(T)` for response bodies
-- [ ] `ActionResult<T>` return type (not bare `ActionResult`) when returning a body
+- [ ] `[ProducesResponseType]` for every status code — with `typeof(T)` for response bodies, `typeof(ErrorResponse)` for error codes that return a body
+- [ ] `ActionResult<T>` return type (not bare `ActionResult`) when returning a success body
+- [ ] Error responses always return `new ErrorResponse { Message = ... }` — never raw strings or anonymous objects
 - [ ] `/// <summary>` on every DTO class
 - [ ] `/// <summary>` on every DTO property
 - [ ] Correct nullability (`string` vs `string?`) matching the API contract
 - [ ] Data annotations (`[MaxLength]`, `[Range]`, etc.) on request DTOs for spec constraints
-- [ ] `CancellationToken` as the last parameter on all async endpoints
+- [ ] `CancellationToken` as the last parameter on all async endpoints, passed through to service calls
 - [ ] Route uses lowercase (`[Route("api/[controller]")]` + `LowercaseUrls = true`)
 - [ ] Enums serialize as strings with all members listed (handled by `JsonStringEnumConverter` + `EnumSchemaTransformer` — verify in Scalar)
+- [ ] No `#pragma warning disable` for XML doc warnings — fix the docs instead
 
 ## Adding a New Feature — Checklist
 
