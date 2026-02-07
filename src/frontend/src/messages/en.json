@@ -67,8 +67,6 @@
 	"auth_login_submit": "Sign in",
 	"auth_login_failed": "Login failed",
 	"auth_login_error": "An error occurred",
-	"auth_login_invalidCredentials": "Invalid email or password",
-	"auth_login_apiOnline": "API is online",
 	"auth_login_apiOffline": "API is offline",
 	"auth_login_success": "Login successful!",
 	"auth_login_noAccount": "Don't have an account?",

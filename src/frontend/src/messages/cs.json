@@ -67,8 +67,6 @@
 	"auth_login_submit": "Přihlásit se",
 	"auth_login_failed": "Přihlášení se nezdařilo",
 	"auth_login_error": "Došlo k chybě",
-	"auth_login_invalidCredentials": "Nesprávný e-mail nebo heslo",
-	"auth_login_apiOnline": "API je online",
 	"auth_login_apiOffline": "API je offline",
 	"auth_login_success": "Přihlášení úspěšné!",
 	"auth_login_noAccount": "Nemáte účet?",

@@ -59,14 +59,8 @@
 				// eslint-disable-next-line svelte/no-navigation-without-resolve
 				await goto('/');
 			} else {
-				let errorMessage = '';
-				if (response.status === 401) {
-					errorMessage = m.auth_login_invalidCredentials();
-				} else {
-					errorMessage = getErrorMessage(apiError, m.auth_login_error());
-				}
 				toast.error(m.auth_login_failed(), {
-					description: errorMessage
+					description: getErrorMessage(apiError, m.auth_login_error())
 				});
 				shake.trigger();
 			}
