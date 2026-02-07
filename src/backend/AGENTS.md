@@ -176,7 +176,7 @@ internal class OrderConfiguration : BaseEntityConfiguration<Order>
         builder.ToTable("orders");
         builder.Property(e => e.OrderNumber).HasMaxLength(50).IsRequired();
         builder.Property(e => e.TotalAmount).HasPrecision(18, 2);
-        builder.Property(e => e.Status).HasComment("OrderStatus enum: Pending, Processing, Shipped, Delivered, Cancelled");
+        builder.Property(e => e.Status).HasComment("OrderStatus enum: 0=Pending, 1=Processing, 2=Shipped, 3=Delivered, 4=Cancelled");
         builder.HasIndex(e => e.OrderNumber).IsUnique();
     }
 }
@@ -564,16 +564,17 @@ Define enums in the **Domain** layer alongside the entity that uses them:
 // Domain/Entities/OrderStatus.cs
 public enum OrderStatus
 {
-    Pending,
-    Processing,
-    Shipped,
-    Delivered,
-    Cancelled
+    Pending = 0,
+    Processing = 1,
+    Shipped = 2,
+    Delivered = 3,
+    Cancelled = 4
 }
 ```
 
 Rules:
-- **PascalCase** member names (C# convention) — these become the string values everywhere
+- **Always assign explicit integer values** — never rely on implicit ordering. Inserting a member between existing ones would silently shift all subsequent values and corrupt stored data.
+- **PascalCase** member names (C# convention) — these become the string values in JSON and the OAS
 - Place in `Domain/Entities/` next to the entity, or in `Domain/Enums/` if shared across entities
 - Keep enums small and focused — if an enum grows beyond ~10 members, reconsider the modeling
 
@@ -637,8 +638,10 @@ Store enums as **integers** (the default) — no `HasConversion` needed. Add `.H
 
 ```csharp
 builder.Property(e => e.Status)
-    .HasComment("OrderStatus enum: Pending, Processing, Shipped, Delivered, Cancelled");
+    .HasComment("OrderStatus enum: 0=Pending, 1=Processing, 2=Shipped, 3=Delivered, 4=Cancelled");
 ```
+
+The comment format is `EnumTypeName enum: N=Member, ...` — always include the integer value so anyone querying raw data can decode a row without access to the C# source.
 
 This stores a compact `integer` column in PostgreSQL while the comment makes the column self-documenting. The comment generates `COMMENT ON COLUMN orders."Status" IS '...'` in the migration — pure metadata, zero runtime overhead.
 
