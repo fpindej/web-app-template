@@ -17,10 +17,10 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
 {
     /// <summary>
     /// Authenticates a user and returns JWT tokens.
-    /// Tokens are always returned in the response body. When useCookies is true (default), tokens are also set as HttpOnly cookies.
+    /// Tokens are always returned in the response body. When useCookies is true, tokens are also set as HttpOnly cookies.
     /// </summary>
     /// <param name="request">The login credentials</param>
-    /// <param name="useCookies">When true (default), sets tokens in HttpOnly cookies for web clients. Set to false for mobile/API clients.</param>
+    /// <param name="useCookies">When true, sets tokens in HttpOnly cookies for web clients. Defaults to false (stateless).</param>
     /// <returns>Authentication response containing access and refresh tokens</returns>
     /// <response code="200">Returns authentication tokens (optionally also set in HttpOnly cookies)</response>
     /// <response code="400">If the credentials are improperly formatted</response>
@@ -31,7 +31,7 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AuthenticationResponse>> Login(
         [FromBody] LoginRequest request,
-        [FromQuery] bool useCookies = true,
+        [FromQuery] bool useCookies = false,
         CancellationToken cancellationToken = default)
     {
         var result = await authenticationService.Login(request.Username, request.Password, useCookies, cancellationToken);
@@ -47,10 +47,10 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// <summary>
     /// Refreshes the authentication tokens using a refresh token.
     /// For web clients, the refresh token is read from cookies. For mobile/API clients, pass it in the request body.
-    /// When useCookies is true (default), new tokens are also set as HttpOnly cookies.
+    /// When useCookies is true, new tokens are also set as HttpOnly cookies.
     /// </summary>
     /// <param name="request">Optional request body containing the refresh token (for mobile/API clients)</param>
-    /// <param name="useCookies">When true (default), sets tokens in HttpOnly cookies for web clients. Set to false for mobile/API clients.</param>
+    /// <param name="useCookies">When true, sets tokens in HttpOnly cookies for web clients. Defaults to false (stateless).</param>
     /// <returns>Authentication response containing new access and refresh tokens</returns>
     /// <response code="200">Returns new authentication tokens (optionally also set in HttpOnly cookies)</response>
     /// <response code="401">If the refresh token is invalid, expired, or missing</response>
@@ -59,7 +59,7 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AuthenticationResponse>> Refresh(
         [FromBody] RefreshRequest? request,
-        [FromQuery] bool useCookies = true,
+        [FromQuery] bool useCookies = false,
         CancellationToken cancellationToken = default)
     {
         // Priority 1: Request body (mobile/API clients)

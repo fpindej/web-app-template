@@ -25,7 +25,7 @@ internal class AuthenticationService(
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
-    public async Task<Result<AuthenticationOutput>> Login(string username, string password, bool useCookies = true, CancellationToken cancellationToken = default)
+    public async Task<Result<AuthenticationOutput>> Login(string username, string password, bool useCookies = false, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByNameAsync(username);
 
@@ -123,7 +123,7 @@ internal class AuthenticationService(
         }
     }
 
-    public async Task<Result<AuthenticationOutput>> RefreshTokenAsync(string refreshToken, bool useCookies = true, CancellationToken cancellationToken = default)
+    public async Task<Result<AuthenticationOutput>> RefreshTokenAsync(string refreshToken, bool useCookies = false, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(refreshToken))
         {
