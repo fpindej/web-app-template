@@ -3,6 +3,8 @@
  *
  * Provides type-safe parsing and mapping of validation errors
  * from ASP.NET Core's ProblemDetails format.
+ *
+ * @remarks Pattern documented in src/frontend/AGENTS.md — update both when changing.
  */
 
 /**

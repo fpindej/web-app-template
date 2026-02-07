@@ -1,3 +1,4 @@
+// Pattern documented in src/frontend/AGENTS.md — update both when changing.
 import createClient from 'openapi-fetch';
 import type { paths } from './v1';
 
