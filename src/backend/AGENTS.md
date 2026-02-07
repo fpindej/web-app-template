@@ -405,7 +405,6 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// Authenticates a user and sets HttpOnly cookie tokens.
     /// </summary>
     /// <param name="request">The login credentials</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <response code="200">Returns success (tokens set in HttpOnly cookies)</response>
     /// <response code="401">If the credentials are invalid</response>
     [HttpPost("login")]
@@ -424,7 +423,9 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
 Rules:
 - Always include `/// <summary>` XML docs — these generate OpenAPI descriptions consumed by the frontend
 - Always include `[ProducesResponseType]` for all possible status codes — with `typeof(ErrorResponse)` on error codes that return a body (400, 401, etc.)
-- Always accept `CancellationToken` as the last parameter on async endpoints — include `/// <param name="cancellationToken">` to avoid `CS1573` warnings (ASP.NET automatically excludes it from the OAS output)
+- Always accept `CancellationToken` as the last parameter on async endpoints
+- **Never add `/// <param name="cancellationToken">`** — ASP.NET excludes `CancellationToken` from OAS parameters, but the `<param>` text leaks into `requestBody.description`. CS1573 is suppressed project-wide.
+- Only add `/// <param>` tags for parameters that should appear in the OAS (request body, route/query params)
 - **Never return anonymous objects or raw strings** from controllers — always use a defined DTO (`ErrorResponse` for errors, typed response DTOs for success). Anonymous objects produce untyped schemas in the OAS.
 - **Never use `#pragma warning disable`** for XML doc warnings — fix the docs instead
 - Use primary constructors for dependency injection
@@ -675,6 +676,8 @@ The OpenAPI spec at `/openapi/v1.json` is **the single source of truth** for the
 |---|---|---|
 | Spec generation | `AddOpenApiSpecification()` | Registers OAS v1 with transformers |
 | Document transformer | `ProjectDocumentTransformer` | Sets API title, version, auth description |
+| Document transformer | `CleanupDocumentTransformer` | Strips redundant content types (text/plain, text/json) and HEAD response bodies |
+| Operation transformer | `CamelCaseQueryParameterTransformer` | Converts PascalCase query param names to camelCase; propagates missing descriptions |
 | Enum transformer | `EnumSchemaTransformer` | String enums with all members listed; handles nullable enums |
 | Numeric transformer | `NumericSchemaTransformer` | Ensures numeric types aren't serialized as strings |
 | Scalar UI | `/scalar/v1` (dev only) | Interactive API documentation |
@@ -688,7 +691,6 @@ Every endpoint **must** have all of these — no exceptions:
 /// Updates the current authenticated user's profile information.
 /// </summary>
 /// <param name="request">The profile update request</param>
-/// <param name="cancellationToken">Cancellation token</param>
 /// <returns>Updated user information</returns>
 /// <response code="200">Returns updated user information</response>
 /// <response code="400">If the request is invalid</response>
@@ -703,7 +705,7 @@ public async Task<ActionResult<UserResponse>> UpdateCurrentUser(...)
 | Annotation | Why It Matters |
 |---|---|
 | `/// <summary>` | Becomes the operation description in the spec |
-| `/// <param>` | Documents request parameters (include `CancellationToken` to avoid `CS1573`) |
+| `/// <param>` | Documents request body and route/query parameters — **do not** include `CancellationToken` (its text leaks into `requestBody.description`) |
 | `/// <response code="...">` | Documents what each status code means |
 | `[ProducesResponseType(typeof(T), StatusCode)]` | Generates the response schema — use `typeof(UserResponse)` for success, `typeof(ErrorResponse)` for errors that return a body |
 | `[ProducesResponseType(StatusCode)]` | For status codes with **no body** (204, or 401 when the controller returns bare `Unauthorized()`) |
@@ -759,7 +761,7 @@ Use these alongside FluentValidation — data annotations feed the spec, FluentV
 Before adding or modifying any endpoint, verify:
 
 - [ ] `/// <summary>` on the controller action describing what it does
-- [ ] `/// <param>` for every parameter (including `CancellationToken` — ASP.NET excludes it from OAS automatically)
+- [ ] `/// <param>` for every **visible** parameter (request body, route, query) — **never** for `CancellationToken` (leaks into `requestBody.description`)
 - [ ] `/// <response code="...">` for every possible status code
 - [ ] `[ProducesResponseType]` for every status code — with `typeof(T)` for response bodies, `typeof(ErrorResponse)` for error codes that return a body
 - [ ] `ActionResult<T>` return type (not bare `ActionResult`) when returning a success body
@@ -768,10 +770,11 @@ Before adding or modifying any endpoint, verify:
 - [ ] `/// <summary>` on every DTO property
 - [ ] Correct nullability (`string` vs `string?`) matching the API contract
 - [ ] Data annotations (`[MaxLength]`, `[Range]`, etc.) on request DTOs for spec constraints
-- [ ] `CancellationToken` as the last parameter on all async endpoints, passed through to service calls
+- [ ] `[Description("...")]` on base-class query parameter properties (e.g. `PaginatedRequest`) — XML `<summary>` doesn't flow to inherited OAS parameters
+- [ ] `CancellationToken` as the last parameter on all async endpoints, passed through to service calls — **no** `<param>` XML doc for it
 - [ ] Route uses lowercase (`[Route("api/[controller]")]` + `LowercaseUrls = true`)
 - [ ] Enums serialize as strings with all members listed (handled by `JsonStringEnumConverter` + `EnumSchemaTransformer` — verify in Scalar)
-- [ ] No `#pragma warning disable` for XML doc warnings — fix the docs instead
+- [ ] No `#pragma warning disable` — CS1573 (partial param docs) is suppressed project-wide because omitting `CancellationToken` param tags is intentional
 
 ## Adding a New Feature — Checklist
 
