@@ -180,5 +180,39 @@
 
 	"theme_light": "Light",
 	"theme_dark": "Dark",
-	"theme_system": "System"
+	"theme_system": "System",
+
+	"errorCode_validation_required": "This field is required.",
+	"errorCode_validation_invalidEmail": "Please enter a valid email address.",
+	"errorCode_validation_maxLength": "This field exceeds the maximum length.",
+	"errorCode_validation_minLength": "This field is too short.",
+	"errorCode_validation_invalidUrl": "Please enter a valid URL.",
+	"errorCode_validation_invalidPhoneNumber": "Please enter a valid phone number.",
+
+	"errorCode_identity_duplicateEmail": "This email is already taken.",
+	"errorCode_identity_duplicateUserName": "This username is already taken.",
+	"errorCode_identity_invalidEmail": "The email address is invalid.",
+	"errorCode_identity_invalidUserName": "The username is invalid.",
+	"errorCode_identity_passwordRequiresDigit": "Password must contain at least one digit.",
+	"errorCode_identity_passwordRequiresLower": "Password must contain at least one lowercase letter.",
+	"errorCode_identity_passwordRequiresUpper": "Password must contain at least one uppercase letter.",
+	"errorCode_identity_passwordRequiresNonAlphanumeric": "Password must contain at least one special character.",
+	"errorCode_identity_passwordRequiresUniqueChars": "Password must contain more unique characters.",
+	"errorCode_identity_passwordTooShort": "Password is too short.",
+	"errorCode_identity_userAlreadyInRole": "User is already in this role.",
+	"errorCode_identity_userNotInRole": "User is not in this role.",
+	"errorCode_identity_userLockout": "Account is locked. Please try again later.",
+	"errorCode_identity_concurrencyFailure": "A concurrency error occurred. Please try again.",
+	"errorCode_identity_defaultError": "An unexpected identity error occurred.",
+
+	"errorCode_auth_invalidCredentials": "Invalid email or password.",
+	"errorCode_auth_refreshTokenMissing": "Session expired. Please log in again.",
+	"errorCode_auth_refreshTokenNotFound": "Session not found. Please log in again.",
+	"errorCode_auth_refreshTokenInvalidated": "Session was invalidated. Please log in again.",
+	"errorCode_auth_refreshTokenReused": "Session reuse detected. Please log in again.",
+	"errorCode_auth_refreshTokenExpired": "Session expired. Please log in again.",
+	"errorCode_auth_userNotFound": "User not found.",
+
+	"errorCode_user_notAuthenticated": "You are not authenticated. Please log in.",
+	"errorCode_user_notFound": "User not found."
 }

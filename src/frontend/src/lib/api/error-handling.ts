@@ -2,10 +2,14 @@
  * API error handling utilities for ASP.NET Core backends.
  *
  * Provides type-safe parsing and mapping of validation errors
- * from ASP.NET Core's ProblemDetails format.
+ * from ASP.NET Core's ProblemDetails format. Error messages from the backend
+ * are structured error codes (e.g. "validation.required") that are resolved
+ * to localized strings via paraglide-js.
  *
  * @remarks Pattern documented in src/frontend/AGENTS.md — update both when changing.
  */
+
+import * as m from '$lib/paraglide/messages';
 
 /**
  * Extended ProblemDetails with validation errors.
@@ -37,6 +41,84 @@ export function isValidationProblemDetails(
 }
 
 /**
+ * Static lookup map from backend error codes to paraglide message functions.
+ * Each key is a dot-separated error code (e.g. "validation.required") and the value
+ * is the corresponding paraglide message function that returns a localized string.
+ *
+ * This approach preserves type safety and tree-shaking — no dynamic m[key] access.
+ * When adding new error codes to ErrorCodes.cs, add a corresponding entry here
+ * and in both en.json / cs.json.
+ */
+const ERROR_CODE_MAP: Record<string, () => string> = {
+	// Validation
+	'validation.required': m.errorCode_validation_required,
+	'validation.invalidEmail': m.errorCode_validation_invalidEmail,
+	'validation.maxLength': m.errorCode_validation_maxLength,
+	'validation.minLength': m.errorCode_validation_minLength,
+	'validation.invalidUrl': m.errorCode_validation_invalidUrl,
+	'validation.invalidPhoneNumber': m.errorCode_validation_invalidPhoneNumber,
+
+	// Identity
+	'identity.duplicateEmail': m.errorCode_identity_duplicateEmail,
+	'identity.duplicateUserName': m.errorCode_identity_duplicateUserName,
+	'identity.invalidEmail': m.errorCode_identity_invalidEmail,
+	'identity.invalidUserName': m.errorCode_identity_invalidUserName,
+	'identity.passwordRequiresDigit': m.errorCode_identity_passwordRequiresDigit,
+	'identity.passwordRequiresLower': m.errorCode_identity_passwordRequiresLower,
+	'identity.passwordRequiresUpper': m.errorCode_identity_passwordRequiresUpper,
+	'identity.passwordRequiresNonAlphanumeric': m.errorCode_identity_passwordRequiresNonAlphanumeric,
+	'identity.passwordRequiresUniqueChars': m.errorCode_identity_passwordRequiresUniqueChars,
+	'identity.passwordTooShort': m.errorCode_identity_passwordTooShort,
+	'identity.userAlreadyInRole': m.errorCode_identity_userAlreadyInRole,
+	'identity.userNotInRole': m.errorCode_identity_userNotInRole,
+	'identity.userLockout': m.errorCode_identity_userLockout,
+	'identity.concurrencyFailure': m.errorCode_identity_concurrencyFailure,
+	'identity.defaultError': m.errorCode_identity_defaultError,
+
+	// Auth
+	'auth.invalidCredentials': m.errorCode_auth_invalidCredentials,
+	'auth.refreshTokenMissing': m.errorCode_auth_refreshTokenMissing,
+	'auth.refreshTokenNotFound': m.errorCode_auth_refreshTokenNotFound,
+	'auth.refreshTokenInvalidated': m.errorCode_auth_refreshTokenInvalidated,
+	'auth.refreshTokenReused': m.errorCode_auth_refreshTokenReused,
+	'auth.refreshTokenExpired': m.errorCode_auth_refreshTokenExpired,
+	'auth.userNotFound': m.errorCode_auth_userNotFound,
+
+	// User
+	'user.notAuthenticated': m.errorCode_user_notAuthenticated,
+	'user.notFound': m.errorCode_user_notFound
+};
+
+/**
+ * Resolves a backend error code to a localized string via paraglide-js.
+ * If the code is not recognized, returns the raw code as-is.
+ *
+ * @param code - A dot-separated error code from the backend (e.g. "validation.required")
+ * @returns The localized error message, or the raw code if unrecognized
+ */
+export function resolveErrorCode(code: string): string {
+	const messageFn = ERROR_CODE_MAP[code.trim()];
+	return messageFn ? messageFn() : code;
+}
+
+/**
+ * Resolves a string that may contain comma-separated error codes into
+ * an array of localized error messages.
+ *
+ * The backend's `ErrorResponse.message` field may contain multiple error codes
+ * joined by ", " (e.g. "identity.duplicateEmail, identity.passwordRequiresDigit").
+ *
+ * @param message - A potentially comma-separated string of error codes
+ * @returns An array of localized error messages
+ */
+export function resolveErrorCodes(message: string): string[] {
+	return message
+		.split(',')
+		.map((code) => resolveErrorCode(code.trim()))
+		.filter(Boolean);
+}
+
+/**
  * Default mapping of PascalCase backend field names to camelCase frontend field names.
  * Extend this map as needed for your application.
  */
@@ -60,9 +142,9 @@ const DEFAULT_FIELD_MAP: Record<string, string> = {
  *
  * @example
  * ```ts
- * const errors = { PhoneNumber: ["Invalid format"] };
+ * const errors = { PhoneNumber: ["validation.invalidPhoneNumber"] };
  * const mapped = mapFieldErrors(errors);
- * // Result: { phoneNumber: "Invalid format" }
+ * // Result: { phoneNumber: "Please enter a valid phone number." }  (localized)
  * ```
  */
 export function mapFieldErrors(
@@ -75,7 +157,8 @@ export function mapFieldErrors(
 	for (const [key, messages] of Object.entries(errors)) {
 		// Use custom mapping, fall back to default, then to lowercase
 		const fieldName = fieldMap[key] ?? key.charAt(0).toLowerCase() + key.slice(1);
-		mapped[fieldName] = messages[0] ?? '';
+		const rawMessage = messages[0] ?? '';
+		mapped[fieldName] = resolveErrorCode(rawMessage);
 	}
 
 	return mapped;
@@ -83,15 +166,26 @@ export function mapFieldErrors(
 
 /**
  * Extracts a user-friendly error message from an API error response.
+ * Supports both ASP.NET Core's ProblemDetails format (detail/title fields)
+ * and the custom ErrorResponse format (message field).
+ * Resolves error codes to localized strings via paraglide-js.
  *
  * @param error - The error object from the API response
  * @param fallback - Fallback message if no error message can be extracted
- * @returns A user-friendly error message
+ * @returns A user-friendly localized error message
  */
 export function getErrorMessage(error: unknown, fallback: string): string {
 	if (typeof error === 'object' && error !== null) {
-		const problemDetails = error as ValidationProblemDetails;
-		return problemDetails.detail || problemDetails.title || fallback;
+		const err = error as Record<string, unknown>;
+		const raw =
+			(typeof err.detail === 'string' && err.detail) ||
+			(typeof err.title === 'string' && err.title) ||
+			(typeof err.message === 'string' && err.message);
+		if (raw) {
+			// If the message contains comma-separated error codes, resolve all of them
+			const resolved = resolveErrorCodes(raw);
+			return resolved.length > 0 ? resolved.join(' ') : fallback;
+		}
 	}
 	return fallback;
 }

@@ -180,5 +180,39 @@
 
 	"theme_light": "Světlý",
 	"theme_dark": "Tmavý",
-	"theme_system": "Systémový"
+	"theme_system": "Systémový",
+
+	"errorCode_validation_required": "Toto pole je povinné.",
+	"errorCode_validation_invalidEmail": "Zadejte platnou e-mailovou adresu.",
+	"errorCode_validation_maxLength": "Toto pole překračuje maximální délku.",
+	"errorCode_validation_minLength": "Toto pole je příliš krátké.",
+	"errorCode_validation_invalidUrl": "Zadejte platnou URL adresu.",
+	"errorCode_validation_invalidPhoneNumber": "Zadejte platné telefonní číslo.",
+
+	"errorCode_identity_duplicateEmail": "Tento e-mail je již zaregistrován.",
+	"errorCode_identity_duplicateUserName": "Toto uživatelské jméno je již obsazeno.",
+	"errorCode_identity_invalidEmail": "E-mailová adresa je neplatná.",
+	"errorCode_identity_invalidUserName": "Uživatelské jméno je neplatné.",
+	"errorCode_identity_passwordRequiresDigit": "Heslo musí obsahovat alespoň jednu číslici.",
+	"errorCode_identity_passwordRequiresLower": "Heslo musí obsahovat alespoň jedno malé písmeno.",
+	"errorCode_identity_passwordRequiresUpper": "Heslo musí obsahovat alespoň jedno velké písmeno.",
+	"errorCode_identity_passwordRequiresNonAlphanumeric": "Heslo musí obsahovat alespoň jeden speciální znak.",
+	"errorCode_identity_passwordRequiresUniqueChars": "Heslo musí obsahovat více unikátních znaků.",
+	"errorCode_identity_passwordTooShort": "Heslo je příliš krátké.",
+	"errorCode_identity_userAlreadyInRole": "Uživatel je již v této roli.",
+	"errorCode_identity_userNotInRole": "Uživatel není v této roli.",
+	"errorCode_identity_userLockout": "Účet je uzamčen. Zkuste to prosím později.",
+	"errorCode_identity_concurrencyFailure": "Došlo k chybě souběžnosti. Zkuste to prosím znovu.",
+	"errorCode_identity_defaultError": "Došlo k neočekávané chybě.",
+
+	"errorCode_auth_invalidCredentials": "Nesprávný e-mail nebo heslo.",
+	"errorCode_auth_refreshTokenMissing": "Relace vypršela. Přihlaste se prosím znovu.",
+	"errorCode_auth_refreshTokenNotFound": "Relace nenalezena. Přihlaste se prosím znovu.",
+	"errorCode_auth_refreshTokenInvalidated": "Relace byla zneplatněna. Přihlaste se prosím znovu.",
+	"errorCode_auth_refreshTokenReused": "Detekováno opětovné použití relace. Přihlaste se prosím znovu.",
+	"errorCode_auth_refreshTokenExpired": "Relace vypršela. Přihlaste se prosím znovu.",
+	"errorCode_auth_userNotFound": "Uživatel nenalezen.",
+
+	"errorCode_user_notAuthenticated": "Nejste přihlášeni. Přihlaste se prosím.",
+	"errorCode_user_notFound": "Uživatel nenalezen."
 }
