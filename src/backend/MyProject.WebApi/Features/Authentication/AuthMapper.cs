@@ -1,4 +1,5 @@
 using MyProject.Application.Features.Authentication.Dtos;
+using MyProject.WebApi.Features.Authentication.Dtos.Login;
 using MyProject.WebApi.Features.Authentication.Dtos.Register;
 
 namespace MyProject.WebApi.Features.Authentication;
@@ -13,4 +14,13 @@ internal static class AuthMapper
             LastName: request.LastName,
             PhoneNumber: request.PhoneNumber
         );
+
+    public static AuthenticationResponse ToResponse(this AuthenticationOutput output) =>
+        new()
+        {
+            AccessToken = output.AccessToken,
+            RefreshToken = output.RefreshToken,
+            AccessTokenExpiresInSeconds = output.AccessTokenExpiresInSeconds,
+            RefreshTokenExpiresInSeconds = output.RefreshTokenExpiresInSeconds
+        };
 }
