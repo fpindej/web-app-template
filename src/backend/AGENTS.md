@@ -153,7 +153,7 @@ public class Order : BaseEntity
         Status = OrderStatus.Pending;
     }
 
-    public void Complete() => Status = OrderStatus.Completed;
+    public void Deliver() => Status = OrderStatus.Delivered;
 }
 ```
 
@@ -651,7 +651,7 @@ Do **not** use `HasConversion<string>()` — string storage bloats row size and 
 
 | Layer | Mechanism | Result |
 |---|---|---|
-| **Domain** | `public enum OrderStatus { ... }` | PascalCase members |
+| **Domain** | `public enum OrderStatus { Pending = 0, ... }` | PascalCase members, explicit integer values |
 | **JSON serialization** | `JsonStringEnumConverter` in `Program.cs` | `"Shipped"` not `2` |
 | **OpenAPI spec** | `EnumSchemaTransformer` | `type: string`, all values in `enum` array |
 | **Nullable OpenAPI** | `EnumSchemaTransformer` | `type: [string, null]`, values still listed |
@@ -766,17 +766,18 @@ Before adding or modifying any endpoint, verify:
 ## Adding a New Feature — Checklist
 
 1. **Domain**: Create entity in `Domain/Entities/` extending `BaseEntity`
-2. **Application**: Define `I{Feature}Service` in `Application/Features/{Feature}/`
-3. **Application**: Create Input/Output record DTOs in `Application/Features/{Feature}/Dtos/`
-4. **Infrastructure**: Implement service in `Infrastructure/Features/{Feature}/Services/` (mark `internal`)
-5. **Infrastructure**: Add EF configuration in `Infrastructure/Features/{Feature}/Configurations/` (extend `BaseEntityConfiguration<T>`)
-6. **Infrastructure**: Create DI extension in `Infrastructure/Features/{Feature}/Extensions/ServiceCollectionExtensions.cs`
-7. **Infrastructure**: Add `DbSet<Entity>` to `MyProjectDbContext`
-8. **WebApi**: Create controller in `WebApi/Features/{Feature}/` (extend `ApiController` or `ControllerBase`)
-9. **WebApi**: Create Request/Response DTOs in `WebApi/Features/{Feature}/Dtos/{Operation}/`
-10. **WebApi**: Create Mapper in `WebApi/Features/{Feature}/{Feature}Mapper.cs`
-11. **WebApi**: Add validators co-located with request DTOs
-12. **WebApi**: Wire DI call in `Program.cs`
-13. **Migration**: `dotnet ef migrations add ...`
+2. **Domain**: If the entity has enum properties, define them with explicit integer values in `Domain/Entities/` (or `Domain/Enums/` if shared)
+3. **Application**: Define `I{Feature}Service` in `Application/Features/{Feature}/`
+4. **Application**: Create Input/Output record DTOs in `Application/Features/{Feature}/Dtos/`
+5. **Infrastructure**: Implement service in `Infrastructure/Features/{Feature}/Services/` (mark `internal`)
+6. **Infrastructure**: Add EF configuration in `Infrastructure/Features/{Feature}/Configurations/` (extend `BaseEntityConfiguration<T>`) — add `.HasComment()` on enum columns
+7. **Infrastructure**: Create DI extension in `Infrastructure/Features/{Feature}/Extensions/ServiceCollectionExtensions.cs`
+8. **Infrastructure**: Add `DbSet<Entity>` to `MyProjectDbContext`
+9. **WebApi**: Create controller in `WebApi/Features/{Feature}/` (extend `ApiController` or `ControllerBase`)
+10. **WebApi**: Create Request/Response DTOs in `WebApi/Features/{Feature}/Dtos/{Operation}/`
+11. **WebApi**: Create Mapper in `WebApi/Features/{Feature}/{Feature}Mapper.cs`
+12. **WebApi**: Add validators co-located with request DTOs
+13. **WebApi**: Wire DI call in `Program.cs`
+14. **Migration**: `dotnet ef migrations add ...`
 
 Commit atomically: entity+config → service interface+DTOs → service implementation+DI → controller+DTOs+mapper+validators → migration.
