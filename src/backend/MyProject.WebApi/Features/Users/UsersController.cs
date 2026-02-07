@@ -17,7 +17,6 @@ public class UsersController(IUserService userService) : ControllerBase
     /// <summary>
     /// Gets the current authenticated user's information
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User information if authenticated</returns>
     /// <response code="200">Returns user information</response>
     /// <response code="401">If the user is not authenticated</response>
@@ -40,7 +39,6 @@ public class UsersController(IUserService userService) : ControllerBase
     /// Updates the current authenticated user's profile information
     /// </summary>
     /// <param name="request">The profile update request</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated user information</returns>
     /// <response code="200">Returns updated user information</response>
     /// <response code="400">If the request is invalid</response>
