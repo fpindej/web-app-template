@@ -1,370 +1,165 @@
-# Agent Guidelines for MyProject Web API
+# Agent Guidelines
 
-This document provides AI agents with context about the codebase structure, conventions, and best practices.
+Full-stack web application template: **.NET 10 API** (Clean Architecture) + **SvelteKit frontend** (Svelte 5), fully dockerized.
 
-## Quick Reference
+## Tech Stack
 
-| Aspect | Details |
-|--------|---------|
-| **Framework** | .NET 10 / C# 13 |
-| **Architecture** | Clean Architecture (4 layers) |
-| **Database** | PostgreSQL + EF Core |
-| **Caching** | Redis (IDistributedCache) |
-| **Auth** | JWT in HttpOnly cookies |
-| **Validation** | FluentValidation |
-| **Logging** | Serilog |
-| **Docs** | Scalar (OpenAPI) |
+| | Backend | Frontend |
+|---|---|---|
+| **Framework** | .NET 10 / C# 13 | SvelteKit / Svelte 5 (Runes) |
+| **Database** | PostgreSQL + EF Core | — |
+| **Caching** | Redis (IDistributedCache) | — |
+| **Auth** | JWT in HttpOnly cookies | Cookie-based (automatic via API proxy) |
+| **Validation** | FluentValidation + Data Annotations | TypeScript strict mode |
+| **API Docs** | Scalar (OpenAPI at `/openapi/v1.json`) | openapi-typescript (generated types) |
+| **Styling** | — | Tailwind CSS 4 + shadcn-svelte (bits-ui) |
+| **i18n** | — | paraglide-js (type-safe, compile-time) |
+| **Logging** | Serilog → Seq | — |
 
-## Project Structure
-
-```
-src/
-├── backend/
-│   ├── MyProject.Domain/           # Core domain entities, value objects
-│   │   ├── Entities/               # Base entities with soft delete
-│   │   └── Result.cs               # Result pattern implementation
-│   │
-│   ├── MyProject.Application/      # Application contracts
-│   │   ├── Features/               # Feature-based organization
-│   │   │   └── {Feature}/
-│   │   │       ├── I{Service}.cs   # Service interface
-│   │   │       └── Dtos/           # Input/Output DTOs
-│   │   └── Persistence/            # Repository interfaces
-│   │
-│   ├── MyProject.Infrastructure/   # Implementation layer
-│   │   ├── Features/
-│   │   │   └── {Feature}/
-│   │   │       ├── Services/       # Service implementations
-│   │   │       ├── Models/         # EF entities (if different from domain)
-│   │   │       ├── Configurations/ # EF type configurations
-│   │   │       ├── Extensions/     # DI registration
-│   │   │       └── Options/        # Configuration options
-│   │   ├── Persistence/
-│   │   │   ├── MyProjectDbContext.cs
-│   │   │   ├── Extensions/         # EF helpers, query extensions
-│   │   │   └── Configurations/     # Shared EF configurations
-│   │   └── Logging/                # Serilog configuration
-│   │
-│   └── MyProject.WebApi/           # API entry point
-│       ├── Features/
-│       │   └── {Feature}/
-│       │       ├── {Feature}Controller.cs
-│       │       ├── {Feature}Mapper.cs    # Optional mapping
-│       │       └── Dtos/
-│       │           └── {Operation}/      # Request/Response per operation
-│       ├── Shared/                 # Base classes, common DTOs
-│       ├── Middlewares/            # Custom middleware
-│       ├── Extensions/             # App configuration extensions
-│       └── Program.cs              # Application entry point
-├── frontend/                   # Frontend application (TBD)
-```
-
-## Key Conventions
-
-### 1. Result Pattern
-
-Always use `Result` or `Result<T>` for operations that can fail expectedly:
-
-```csharp
-// In Application layer interface
-Task<Result<Guid>> CreateAsync(CreateInput input);
-
-// In Infrastructure implementation
-public async Task<Result<Guid>> CreateAsync(CreateInput input)
-{
-    if (await ExistsAsync(input.Email))
-        return Result<Guid>.Failure("Email already exists.");
-    
-    // ... create entity
-    return Result<Guid>.Success(entity.Id);
-}
-
-// In Controller
-var result = await service.CreateAsync(input);
-if (!result.IsSuccess)
-    return BadRequest(result.Error);
-return CreatedAtAction(...);
-```
-
-### 2. Extension Method Syntax (C# 13)
-
-This project uses the new C# 13 extension member syntax:
-
-```csharp
-public static class ServiceCollectionExtensions
-{
-    extension(IServiceCollection services)
-    {
-        public IServiceCollection AddMyFeature(IConfiguration config)
-        {
-            services.AddScoped<IMyService, MyService>();
-            return services;
-        }
-    }
-}
-```
-
-### 3. Primary Constructors
-
-Use primary constructors for dependency injection:
-
-```csharp
-internal class MyService(
-    IRepository repository,
-    ILogger<MyService> logger,
-    IOptions<MyOptions> options) : IMyService
-{
-    private readonly MyOptions _options = options.Value;
-    
-    public async Task DoWorkAsync() { ... }
-}
-```
-
-### 4. Entity Configuration
-
-Entities extend `BaseEntity` and use Fluent API configuration:
-
-```csharp
-// Domain entity
-public class MyEntity : BaseEntity
-{
-    public string Name { get; private set; } = string.Empty;
-    
-    protected MyEntity() { } // EF constructor
-    
-    public MyEntity(string name, DateTime createdAt) : base(createdAt)
-    {
-        Name = name;
-    }
-}
-
-// Configuration
-internal class MyEntityConfiguration : IEntityTypeConfiguration<MyEntity>
-{
-    public void Configure(EntityTypeBuilder<MyEntity> builder)
-    {
-        builder.ToTable("my_entities");
-        builder.HasKey(e => e.Id);
-        builder.Property(e => e.Name).HasMaxLength(255).IsRequired();
-    }
-}
-```
-
-### 5. DTO Naming
-
-| Layer | Pattern | Example |
-|-------|---------|---------|
-| WebApi Request | `{Operation}Request` | `LoginRequest`, `CreateUserRequest` |
-| WebApi Response | `{Operation}Response` | `MeResponse`, `UserListResponse` |
-| Application Input | `{Operation}Input` | `RegisterInput`, `UpdateUserInput` |
-| Application Output | `{Entity}Output` | `UserOutput`, `OrderOutput` |
-
-### 6. Controller Structure
-
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-public class MyController(IMyService service) : ControllerBase
-{
-    /// <summary>
-    /// Creates a new resource.
-    /// </summary>
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> Create([FromBody] CreateRequest request, CancellationToken ct)
-    {
-        var result = await service.CreateAsync(request.ToInput());
-        if (!result.IsSuccess)
-            return BadRequest(result.Error);
-        return CreatedAtAction(nameof(Get), new { id = result.Value });
-    }
-}
-```
-
-## Common Tasks
-
-### Adding a New Feature
-
-1. **Define the interface** (`Application/Features/NewFeature/INewFeatureService.cs`)
-2. **Create DTOs** (`Application/Features/NewFeature/Dtos/`)
-3. **Implement the service** (`Infrastructure/Features/NewFeature/Services/NewFeatureService.cs`)
-4. **Register in DI** (add to or create `Extensions/ServiceCollectionExtensions.cs`)
-5. **Create controller** (`WebApi/Features/NewFeature/NewFeatureController.cs`)
-6. **Add request/response DTOs** (`WebApi/Features/NewFeature/Dtos/`)
-
-### Adding a New Entity
-
-1. **Create entity** in `Domain/Entities/` extending `BaseEntity`
-2. **Add DbSet** to `MyProjectDbContext`
-3. **Create configuration** in `Infrastructure/Features/{Feature}/Configurations/`
-4. **Add migration**: `dotnet ef migrations add AddNewEntity ...`
-
-### Adding Validation
-
-Create a validator class in the same folder as the request:
-
-```csharp
-public class CreateRequestValidator : AbstractValidator<CreateRequest>
-{
-    public CreateRequestValidator()
-    {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(255);
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
-    }
-}
-```
-
-Validators are auto-discovered from the WebApi assembly.
-
-## Authentication Flow
-
-The API uses cookie-based JWT authentication:
+## Architecture
 
 ```
-1. POST /api/auth/login
-   Request: { username, password }
-   Response: 200 OK (sets access_token and refresh_token cookies)
-
-2. Any authenticated request
-   Cookies are sent automatically
-   JWT is extracted from access_token cookie
-
-3. POST /api/auth/refresh
-   Refresh token cookie is read automatically
-   Response: 200 OK (new tokens set in cookies)
-
-4. POST /api/auth/logout
-   Clears cookies and revokes all user tokens
+Frontend (SvelteKit :5173)
+    │
+    │  /api/* proxy (catch-all server route, forwards cookies + headers)
+    ▼
+Backend API (.NET :8080)
+    │
+    ├── PostgreSQL (:5432)
+    ├── Redis (:6379)
+    └── Seq (:80)
 ```
 
-## Configuration Structure
+### Backend — Clean Architecture
 
-```json
-{
-  "ConnectionStrings": {
-    "Database": "Host=...;Database=...;Username=...;Password=..."
-  },
-  "Authentication": {
-    "Jwt": {
-      "Key": "secret-key",
-      "Issuer": "issuer",
-      "Audience": "audience",
-      "ExpiresInMinutes": 10,
-      "RefreshToken": { "ExpiresInDays": 7 }
-    }
-  },
-  "Cors": {
-    "AllowAllOrigins": false,
-    "AllowedOrigins": ["https://example.com"],
-    "PolicyName": "DefaultCorsPolicy"
-  },
-  "RateLimiting": {
-    "Global": { "PermitLimit": 120, "Window": "00:01:00" }
-  }
-}
+```
+WebApi → Application ← Infrastructure
+              ↓
+           Domain
 ```
 
-## Project Initialization
+| Layer | Responsibility |
+|---|---|
+| **Domain** | Entities, value objects, `Result` pattern. Zero dependencies. |
+| **Application** | Interfaces, DTOs (Input/Output), service contracts. References Domain only. |
+| **Infrastructure** | EF Core, Identity, Redis, service implementations. References Application + Domain. |
+| **WebApi** | Controllers, middleware, validation, request/response DTOs. Entry point. |
 
-### Using the Init Scripts
+### Frontend — SvelteKit
 
-The template includes scripts to rename the project and configure ports. **Run this first when starting a new project.**
+| Directory | Responsibility |
+|---|---|
+| `src/routes/(app)/` | Authenticated pages (redirect guard in layout) |
+| `src/routes/(public)/` | Public pages (login) |
+| `src/routes/api/` | API proxy to backend |
+| `src/lib/api/` | Type-safe API client + generated OpenAPI types |
+| `src/lib/components/` | Feature-organized components with barrel exports |
+| `src/lib/state/` | Reactive state (`.svelte.ts` files) |
+| `src/lib/config/` | App configuration (client-safe vs server-only split) |
 
-**Windows (PowerShell):**
-```powershell
-# Interactive mode
-.\init.ps1
+## Detailed Conventions
 
-# Non-interactive with parameters
-.\init.ps1 -NewName "MyAwesomeApi" -BasePort 14000
+| Area | Reference |
+|---|---|
+| Backend (.NET) | [`src/backend/AGENTS.md`](src/backend/AGENTS.md) |
+| Frontend (SvelteKit) | [`src/frontend/AGENTS.md`](src/frontend/AGENTS.md) |
+
+Read the relevant file before working in that area. Both are self-contained with real code examples.
+
+---
+
+## Agent Workflow
+
+### Git Discipline
+
+**Commit continuously and atomically.** Every logically complete unit of work gets its own commit immediately — do not accumulate changes and commit at the end.
+
+#### Conventional Commits
+
+```
+feat(auth): add refresh token rotation
+fix(profile): handle null phone number in validation
+refactor(persistence): extract pagination into extension method
+chore: update NuGet packages
+docs: add session notes for orders feature
+test(auth): add login integration tests
 ```
 
-**macOS / Linux:**
+Format: `type(scope): lowercase imperative description` — max 72 chars, no period. Scope is optional but encouraged. Add a body to explain *why* when the reason isn't obvious.
+
+#### Atomic Commit Strategy
+
+One commit = one logical change that could be reverted independently.
+
+| ✅ Good (atomic) | ❌ Bad (bundled) |
+|---|---|
+| `feat(orders): add Order entity and EF config` | `feat: add entire orders feature` |
+| `feat(orders): add IOrderService and DTOs` | (entity + service + controller + frontend |
+| `feat(orders): implement OrderService` | all in one massive commit) |
+| `feat(orders): add OrdersController with endpoints` | |
+| `feat(orders): add order list page in frontend` | |
+
+#### Pre-Commit Checks
+
+Before **every** commit, verify the code compiles and passes checks:
+
+- **Backend**: `dotnet build src/backend/MyProject.slnx`
+- **Frontend**: `cd src/frontend && npm run format && npm run lint && npm run check`
+
+Never commit code that doesn't compile, has lint errors, or fails type checks.
+
+### Session Documentation
+
+At the **end of every working session**, generate a documentation file:
+
+- **Location**: `docs/sessions/{YYYY-MM-DD}-{topic-slug}.md`
+- **Template**: See [`docs/sessions/README.md`](docs/sessions/README.md) for the required structure
+- **Commit**: As the final commit of the session: `docs: add session notes for {topic}`
+
+#### When to Use Mermaid Diagrams
+
+Include diagrams in session docs when they add clarity:
+
+| Diagram Type | Use For |
+|---|---|
+| `flowchart TD` | Request/data flows, layer interactions |
+| `erDiagram` | Entity relationships |
+| `sequenceDiagram` | Multi-step flows (auth, token refresh) |
+| `classDiagram` | Service/interface relationships |
+| `stateDiagram-v2` | State transitions (order lifecycle) |
+
+Keep diagrams focused — one concern per diagram, prefer a few clear diagrams over many trivial ones.
+
+### Branch Hygiene
+
+Work on the current branch unless instructed otherwise. For new branches: `feat/{name}` or `fix/{description}`.
+
+---
+
+## Error Handling Philosophy
+
+| Layer | Strategy |
+|---|---|
+| **Backend services** | Return `Result` / `Result<T>` for expected failures |
+| **Backend exceptions** | `KeyNotFoundException` → 404, `PaginationException` → 400, unhandled → 500 |
+| **Backend middleware** | `ExceptionHandlingMiddleware` catches all, returns `ErrorResponse` JSON |
+| **Frontend API errors** | `isValidationProblemDetails()` → field-level errors with shake animation |
+| **Frontend generic errors** | `getErrorMessage()` → toast notification |
+| **Frontend network errors** | `isFetchErrorWithCode('ECONNREFUSED')` → 503 "Backend unavailable" |
+
+## Local Development
+
 ```bash
-chmod +x init.sh
-./init.sh
+# Start all services
+docker compose -f docker-compose.local.yml up -d
+
+# API docs (development only)
+open http://localhost:{INIT_API_PORT}/scalar/v1
+
+# Seq logs
+open http://localhost:{INIT_SEQ_PORT}
 ```
 
-### Init Script Workflow
+## Deployment
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  1. Enter Project Name (e.g., MyAwesomeApi)                 │
-│  2. Enter Base Port (default: 13000)                        │
-│     → API: BasePort + 2 (13002)                             │
-│     → DB:  BasePort + 4 (13004)                             │
-├─────────────────────────────────────────────────────────────┤
-│  3. Updates docker-compose.local.yml ports                  │
-│  4. Updates appsettings.Development.json (DB port)          │
-│  5. Updates http-client.env.json (API URL)                  │
-│  6. Renames all files/folders/namespaces                    │
-├─────────────────────────────────────────────────────────────┤
-│  7. (Optional) Git commit rename changes                    │
-│  8. (Optional) Create fresh Initial migration               │
-│     → Restores dotnet-ef tool                               │
-│     → Builds project                                        │
-│     → Creates migration                                     │
-│  9. (Optional) Git commit migration                         │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Port Configuration Reference
-
-| Service | Formula | Default Port |
-|---------|---------|--------------|
-| Web API | `BasePort + 2` | 13002 |
-| PostgreSQL | `BasePort + 4` | 13004 |
-| Redis | `BasePort + 6` | 13006 |
-| Seq | `BasePort + 8` | 13008 |
-
-### Files Modified by Init Script
-
-| File | Changes |
-|------|---------|
-| `docker-compose.local.yml` | Port mappings |
-| `appsettings.Development.json` | Database connection port |
-| `http-client.env.json` | API base URL |
-| All `*.cs`, `*.csproj`, `*.sln` files | Namespace/project references |
-| All directories containing `MyProject` | Renamed to new project name |
-
-## Important Files
-
-| File | Purpose |
-|------|---------|
-| `init.ps1` / `init.sh` | Project initialization and renaming scripts |
-| `Program.cs` | Application startup and middleware pipeline |
-| `MyProjectDbContext.cs` | EF Core DbContext with role seeding |
-| `AuthenticationService.cs` | JWT/cookie auth implementation |
-| `ExceptionHandlingMiddleware.cs` | Global error handling |
-| `Result.cs` | Result pattern for error handling |
-| `BaseEntity.cs` | Base entity with audit fields and soft delete |
-| `docker-compose.local.yml` | Local development environment |
-
-## Error Handling
-
-- **Expected errors**: Return `Result.Failure("message")` from services
-- **Not found**: Throw `KeyNotFoundException` → 404
-- **Pagination errors**: Throw `PaginationException` → 400
-- **Unexpected errors**: Let them propagate → 500 (middleware handles)
-
-## Testing
-
-Use the `auth-flow.http` file with the REST Client extension:
-
-```http
-### Login
-POST {{baseUrl}}/api/auth/login
-Content-Type: application/json
-
-{
-  "username": "test@test.com",
-  "password": "Test123!"
-}
-
-### Get current user (requires cookies from login)
-GET {{baseUrl}}/api/auth/me
-```
-
-Environment configuration in `http-client.env.json`.
-
+Build and push images via `./deploy.sh` (or `deploy.ps1`), configured by `deploy.config.json`.
