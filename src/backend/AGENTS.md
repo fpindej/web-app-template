@@ -302,7 +302,7 @@ internal static class AuthMapper
 }
 
 // WebApi/Features/Users/UserMapper.cs
-public static class UserMapper
+internal static class UserMapper
 {
     public static UserResponse ToResponse(this UserOutput user) => new()
     {
