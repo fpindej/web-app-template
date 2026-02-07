@@ -5,7 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import * as m from '$lib/paraglide/messages';
-	import { browserClient } from '$lib/api';
+	import { browserClient, getErrorMessage } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
 	import { createFieldShakes } from '$lib/state';
@@ -86,7 +86,7 @@
 				open = false;
 				await invalidateAll();
 			} else {
-				const errorMessage = apiError?.detail || apiError?.title || m.profile_avatar_updateError();
+				const errorMessage = getErrorMessage(apiError, m.profile_avatar_updateError());
 				toast.error(m.profile_avatar_updateError(), { description: errorMessage });
 				fieldShakes.trigger('avatarUrl');
 			}

@@ -4,16 +4,16 @@
 
 ## Tech Stack
 
-| Technology | Purpose |
-|---|---|
-| SvelteKit | Framework (file-based routing, SSR, server routes) |
-| Svelte 5 (Runes) | UI reactivity — `$state`, `$props`, `$derived`, `$effect` |
-| TypeScript (strict) | Type safety — no `any`, define proper interfaces |
-| Tailwind CSS 4 | Utility-first styling with CSS variable theming |
-| shadcn-svelte (bits-ui) | Headless, accessible UI component library |
-| openapi-fetch | Type-safe API client from generated OpenAPI types |
-| paraglide-js | Type-safe i18n with compile-time message validation |
-| svelte-sonner | Toast notifications |
+| Technology              | Purpose                                                   |
+| ----------------------- | --------------------------------------------------------- |
+| SvelteKit               | Framework (file-based routing, SSR, server routes)        |
+| Svelte 5 (Runes)        | UI reactivity — `$state`, `$props`, `$derived`, `$effect` |
+| TypeScript (strict)     | Type safety — no `any`, define proper interfaces          |
+| Tailwind CSS 4          | Utility-first styling with CSS variable theming           |
+| shadcn-svelte (bits-ui) | Headless, accessible UI component library                 |
+| openapi-fetch           | Type-safe API client from generated OpenAPI types         |
+| paraglide-js            | Type-safe i18n with compile-time message validation       |
+| svelte-sonner           | Toast notifications                                       |
 
 ## Project Structure
 
@@ -146,10 +146,10 @@ If the backend doesn't provide data you need, **don't work around it**. Since we
 
 Two client variants:
 
-| Client | Created With | Use In |
-|---|---|---|
-| `browserClient` | `createApiClient()` | Client-side code (components, event handlers) |
-| Server client | `createApiClient(fetch, url.origin)` | `+page.server.ts` / `+layout.server.ts` load functions |
+| Client          | Created With                         | Use In                                                 |
+| --------------- | ------------------------------------ | ------------------------------------------------------ |
+| `browserClient` | `createApiClient()`                  | Client-side code (components, event handlers)          |
+| Server client   | `createApiClient(fetch, url.origin)` | `+page.server.ts` / `+layout.server.ts` load functions |
 
 ### Server-Side (Recommended for Initial Load)
 
@@ -160,9 +160,9 @@ import { createApiClient } from '$lib/api';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ fetch, url }) => {
-    const client = createApiClient(fetch, url.origin);
-    const { data } = await client.GET('/api/users/me');
-    return { user: data };
+	const client = createApiClient(fetch, url.origin);
+	const { data } = await client.GET('/api/users/me');
+	return { user: data };
 };
 ```
 
@@ -174,16 +174,16 @@ Use `browserClient` for form submissions and user-triggered actions:
 import { browserClient } from '$lib/api';
 
 const { data, response, error } = await browserClient.PATCH('/api/users/me', {
-    body: { firstName, lastName }
+	body: { firstName, lastName }
 });
 ```
 
 ### When to Use Which
 
-| Pattern | Use For |
-|---|---|
+| Pattern                         | Use For                                                     |
+| ------------------------------- | ----------------------------------------------------------- |
 | Server-side (`+page.server.ts`) | Initial page data, SEO content, data requiring auth cookies |
-| Client-side (`browserClient`) | Form submissions, user actions, polling, post-load updates |
+| Client-side (`browserClient`)   | Form submissions, user actions, polling, post-load updates  |
 
 ### API Proxy
 
@@ -205,19 +205,19 @@ const fieldShakes = createFieldShakes();
 let fieldErrors = $state<Record<string, string>>({});
 
 async function handleSubmit() {
-    fieldErrors = {};
-    const { response, error: apiError } = await browserClient.PATCH('/api/users/me', {
-        body: { firstName, lastName }
-    });
+	fieldErrors = {};
+	const { response, error: apiError } = await browserClient.PATCH('/api/users/me', {
+		body: { firstName, lastName }
+	});
 
-    if (response.ok) {
-        toast.success(m.profile_updateSuccess());
-    } else if (isValidationProblemDetails(apiError)) {
-        fieldErrors = mapFieldErrors(apiError.errors); // PascalCase → camelCase
-        fieldShakes.triggerFields(Object.keys(fieldErrors));
-    } else {
-        toast.error(getErrorMessage(apiError, m.profile_updateError()));
-    }
+	if (response.ok) {
+		toast.success(m.profile_updateSuccess());
+	} else if (isValidationProblemDetails(apiError)) {
+		fieldErrors = mapFieldErrors(apiError.errors); // PascalCase → camelCase
+		fieldShakes.triggerFields(Object.keys(fieldErrors));
+	} else {
+		toast.error(getErrorMessage(apiError, m.profile_updateError()));
+	}
 }
 ```
 
@@ -229,7 +229,7 @@ The API proxy handles network errors:
 
 ```typescript
 if (isFetchErrorWithCode(err, 'ECONNREFUSED')) {
-    return new Response(JSON.stringify({ message: 'Backend unavailable' }), { status: 503 });
+	return new Response(JSON.stringify({ message: 'Backend unavailable' }), { status: 503 });
 }
 ```
 
@@ -241,13 +241,13 @@ if (isFetchErrorWithCode(err, 'ECONNREFUSED')) {
 
 ```svelte
 <script lang="ts">
-    interface Props {
-        user: User;
-        onSave?: (data: FormData) => void;
-        class?: string;
-    }
+	interface Props {
+		user: User;
+		onSave?: (data: FormData) => void;
+		class?: string;
+	}
 
-    let { user, onSave, class: className }: Props = $props();
+	let { user, onSave, class: className }: Props = $props();
 </script>
 ```
 
@@ -255,13 +255,13 @@ if (isFetchErrorWithCode(err, 'ECONNREFUSED')) {
 
 ```svelte
 <script lang="ts">
-    let count = $state(0);
-    let items = $state<string[]>([]);
-    let doubled = $derived(count * 2);
+	let count = $state(0);
+	let items = $state<string[]>([]);
+	let doubled = $derived(count * 2);
 
-    $effect(() => {
-        console.log('Count changed:', count);
-    });
+	$effect(() => {
+		console.log('Count changed:', count);
+	});
 </script>
 ```
 
@@ -269,7 +269,7 @@ if (isFetchErrorWithCode(err, 'ECONNREFUSED')) {
 
 ```svelte
 <script lang="ts">
-    let { open = $bindable() }: { open: boolean } = $props();
+	let { open = $bindable() }: { open: boolean } = $props();
 </script>
 
 <!-- Usage: <Dialog bind:open={isOpen} /> -->
@@ -279,19 +279,19 @@ if (isFetchErrorWithCode(err, 'ECONNREFUSED')) {
 
 ```svelte
 <script lang="ts">
-    import type { Snippet } from 'svelte';
+	import type { Snippet } from 'svelte';
 
-    interface Props {
-        header?: Snippet;
-        content?: Snippet;
-    }
+	interface Props {
+		header?: Snippet;
+		content?: Snippet;
+	}
 
-    let { header, content }: Props = $props();
+	let { header, content }: Props = $props();
 </script>
 
 <div>
-    {#if header}{@render header()}{/if}
-    {#if content}{@render content()}{/if}
+	{#if header}{@render header()}{/if}
+	{#if content}{@render content()}{/if}
 </div>
 ```
 
@@ -351,12 +351,12 @@ Components are generated in `$lib/components/ui/`. Do not manually create compon
 
 State files use `.svelte.ts` extension and live in `$lib/state/`:
 
-| File | Exports |
-|---|---|
-| `shake.svelte.ts` | `createShake()`, `createFieldShakes()` — field-level animation triggers |
-| `theme.svelte.ts` | `getTheme()`, `setTheme()`, `toggleTheme()` — light/dark/system |
-| `sidebar.svelte.ts` | `sidebarState`, `toggleSidebar()`, `setSidebarCollapsed()` |
-| `shortcuts.svelte.ts` | `shortcuts` action, `getShortcutDisplay()` — keyboard shortcuts |
+| File                  | Exports                                                                 |
+| --------------------- | ----------------------------------------------------------------------- |
+| `shake.svelte.ts`     | `createShake()`, `createFieldShakes()` — field-level animation triggers |
+| `theme.svelte.ts`     | `getTheme()`, `setTheme()`, `toggleTheme()` — light/dark/system         |
+| `sidebar.svelte.ts`   | `sidebarState`, `toggleSidebar()`, `setSidebarCollapsed()`              |
+| `shortcuts.svelte.ts` | `shortcuts` action, `getShortcutDisplay()` — keyboard shortcuts         |
 
 **Never** mix reactive state (`.svelte.ts`) with pure utilities (`.ts`).
 
@@ -374,14 +374,14 @@ Examples: `auth_login_title`, `profile_personalInfo_firstName`, `nav_dashboard`,
 
 ```svelte
 <script lang="ts">
-    import * as m from '$lib/paraglide/messages';
+	import * as m from '$lib/paraglide/messages';
 </script>
 
 <h1>{m.auth_login_title()}</h1>
 <Label>{m.profile_personalInfo_firstName()}</Label>
 
 <svelte:head>
-    <title>{m.meta_profile_title()}</title>
+	<title>{m.meta_profile_title()}</title>
 </svelte:head>
 ```
 
@@ -399,13 +399,13 @@ Edit both `src/messages/en.json` and `src/messages/cs.json`:
 
 Styles are modular in `src/styles/`:
 
-| File | Purpose | Edit When |
-|---|---|---|
-| `themes.css` | HSL color tokens (`:root` + `.dark`) | Adding new color variables |
-| `tailwind.css` | `@theme inline` mappings to CSS vars | Extending Tailwind design tokens |
-| `base.css` | `@layer base` element styles | Global element resets |
-| `animations.css` | Keyframes + animation classes | Adding new animations |
-| `utilities.css` | Reusable effect classes | Glow effects, card hovers |
+| File             | Purpose                              | Edit When                        |
+| ---------------- | ------------------------------------ | -------------------------------- |
+| `themes.css`     | HSL color tokens (`:root` + `.dark`) | Adding new color variables       |
+| `tailwind.css`   | `@theme inline` mappings to CSS vars | Extending Tailwind design tokens |
+| `base.css`       | `@layer base` element styles         | Global element resets            |
+| `animations.css` | Keyframes + animation classes        | Adding new animations            |
+| `utilities.css`  | Reusable effect classes              | Glow effects, card hovers        |
 
 ### Adding a Theme Variable
 
@@ -426,16 +426,16 @@ Styles are modular in `src/styles/`:
 ```html
 <!-- ✅ Correct -->
 <div class="ms-4 me-2 ps-3 pe-1 text-start">
-
-<!-- ❌ Wrong (breaks RTL) -->
-<div class="ml-4 mr-2 pl-3 pr-1 text-left">
+	<!-- ❌ Wrong (breaks RTL) -->
+	<div class="mr-2 ml-4 pr-1 pl-3 text-left"></div>
+</div>
 ```
 
-| Physical | Logical |
-|---|---|
-| `ml-*` / `mr-*` | `ms-*` / `me-*` |
-| `pl-*` / `pr-*` | `ps-*` / `pe-*` |
-| `left-*` / `right-*` | `start-*` / `end-*` |
+| Physical                   | Logical                   |
+| -------------------------- | ------------------------- |
+| `ml-*` / `mr-*`            | `ms-*` / `me-*`           |
+| `pl-*` / `pr-*`            | `ps-*` / `pe-*`           |
+| `left-*` / `right-*`       | `start-*` / `end-*`       |
 | `text-left` / `text-right` | `text-start` / `text-end` |
 
 ### Class Merging
@@ -451,7 +451,7 @@ Use `cn()` from `$lib/utils` to merge Tailwind classes:
 Always respect `prefers-reduced-motion`:
 
 ```html
-<div class="motion-safe:duration-300 motion-safe:animate-in motion-safe:fade-in">
+<div class="motion-safe:duration-300 motion-safe:animate-in motion-safe:fade-in"></div>
 ```
 
 For custom CSS animations in `animations.css`, add a `prefers-reduced-motion: reduce` media query that disables them.
@@ -465,9 +465,9 @@ The `(app)` layout checks for a user and redirects to `/login`:
 ```typescript
 // routes/(app)/+layout.server.ts
 export const load: LayoutServerLoad = async ({ parent }) => {
-    const { user } = await parent();
-    if (!user) throw redirect(303, '/login');
-    return { user };
+	const { user } = await parent();
+	if (!user) throw redirect(303, '/login');
+	return { user };
 };
 ```
 
@@ -477,8 +477,8 @@ The root `+layout.server.ts` fetches the user and locale for all routes:
 
 ```typescript
 export const load: LayoutServerLoad = async ({ locals, fetch, url }) => {
-    const user = await getUser(fetch, url.origin);
-    return { user, apiUrl: SERVER_CONFIG.API_URL, locale: locals.locale };
+	const user = await getUser(fetch, url.origin);
+	return { user, apiUrl: SERVER_CONFIG.API_URL, locale: locals.locale };
 };
 ```
 
@@ -488,15 +488,15 @@ Load initial data server-side, then update client-side:
 
 ```svelte
 <script lang="ts">
-    import { browserClient } from '$lib/api';
+	import { browserClient } from '$lib/api';
 
-    let { data } = $props();
-    let user = $state(data.user);
+	let { data } = $props();
+	let user = $state(data.user);
 
-    async function refresh() {
-        const { data: updated } = await browserClient.GET('/api/users/me');
-        if (updated) user = updated;
-    }
+	async function refresh() {
+		const { data: updated } = await browserClient.GET('/api/users/me');
+		if (updated) user = updated;
+	}
 </script>
 ```
 

@@ -2,8 +2,20 @@ import type { RequestHandler } from './$types';
 import { SERVER_CONFIG } from '$lib/config/server';
 import { isFetchErrorWithCode } from '$lib/api';
 
+/** Auth endpoints that need cookie-based auth for web clients */
+const COOKIE_AUTH_ENDPOINTS = ['auth/login', 'auth/refresh'];
+
 export const fallback: RequestHandler = async ({ request, params, url, fetch }) => {
-	const targetUrl = `${SERVER_CONFIG.API_URL}/api/${params.path}${url.search}`;
+	// Build target URL with query string
+	const targetParams = new URLSearchParams(url.search);
+
+	// Web clients need cookies for auth endpoints
+	if (COOKIE_AUTH_ENDPOINTS.includes(params.path)) {
+		targetParams.set('useCookies', 'true');
+	}
+
+	const queryString = targetParams.toString();
+	const targetUrl = `${SERVER_CONFIG.API_URL}/api/${params.path}${queryString ? `?${queryString}` : ''}`;
 
 	const newRequest = new Request(targetUrl, {
 		method: request.method,

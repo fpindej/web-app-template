@@ -13,15 +13,37 @@ internal sealed class ProjectDocumentTransformer : IOpenApiDocumentTransformer
         document.Info.Title = "MyProject API";
         document.Info.Version = "v1";
         document.Info.Description = """
-                                    API uses cookie-based authentication.
+                                    API supports dual authentication methods:
 
-                                    To authenticate:
+                                    ## Bearer Token Authentication (Mobile/API Clients)
                                     1. Call `POST /api/auth/login` with your credentials
-                                    2. The response will set HttpOnly cookies containing the access and refresh tokens
-                                    3. Subsequent requests will automatically include these cookies
+                                    2. Extract `accessToken` and `refreshToken` from the response body
+                                    3. Include the access token in subsequent requests: `Authorization: Bearer {accessToken}`
+                                    4. When the access token expires, call `POST /api/auth/refresh` with the refresh token in the request body
 
-                                    **Note:** Make sure "withCredentials" is enabled in your HTTP client to send cookies with requests.
+                                    ## Cookie Authentication (Web Clients)
+                                    1. Call `POST /api/auth/login` with your credentials
+                                    2. The response sets HttpOnly cookies containing the tokens automatically
+                                    3. Subsequent requests automatically include these cookies (ensure "withCredentials" is enabled)
+                                    4. Token refresh happens automatically via cookies
+
+                                    Both methods work simultaneously — tokens are always returned in the response body AND set as HttpOnly cookies.
                                     """;
+
+        // Add security scheme for Bearer token authentication (mobile/API clients)
+        document.Components ??= new OpenApiComponents();
+        if (document.Components.SecuritySchemes is null)
+        {
+            document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme>();
+        }
+
+        document.Components.SecuritySchemes["bearerAuth"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "JWT Bearer token authentication. Obtain tokens from POST /api/auth/login and include as: Authorization: Bearer {token}"
+        };
 
         return Task.CompletedTask;
     }

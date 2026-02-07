@@ -166,7 +166,7 @@ npm run build    # Verify build
 
 ## AI Assistant Instructions
 
-For detailed coding conventions, patterns, and best practices, see [`.github/copilot-instructions.md`](.github/copilot-instructions.md). This file provides comprehensive guidance for AI assistants (and developers) working on this codebase.
+For detailed coding conventions, patterns, and best practices, see [`AGENTS.md`](../../AGENTS.md). This file provides comprehensive guidance for AI assistants (and developers) working on this codebase.
 
 ## Available Scripts
 

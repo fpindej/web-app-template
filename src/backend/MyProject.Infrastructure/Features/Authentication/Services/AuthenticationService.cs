@@ -25,19 +25,19 @@ internal class AuthenticationService(
 {
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
-    public async Task<Result> Login(string username, string password, CancellationToken cancellationToken = default)
+    public async Task<Result<AuthenticationOutput>> Login(string username, string password, bool useCookies = false, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByNameAsync(username);
 
         if (user is null)
         {
-            return Result.Failure("Invalid username or password.");
+            return Result<AuthenticationOutput>.Failure("Invalid username or password.");
         }
 
         var signInResult = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: false);
         if (!signInResult.Succeeded)
         {
-            return Result.Failure("Invalid username or password.");
+            return Result<AuthenticationOutput>.Failure("Invalid username or password.");
         }
 
         var accessToken = await tokenProvider.GenerateAccessToken(user);
@@ -58,17 +58,25 @@ internal class AuthenticationService(
         dbContext.RefreshTokens.Add(refreshTokenEntity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        cookieService.SetSecureCookie(
-            key: CookieNames.AccessToken,
-            value: accessToken,
-            expires: utcNow.AddMinutes(_jwtOptions.ExpiresInMinutes));
+        if (useCookies)
+        {
+            cookieService.SetSecureCookie(
+                key: CookieNames.AccessToken,
+                value: accessToken,
+                expires: utcNow.AddMinutes(_jwtOptions.ExpiresInMinutes));
 
-        cookieService.SetSecureCookie(
-            key: CookieNames.RefreshToken,
-            value: refreshTokenString,
-            expires: utcNow.AddDays(_jwtOptions.RefreshToken.ExpiresInDays));
+            cookieService.SetSecureCookie(
+                key: CookieNames.RefreshToken,
+                value: refreshTokenString,
+                expires: utcNow.AddDays(_jwtOptions.RefreshToken.ExpiresInDays));
+        }
 
-        return Result.Success();
+        var output = new AuthenticationOutput(
+            AccessToken: accessToken,
+            RefreshToken: refreshTokenString
+        );
+
+        return Result<AuthenticationOutput>.Success(output);
     }
 
     public async Task<Result<Guid>> Register(RegisterInput input, CancellationToken cancellationToken = default)
@@ -115,11 +123,11 @@ internal class AuthenticationService(
         }
     }
 
-    public async Task<Result> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    public async Task<Result<AuthenticationOutput>> RefreshTokenAsync(string refreshToken, bool useCookies = false, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return Result.Failure("Refresh token is missing.");
+            return Result<AuthenticationOutput>.Failure("Refresh token is missing.");
         }
 
         var storedToken = await dbContext.RefreshTokens
@@ -157,7 +165,7 @@ internal class AuthenticationService(
         var user = storedToken.User;
         if (user is null)
         {
-            return Result.Failure("User not found.");
+            return Result<AuthenticationOutput>.Failure("User not found.");
         }
 
         var newAccessToken = await tokenProvider.GenerateAccessToken(user);
@@ -178,23 +186,34 @@ internal class AuthenticationService(
         dbContext.RefreshTokens.Add(newRefreshTokenEntity);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        cookieService.SetSecureCookie(
-            key: CookieNames.AccessToken,
-            value: newAccessToken,
-            expires: utcNow.AddMinutes(_jwtOptions.ExpiresInMinutes));
-
-        cookieService.SetSecureCookie(
-            key: CookieNames.RefreshToken,
-            value: newRefreshTokenString,
-            expires: utcNow.AddDays(_jwtOptions.RefreshToken.ExpiresInDays));
-
-        return Result.Success();
-
-        Result Fail(string message)
+        if (useCookies)
         {
-            cookieService.DeleteCookie(CookieNames.AccessToken);
-            cookieService.DeleteCookie(CookieNames.RefreshToken);
-            return Result.Failure(message);
+            cookieService.SetSecureCookie(
+                key: CookieNames.AccessToken,
+                value: newAccessToken,
+                expires: utcNow.AddMinutes(_jwtOptions.ExpiresInMinutes));
+
+            cookieService.SetSecureCookie(
+                key: CookieNames.RefreshToken,
+                value: newRefreshTokenString,
+                expires: utcNow.AddDays(_jwtOptions.RefreshToken.ExpiresInDays));
+        }
+
+        var output = new AuthenticationOutput(
+            AccessToken: newAccessToken,
+            RefreshToken: newRefreshTokenString
+        );
+
+        return Result<AuthenticationOutput>.Success(output);
+
+        Result<AuthenticationOutput> Fail(string message)
+        {
+            if (useCookies)
+            {
+                cookieService.DeleteCookie(CookieNames.AccessToken);
+                cookieService.DeleteCookie(CookieNames.RefreshToken);
+            }
+            return Result<AuthenticationOutput>.Failure(message);
         }
     }
 

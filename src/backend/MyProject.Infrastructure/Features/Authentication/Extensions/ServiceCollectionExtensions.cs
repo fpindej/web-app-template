@@ -82,14 +82,23 @@ public static class ServiceCollectionExtensions
                         IssuerSigningKey = new SymmetricSecurityKey(key)
                     };
 
-                    // Configure cookie-based token handling
+                    // Configure dual authentication: Bearer header (mobile/API) + cookie fallback (web)
                     opt.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = context =>
                         {
-                            if (context.Request.Cookies.TryGetValue(CookieNames.AccessToken, out var accessToken))
+                            // Priority 1: Authorization header (standard Bearer token for mobile/API clients)
+                            // The JWT middleware handles this automatically if we don't set context.Token,
+                            // so we only need to handle the cookie fallback case.
+
+                            // Priority 2: Cookie fallback (web clients using HttpOnly cookies)
+                            var authHeader = context.Request.Headers.Authorization.ToString();
+                            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                             {
-                                context.Token = accessToken;
+                                if (context.Request.Cookies.TryGetValue(CookieNames.AccessToken, out var accessToken))
+                                {
+                                    context.Token = accessToken;
+                                }
                             }
 
                             return Task.CompletedTask;

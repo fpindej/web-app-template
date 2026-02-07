@@ -147,7 +147,7 @@
 	"dashboard_guide_step2": "Run `npm run api:generate` when the backend API changes to regenerate TypeScript types.",
 	"dashboard_guide_step3": "Use `npx shadcn-svelte@next add <component>` to add new UI components from shadcn.",
 	"dashboard_guide_step4": "Before committing, run `npm run format && npm run lint && npm run check && npm run build`.",
-	"dashboard_guide_step5": "Check `.github/copilot-instructions.md` for detailed coding conventions and patterns.",
+	"dashboard_guide_step5": "Check `AGENTS.md` for detailed coding conventions and patterns.",
 
 	"gettingStarted_badge": "Production-Ready Template",
 	"gettingStarted_features_title": "What's Included",

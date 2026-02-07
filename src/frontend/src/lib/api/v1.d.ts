@@ -27,9 +27,7 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'text/plain': components['schemas']['UserResponse'];
 						'application/json': components['schemas']['UserResponse'];
-						'text/json': components['schemas']['UserResponse'];
 					};
 				};
 				/** @description If the user is not authenticated */
@@ -38,9 +36,7 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
 						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
 					};
 				};
 			};
@@ -62,8 +58,6 @@ export interface paths {
 			requestBody: {
 				content: {
 					'application/json': components['schemas']['UpdateUserRequest'];
-					'text/json': components['schemas']['UpdateUserRequest'];
-					'application/*+json': components['schemas']['UpdateUserRequest'];
 				};
 			};
 			responses: {
@@ -73,9 +67,7 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'text/plain': components['schemas']['UserResponse'];
 						'application/json': components['schemas']['UserResponse'];
-						'text/json': components['schemas']['UserResponse'];
 					};
 				};
 				/** @description If the request is invalid */
@@ -84,9 +76,7 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
-						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ErrorResponse'];
 					};
 				};
 				/** @description If the user is not authenticated */
@@ -95,9 +85,7 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
 						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
 					};
 				};
 			};
@@ -113,10 +101,16 @@ export interface paths {
 		};
 		get?: never;
 		put?: never;
-		/** Authenticates a user and returns a http-only cookie with the JWT access token and a refresh token */
+		/**
+		 * Authenticates a user and returns JWT tokens.
+		 *     Tokens are always returned in the response body. When useCookies is true, tokens are also set as HttpOnly cookies.
+		 */
 		post: {
 			parameters: {
-				query?: never;
+				query?: {
+					/** @description When true, sets tokens in HttpOnly cookies for web clients. Defaults to false (stateless). */
+					useCookies?: boolean;
+				};
 				header?: never;
 				path?: never;
 				cookie?: never;
@@ -125,27 +119,25 @@ export interface paths {
 			requestBody: {
 				content: {
 					'application/json': components['schemas']['LoginRequest'];
-					'text/json': components['schemas']['LoginRequest'];
-					'application/*+json': components['schemas']['LoginRequest'];
 				};
 			};
 			responses: {
-				/** @description Returns success response (access token and refresh token set in HttpOnly cookies) */
+				/** @description Returns authentication tokens (optionally also set in HttpOnly cookies) */
 				200: {
 					headers: {
 						[name: string]: unknown;
 					};
-					content?: never;
+					content: {
+						'application/json': components['schemas']['AuthenticationResponse'];
+					};
 				};
-				/** @description If the credentials are invalid or improperly formatted */
+				/** @description If the credentials are improperly formatted */
 				400: {
 					headers: {
 						[name: string]: unknown;
 					};
 					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
-						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ErrorResponse'];
 					};
 				};
 				/** @description If the credentials are invalid */
@@ -154,9 +146,7 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
-						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ErrorResponse'];
 					};
 				};
 			};
@@ -176,22 +166,36 @@ export interface paths {
 		};
 		get?: never;
 		put?: never;
-		/** Refreshes the authentication tokens using the refresh token from cookies */
+		/**
+		 * Refreshes the authentication tokens using a refresh token.
+		 *     For web clients, the refresh token is read from cookies. For mobile/API clients, pass it in the request body.
+		 *     When useCookies is true, new tokens are also set as HttpOnly cookies.
+		 */
 		post: {
 			parameters: {
-				query?: never;
+				query?: {
+					/** @description When true, sets tokens in HttpOnly cookies for web clients. Defaults to false (stateless). */
+					useCookies?: boolean;
+				};
 				header?: never;
 				path?: never;
 				cookie?: never;
 			};
-			requestBody?: never;
+			/** @description Optional request body containing the refresh token (for mobile/API clients) */
+			requestBody?: {
+				content: {
+					'application/json': null | components['schemas']['RefreshRequest'];
+				};
+			};
 			responses: {
-				/** @description Returns success response with refreshed tokens set in HttpOnly cookies */
+				/** @description Returns new authentication tokens (optionally also set in HttpOnly cookies) */
 				200: {
 					headers: {
 						[name: string]: unknown;
 					};
-					content?: never;
+					content: {
+						'application/json': components['schemas']['AuthenticationResponse'];
+					};
 				};
 				/** @description If the refresh token is invalid, expired, or missing */
 				401: {
@@ -199,9 +203,7 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
-						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ErrorResponse'];
 					};
 				};
 			};
@@ -231,7 +233,7 @@ export interface paths {
 			};
 			requestBody?: never;
 			responses: {
-				/** @description A 204 No Content response */
+				/** @description Successfully logged out */
 				204: {
 					headers: {
 						[name: string]: unknown;
@@ -267,8 +269,6 @@ export interface paths {
 			requestBody: {
 				content: {
 					'application/json': components['schemas']['RegisterRequest'];
-					'text/json': components['schemas']['RegisterRequest'];
-					'application/*+json': components['schemas']['RegisterRequest'];
 				};
 			};
 			responses: {
@@ -285,9 +285,7 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'text/plain': components['schemas']['ProblemDetails'];
-						'application/json': components['schemas']['ProblemDetails'];
-						'text/json': components['schemas']['ProblemDetails'];
+						'application/json': components['schemas']['ErrorResponse'];
 					};
 				};
 			};
@@ -302,6 +300,29 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
 	schemas: {
+		/**
+		 * @description Response containing authentication tokens for API clients.
+		 *     Web clients can ignore this response body as tokens are also set in HttpOnly cookies.
+		 */
+		AuthenticationResponse: {
+			/**
+			 * @description The JWT access token for Bearer authentication.
+			 *     Include this in the Authorization header as "Bearer {accessToken}" for subsequent API requests.
+			 */
+			accessToken?: string;
+			/**
+			 * @description The refresh token for obtaining new access tokens.
+			 *     Use this with the /api/auth/refresh endpoint when the access token expires.
+			 */
+			refreshToken?: string;
+		};
+		/** @description Response DTO for error information. */
+		ErrorResponse: {
+			/** @description The main error message. */
+			message?: null | string;
+			/** @description Additional error details or technical information. */
+			details?: null | string;
+		};
 		/** @description Represents a user login request with credentials. */
 		LoginRequest: {
 			/** @description The username for authentication. */
@@ -316,6 +337,18 @@ export interface components {
 			status?: null | number;
 			detail?: null | string;
 			instance?: null | string;
+		};
+		/**
+		 * @description Request to refresh authentication tokens using a refresh token.
+		 *     For web clients using cookies, this request body is optional.
+		 *     For mobile/API clients, the refresh token must be provided in the request body.
+		 */
+		RefreshRequest: {
+			/**
+			 * @description The refresh token obtained from a previous login or refresh response.
+			 *     Required for mobile/API clients. Optional for web clients (will fall back to cookie).
+			 */
+			refreshToken?: null | string;
 		};
 		/** @description Represents a request to register a new user account. */
 		RegisterRequest: {

@@ -147,7 +147,7 @@
 	"dashboard_guide_step2": "Při změně backend API spusťte `npm run api:generate` pro přegenerování TypeScript typů.",
 	"dashboard_guide_step3": "Použijte `npx shadcn-svelte@next add <component>` pro přidání nových UI komponent ze shadcn.",
 	"dashboard_guide_step4": "Před commitem spusťte `npm run format && npm run lint && npm run check && npm run build`.",
-	"dashboard_guide_step5": "Podívejte se do `.github/copilot-instructions.md` pro detailní konvence a vzory.",
+	"dashboard_guide_step5": "Podívejte se do `AGENTS.md` pro detailní konvence a vzory.",
 
 	"gettingStarted_badge": "Produkční šablona",
 	"gettingStarted_features_title": "Co je zahrnuto",

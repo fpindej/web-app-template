@@ -48,7 +48,7 @@
 	import { onMount } from 'svelte';
 	import { renderMarkdown } from './markdown';
 	import readmeContent from '../../../../README.md?raw';
-	import copilotInstructions from '../../../../.github/copilot-instructions.md?raw';
+	import agentsContent from '../../../../AGENTS.md?raw';
 
 	interface Props {
 		username?: string;
@@ -59,7 +59,7 @@
 	let mounted = $state(false);
 	let copiedCommand = $state<string | null>(null);
 	let readmeDialogOpen = $state(false);
-	let copilotDialogOpen = $state(false);
+	let agentsDialogOpen = $state(false);
 
 	onMount(() => {
 		mounted = true;
@@ -388,13 +388,8 @@
 					<code class="text-xs">README.md</code>
 					<ExternalLink class="h-3.5 w-3.5" />
 				</Button>
-				<Button
-					variant="outline"
-					class="gap-2"
-					size="sm"
-					onclick={() => (copilotDialogOpen = true)}
-				>
-					<code class="text-xs">copilot-instructions.md</code>
+				<Button variant="outline" class="gap-2" size="sm" onclick={() => (agentsDialogOpen = true)}>
+					<code class="text-xs">AGENTS.md</code>
 					<ExternalLink class="h-3.5 w-3.5" />
 				</Button>
 			</div>
@@ -423,23 +418,23 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<!-- Copilot Instructions Dialog -->
-<Dialog.Root bind:open={copilotDialogOpen}>
+<!-- AGENTS.md Dialog -->
+<Dialog.Root bind:open={agentsDialogOpen}>
 	<Dialog.Content
 		class="max-h-[90vh] w-[95vw] max-w-sm overflow-hidden p-0 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl"
 	>
 		<Dialog.Header class="border-b px-4 py-3 sm:px-6 sm:py-4">
 			<Dialog.Title class="flex items-center gap-2 text-sm sm:text-base">
 				<BookOpen class="h-4 w-4 sm:h-5 sm:w-5" />
-				copilot-instructions.md
+				AGENTS.md
 			</Dialog.Title>
-			<Dialog.Description class="sr-only">GitHub Copilot coding instructions</Dialog.Description>
+			<Dialog.Description class="sr-only">Agent guidelines and architecture</Dialog.Description>
 		</Dialog.Header>
 		<div
 			class="prose prose-sm dark:prose-invert md:prose-base max-h-[calc(90vh-60px)] overflow-y-auto px-4 py-3 sm:max-h-[calc(90vh-70px)] sm:px-6 sm:py-4"
 		>
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -- Rendering our own instructions, not user input -->
-			{@html renderMarkdown(copilotInstructions)}
+			{@html renderMarkdown(agentsContent)}
 		</div>
 	</Dialog.Content>
 </Dialog.Root>

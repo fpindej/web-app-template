@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { browserClient } from '$lib/api';
+	import { browserClient, getErrorMessage } from '$lib/api';
 	import { cn } from '$lib/utils';
 	import { createShake } from '$lib/state';
 	import { onMount } from 'svelte';
@@ -63,7 +63,7 @@
 				if (response.status === 401) {
 					errorMessage = m.auth_login_invalidCredentials();
 				} else {
-					errorMessage = apiError?.detail || apiError?.title || m.auth_login_error();
+					errorMessage = getErrorMessage(apiError, m.auth_login_error());
 				}
 				toast.error(m.auth_login_failed(), {
 					description: errorMessage

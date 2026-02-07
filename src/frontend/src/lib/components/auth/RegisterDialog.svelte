@@ -8,7 +8,7 @@
 	import * as m from '$lib/paraglide/messages';
 	import { toast } from '$lib/components/ui/sonner';
 	import { Loader2 } from '@lucide/svelte';
-	import { isValidationProblemDetails, mapFieldErrors } from '$lib/api';
+	import { isValidationProblemDetails, mapFieldErrors, getErrorMessage } from '$lib/api';
 	import { createFieldShakes } from '$lib/state';
 
 	let { open = $bindable(false), onSuccess } = $props<{
@@ -79,7 +79,7 @@
 					fieldErrors = mapFieldErrors(apiError.errors);
 					fieldShakes.triggerFields(Object.keys(fieldErrors));
 				} else {
-					error = apiError.detail || apiError.title || m.auth_register_failed();
+					error = getErrorMessage(apiError, m.auth_register_failed());
 				}
 			} else {
 				error = m.auth_register_failed();
