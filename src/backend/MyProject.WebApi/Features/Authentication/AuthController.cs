@@ -8,25 +8,27 @@ using MyProject.WebApi.Shared;
 namespace MyProject.WebApi.Features.Authentication;
 
 /// <summary>
-/// Controller for authentication operations including login, registration, and token management using HttpOnly cookies.
+/// Controller for authentication operations including login, registration, and token management.
+/// Supports both cookie-based (web) and Bearer token (mobile/API) authentication.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController(IAuthenticationService authenticationService) : ControllerBase
 {
     /// <summary>
-    /// Authenticates a user and returns a http-only cookie with the JWT access token and a refresh token
+    /// Authenticates a user and returns JWT tokens.
+    /// Tokens are returned both in the response body (for mobile/API clients) and as HttpOnly cookies (for web clients).
     /// </summary>
     /// <param name="request">The login credentials</param>
-    /// <returns>Authentication response (access token and refresh token set in HttpOnly cookies)</returns>
-    /// <response code="200">Returns success response (access token and refresh token set in HttpOnly cookies)</response>
-    /// <response code="400">If the credentials are invalid or improperly formatted</response>
+    /// <returns>Authentication response containing access and refresh tokens</returns>
+    /// <response code="200">Returns authentication tokens (also set in HttpOnly cookies)</response>
+    /// <response code="400">If the credentials are improperly formatted</response>
     /// <response code="401">If the credentials are invalid</response>
     [HttpPost("login")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<AuthenticationResponse>> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
         var result = await authenticationService.Login(request.Username, request.Password, cancellationToken);
 
@@ -35,21 +37,32 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
             return Unauthorized(new ErrorResponse { Message = result.Error });
         }
 
-        return Ok();
+        return Ok(result.Value!.ToResponse());
     }
 
     /// <summary>
-    /// Refreshes the authentication tokens using the refresh token from cookies
+    /// Refreshes the authentication tokens using a refresh token.
+    /// For web clients, the refresh token is read from cookies. For mobile/API clients, pass it in the request body.
+    /// Tokens are returned both in the response body and as HttpOnly cookies.
     /// </summary>
-    /// <returns>Success response with refreshed tokens set in HttpOnly cookies</returns>
-    /// <response code="200">Returns success response with refreshed tokens set in HttpOnly cookies</response>
+    /// <param name="request">Optional request body containing the refresh token (for mobile/API clients)</param>
+    /// <returns>Authentication response containing new access and refresh tokens</returns>
+    /// <response code="200">Returns new authentication tokens (also set in HttpOnly cookies)</response>
     /// <response code="401">If the refresh token is invalid, expired, or missing</response>
     [HttpPost("refresh")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AuthenticationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult> Refresh(CancellationToken cancellationToken)
+    public async Task<ActionResult<AuthenticationResponse>> Refresh([FromBody] RefreshRequest? request, CancellationToken cancellationToken)
     {
-        if (!Request.Cookies.TryGetValue(CookieNames.RefreshToken, out var refreshToken))
+        // Priority 1: Request body (mobile/API clients)
+        // Priority 2: Cookie (web clients)
+        var refreshToken = request?.RefreshToken;
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            Request.Cookies.TryGetValue(CookieNames.RefreshToken, out refreshToken);
+        }
+
+        if (string.IsNullOrEmpty(refreshToken))
         {
             return Unauthorized(new ErrorResponse { Message = "Refresh token is missing." });
         }
@@ -61,7 +74,7 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
             return Unauthorized(new ErrorResponse { Message = result.Error });
         }
 
-        return Ok();
+        return Ok(result.Value!.ToResponse());
     }
 
     /// <summary>
