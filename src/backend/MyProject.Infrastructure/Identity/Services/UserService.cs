@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using MyProject.Application.Caching;
 using MyProject.Application.Caching.Constants;
+using MyProject.Application.Errors;
 using MyProject.Application.Features.Authentication.Dtos;
 using MyProject.Application.Identity;
 using MyProject.Domain;
@@ -22,7 +23,7 @@ internal class UserService(
 
         if (!userId.HasValue)
         {
-            return Result<UserOutput>.Failure("User is not authenticated.");
+            return Result<UserOutput>.Failure(ErrorCodes.User.NotAuthenticated);
         }
 
         var cacheKey = CacheKeys.User(userId.Value);
@@ -37,7 +38,7 @@ internal class UserService(
 
         if (user is null)
         {
-            return Result<UserOutput>.Failure("User not found.");
+            return Result<UserOutput>.Failure(ErrorCodes.User.NotFound);
         }
 
         var roles = await userManager.GetRolesAsync(user);
@@ -75,14 +76,14 @@ internal class UserService(
 
         if (!userId.HasValue)
         {
-            return Result<UserOutput>.Failure("User is not authenticated.");
+            return Result<UserOutput>.Failure(ErrorCodes.User.NotAuthenticated);
         }
 
         var user = await userManager.FindByIdAsync(userId.Value.ToString());
 
         if (user is null)
         {
-            return Result<UserOutput>.Failure("User not found.");
+            return Result<UserOutput>.Failure(ErrorCodes.User.NotFound);
         }
 
         user.FirstName = input.FirstName;
@@ -95,6 +96,7 @@ internal class UserService(
 
         if (!result.Succeeded)
         {
+            // Identity errors already contain error codes via ErrorCodeIdentityErrorDescriber
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             return Result<UserOutput>.Failure(errors);
         }

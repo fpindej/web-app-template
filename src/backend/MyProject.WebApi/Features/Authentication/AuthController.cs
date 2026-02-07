@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MyProject.Application.Errors;
 using MyProject.Application.Features.Authentication;
 using MyProject.Infrastructure.Features.Authentication.Constants;
 using MyProject.WebApi.Features.Authentication.Dtos.Login;
@@ -72,7 +73,7 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
 
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return Unauthorized(new ErrorResponse { Message = "Refresh token is missing." });
+            return Unauthorized(new ErrorResponse { Message = ErrorCodes.Auth.RefreshTokenMissing });
         }
 
         var result = await authenticationService.RefreshTokenAsync(refreshToken, useCookies, cancellationToken);

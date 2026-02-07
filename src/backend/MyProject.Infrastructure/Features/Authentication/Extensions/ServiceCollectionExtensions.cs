@@ -47,6 +47,7 @@ public static class ServiceCollectionExtensions
 
                 opt.User.RequireUniqueEmail = true;
             })
+            .AddErrorDescriber<ErrorCodeIdentityErrorDescriber>()
             .AddEntityFrameworkStores<TContext>()
                 .AddDefaultTokenProviders();
 

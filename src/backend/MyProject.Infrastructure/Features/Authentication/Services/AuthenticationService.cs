@@ -6,6 +6,7 @@ using MyProject.Infrastructure.Features.Authentication.Constants;
 using MyProject.Infrastructure.Features.Authentication.Models;
 using MyProject.Infrastructure.Features.Authentication.Options;
 using MyProject.Infrastructure.Persistence;
+using MyProject.Application.Errors;
 using MyProject.Application.Features.Authentication;
 using MyProject.Application.Features.Authentication.Dtos;
 using MyProject.Application.Cookies;
@@ -31,13 +32,13 @@ internal class AuthenticationService(
 
         if (user is null)
         {
-            return Result<AuthenticationOutput>.Failure("Invalid username or password.");
+            return Result<AuthenticationOutput>.Failure(ErrorCodes.Auth.InvalidCredentials);
         }
 
         var signInResult = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: false);
         if (!signInResult.Succeeded)
         {
-            return Result<AuthenticationOutput>.Failure("Invalid username or password.");
+            return Result<AuthenticationOutput>.Failure(ErrorCodes.Auth.InvalidCredentials);
         }
 
         var accessToken = await tokenProvider.GenerateAccessToken(user);
@@ -94,6 +95,7 @@ internal class AuthenticationService(
 
         if (!result.Succeeded)
         {
+            // Identity errors already contain error codes via ErrorCodeIdentityErrorDescriber
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             return Result<Guid>.Failure(errors);
         }
@@ -127,7 +129,7 @@ internal class AuthenticationService(
     {
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return Result<AuthenticationOutput>.Failure("Refresh token is missing.");
+            return Result<AuthenticationOutput>.Failure(ErrorCodes.Auth.RefreshTokenMissing);
         }
 
         var storedToken = await dbContext.RefreshTokens
@@ -136,12 +138,12 @@ internal class AuthenticationService(
 
         if (storedToken is null)
         {
-            return Fail("Refresh token not found.");
+            return Fail(ErrorCodes.Auth.RefreshTokenNotFound);
         }
 
         if (storedToken.Invalidated)
         {
-            return Fail("Refresh token has been invalidated.");
+            return Fail(ErrorCodes.Auth.RefreshTokenInvalidated);
         }
 
         if (storedToken.Used)
@@ -149,14 +151,14 @@ internal class AuthenticationService(
             // Security alert: Token reuse! Revoke all tokens for this user.
             storedToken.Invalidated = true;
             await RevokeUserTokens(storedToken.UserId, cancellationToken);
-            return Fail("Invalid refresh token.");
+            return Fail(ErrorCodes.Auth.RefreshTokenReused);
         }
 
         if (storedToken.ExpiredAt < timeProvider.GetUtcNow().UtcDateTime)
         {
             storedToken.Invalidated = true;
             await dbContext.SaveChangesAsync(cancellationToken);
-            return Fail("Refresh token has expired.");
+            return Fail(ErrorCodes.Auth.RefreshTokenExpired);
         }
 
         // Mark current token as used
@@ -165,7 +167,7 @@ internal class AuthenticationService(
         var user = storedToken.User;
         if (user is null)
         {
-            return Result<AuthenticationOutput>.Failure("User not found.");
+            return Result<AuthenticationOutput>.Failure(ErrorCodes.Auth.UserNotFound);
         }
 
         var newAccessToken = await tokenProvider.GenerateAccessToken(user);
