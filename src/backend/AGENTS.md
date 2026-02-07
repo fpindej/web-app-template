@@ -18,6 +18,8 @@ src/backend/
 │   │       └── Dtos/
 │   │           ├── {Operation}Input.cs
 │   │           └── {Entity}Output.cs
+│   ├── Errors/
+│   │   └── ErrorCodes.cs             # All error code constants (i18n keys)
 │   ├── Persistence/
 │   │   ├── IBaseEntityRepository.cs
 │   │   └── IUnitOfWork.cs
@@ -204,9 +206,9 @@ Use `Result` / `Result<T>` for all operations that can fail expectedly. Never th
 return Result<Guid>.Success(entity.Id);
 return Result.Success();
 
-// Failure
-return Result<Guid>.Failure("Email already exists.");
-return Result.Failure("Invalid credentials.");
+// Failure — always use ErrorCodes constants, never English strings
+return Result<Guid>.Failure(ErrorCodes.Identity.DuplicateEmail);
+return Result.Failure(ErrorCodes.Auth.InvalidCredentials);
 ```
 
 In controllers, map Result to HTTP responses:
@@ -447,7 +449,14 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 }
 ```
 
-Simple DTOs can also use data annotations (`[Required]`, `[MaxLength]`, `[EmailAddress]`, etc.) — both validation systems work together.
+Simple DTOs can also use data annotations (`[Required]`, `[MaxLength]`, `[EmailAddress]`, etc.) — both validation systems work together. Always set `ErrorMessage` to the corresponding `ErrorCodes` constant so the frontend receives a machine-readable code, not the framework's default English text:
+
+```csharp
+[Required(ErrorMessage = ErrorCodes.Validation.Required)]
+[EmailAddress(ErrorMessage = ErrorCodes.Validation.InvalidEmail)]
+[MaxLength(255, ErrorMessage = ErrorCodes.Validation.MaxLength)]
+public string Email { get; init; } = string.Empty;
+```
 
 ## Error Handling
 
@@ -476,6 +485,69 @@ public class ErrorResponse
 ```
 
 `ErrorResponse` is the **only** error body type across the entire API — both controllers and middleware return it. The middleware serializes with explicit `JsonNamingPolicy.CamelCase` to match ASP.NET's controller serialization. Never return raw strings, anonymous objects, or other shapes for errors.
+
+## Error Codes & Localization
+
+The backend **never** sends human-readable error text in API responses. All user-facing errors are **machine-readable error codes** resolved to localized strings by the frontend.
+
+### Error Code Constants
+
+All error codes live in `Application/Errors/ErrorCodes.cs` — a static class with nested classes per domain:
+
+```csharp
+public static class ErrorCodes
+{
+    public static class Validation
+    {
+        public const string Required = "validation.required";
+        public const string InvalidEmail = "validation.invalidEmail";
+        public const string MaxLength = "validation.maxLength";
+        // ...
+    }
+
+    public static class Identity
+    {
+        public const string DuplicateEmail = "identity.duplicateEmail";
+        // ...
+    }
+
+    public static class Auth
+    {
+        public const string InvalidCredentials = "auth.invalidCredentials";
+        // ...
+    }
+}
+```
+
+Convention: `{domain}.{code}` — all lowercase domain, camelCase code, dot-separated. Always reference via `ErrorCodes.{Domain}.{Code}` — never hardcode string literals.
+
+### Where Error Codes Are Used
+
+| Source | Mechanism | Example |
+|---|---|---|
+| **Data Annotations** | `ErrorMessage = ErrorCodes.Validation.Required` | `[Required(ErrorMessage = ErrorCodes.Validation.Required)]` |
+| **Result.Failure()** | Pass error code constant | `Result.Failure(ErrorCodes.Auth.InvalidCredentials)` |
+| **Identity errors** | `ErrorCodeIdentityErrorDescriber` overrides all `IdentityErrorDescriber` methods | `DuplicateEmail()` returns `identity.duplicateEmail` |
+
+### Identity Error Describer
+
+`ErrorCodeIdentityErrorDescriber` (Infrastructure) overrides every method on ASP.NET Identity's `IdentityErrorDescriber` to return error codes in the `Description` field instead of English text. It is registered in DI via `.AddErrorDescriber<ErrorCodeIdentityErrorDescriber>()` on the Identity builder chain. When adding new Identity-related error codes, override the corresponding method in this class.
+
+### Adding a New Error Code
+
+1. Add constant to the appropriate nested class in `Application/Errors/ErrorCodes.cs`
+2. Use the constant at the call site:
+   - Data annotation: `[Required(ErrorMessage = ErrorCodes.Validation.Required)]`
+   - Service: `return Result.Failure(ErrorCodes.MyDomain.MyCode);`
+   - Identity: override in `ErrorCodeIdentityErrorDescriber`
+3. **(Frontend)**: Add entry to `ERROR_CODE_MAP` in `error-handling.ts`
+4. **(Frontend)**: Add translations to `en.json` and `cs.json` (key: `errorCode_{domain}_{code}`)
+
+### What NOT to Localize
+
+- `ExceptionHandlingMiddleware` 500 errors — these are infrastructure-level, not user-facing
+- `BaseEntityRepository` internal errors — same reason
+- Log messages — these stay in English for developer consumption
 
 ## Repository & Unit of Work
 
@@ -782,15 +854,16 @@ Before adding or modifying any endpoint, verify:
 2. **Domain**: If the entity has enum properties, define them with explicit integer values in `Domain/Entities/` (or `Domain/Enums/` if shared)
 3. **Application**: Define `I{Feature}Service` in `Application/Features/{Feature}/`
 4. **Application**: Create Input/Output record DTOs in `Application/Features/{Feature}/Dtos/`
-5. **Infrastructure**: Implement service in `Infrastructure/Features/{Feature}/Services/` (mark `internal`)
-6. **Infrastructure**: Add EF configuration in `Infrastructure/Features/{Feature}/Configurations/` (extend `BaseEntityConfiguration<T>`) — add `.HasComment()` on enum columns
-7. **Infrastructure**: Create DI extension in `Infrastructure/Features/{Feature}/Extensions/ServiceCollectionExtensions.cs`
-8. **Infrastructure**: Add `DbSet<Entity>` to `MyProjectDbContext`
-9. **WebApi**: Create controller in `WebApi/Features/{Feature}/` (extend `ApiController` or `ControllerBase`)
-10. **WebApi**: Create Request/Response DTOs in `WebApi/Features/{Feature}/Dtos/{Operation}/`
-11. **WebApi**: Create Mapper in `WebApi/Features/{Feature}/{Feature}Mapper.cs`
-12. **WebApi**: Add validators co-located with request DTOs
-13. **WebApi**: Wire DI call in `Program.cs`
-14. **Migration**: `dotnet ef migrations add ...`
+5. **Application**: Add error code constants to `Application/Errors/ErrorCodes.cs` for any new failure cases
+6. **Infrastructure**: Implement service in `Infrastructure/Features/{Feature}/Services/` (mark `internal`) — use `ErrorCodes` constants in `Result.Failure()` calls
+7. **Infrastructure**: Add EF configuration in `Infrastructure/Features/{Feature}/Configurations/` (extend `BaseEntityConfiguration<T>`) — add `.HasComment()` on enum columns
+8. **Infrastructure**: Create DI extension in `Infrastructure/Features/{Feature}/Extensions/ServiceCollectionExtensions.cs`
+9. **Infrastructure**: Add `DbSet<Entity>` to `MyProjectDbContext`
+10. **WebApi**: Create controller in `WebApi/Features/{Feature}/` (extend `ApiController` or `ControllerBase`)
+11. **WebApi**: Create Request/Response DTOs in `WebApi/Features/{Feature}/Dtos/{Operation}/` — set `ErrorMessage = ErrorCodes.*` on data annotations
+12. **WebApi**: Create Mapper in `WebApi/Features/{Feature}/{Feature}Mapper.cs`
+13. **WebApi**: Add validators co-located with request DTOs
+14. **WebApi**: Wire DI call in `Program.cs`
+15. **Migration**: `dotnet ef migrations add ...`
 
-Commit atomically: entity+config → service interface+DTOs → service implementation+DI → controller+DTOs+mapper+validators → migration.
+Commit atomically: entity+config → service interface+DTOs+error codes → service implementation+DI → controller+DTOs+mapper+validators → migration.

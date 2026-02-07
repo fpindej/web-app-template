@@ -14,6 +14,7 @@ Read these files for detailed conventions:
 
 ### Backend (.NET 10 / C# 13)
 - Use `Result` / `Result<T>` for fallible operations — never throw for business logic
+- Use `ErrorCodes` constants for all error messages — never hardcode English strings in `Result.Failure()` or data annotation `ErrorMessage`
 - C# 13 extension member syntax for all extension methods
 - Primary constructors for DI, `internal` implementations
 - Entities extend `BaseEntity`, configurations extend `BaseEntityConfiguration<T>`
@@ -24,6 +25,7 @@ Read these files for detailed conventions:
 - Never hand-edit `v1.d.ts` — run `npm run api:generate`
 - Barrel exports from feature folders, logical CSS properties only
 - No `any` type, no working around missing API endpoints
+- New backend error codes need: `ERROR_CODE_MAP` entry in `error-handling.ts` + translations in `en.json` and `cs.json`
 
 ### Workflow
 - Conventional Commits, atomic commits after each logical change

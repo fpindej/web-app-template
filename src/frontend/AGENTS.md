@@ -191,6 +191,25 @@ All `/api/*` requests are proxied to the backend via `routes/api/[...path]/+serv
 
 ## Error Handling
 
+### Error Code Resolution
+
+The backend sends machine-readable error codes (e.g. `"validation.required"`, `"identity.duplicateEmail"`) instead of English text. The frontend resolves these to localized strings via the `ERROR_CODE_MAP` in `error-handling.ts`:
+
+```typescript
+// error-handling.ts — static lookup, preserves type safety and tree-shaking
+const ERROR_CODE_MAP: Record<string, () => string> = {
+	'validation.required': m.errorCode_validation_required,
+	'identity.duplicateEmail': m.errorCode_identity_duplicateEmail,
+	// ...
+};
+```
+
+Two resolution functions handle the mapping transparently:
+- `resolveErrorCode(code)` — resolves a single error code to a localized string, falls back to raw code if unrecognized
+- `resolveErrorCodes(message)` — splits comma-separated codes (from `ErrorResponse.message`) and resolves each
+
+Components never deal with error codes directly — the existing `mapFieldErrors()` and `getErrorMessage()` utilities call these functions internally.
+
 ### Validation Errors (Field-Level)
 
 ASP.NET Core returns `ValidationProblemDetails` with field-level errors. Handle them with the provided utilities:
@@ -370,6 +389,24 @@ State files use `.svelte.ts` extension and live in `$lib/state/`:
 
 Examples: `auth_login_title`, `profile_personalInfo_firstName`, `nav_dashboard`, `meta_profile_title`
 
+### Error Code Keys
+
+Error codes from the backend use a special prefix convention:
+
+```
+errorCode_{domain}_{code}
+```
+
+The key is derived from the backend error code by replacing dots with underscores and prepending `errorCode_`:
+
+| Backend Error Code | i18n Key | Example Value (en) |
+|---|---|---|
+| `validation.required` | `errorCode_validation_required` | `"This field is required."` |
+| `identity.duplicateEmail` | `errorCode_identity_duplicateEmail` | `"This email is already taken."` |
+| `auth.invalidCredentials` | `errorCode_auth_invalidCredentials` | `"Invalid email or password."` |
+
+Error messages should be complete sentences ending with a period — they're displayed directly to users in toast notifications and field-level error hints.
+
 ### Usage
 
 ```svelte
@@ -392,6 +429,25 @@ Edit both `src/messages/en.json` and `src/messages/cs.json`:
 ```json
 { "profile_newFeature_label": "New Feature" }
 ```
+
+### Adding Error Code Translations
+
+When the backend adds a new error code to `ErrorCodes.cs`, the frontend needs three changes:
+
+1. **`error-handling.ts`**: Add entry to `ERROR_CODE_MAP`:
+   ```typescript
+   'myDomain.myCode': m.errorCode_myDomain_myCode,
+   ```
+2. **`en.json`**: Add English translation:
+   ```json
+   { "errorCode_myDomain_myCode": "Human-readable error message." }
+   ```
+3. **`cs.json`**: Add Czech translation:
+   ```json
+   { "errorCode_myDomain_myCode": "Lidsky citelna chybova zprava." }
+   ```
+
+The `ERROR_CODE_MAP` uses static imports (not dynamic `m[key]` access) to preserve type safety and tree-shaking. If a key is missing from the map, the raw error code is shown as-is — this makes unresolved codes visible during development.
 
 ## Styling
 
@@ -532,6 +588,7 @@ npm run build    # Production build (run occasionally, always before PR)
 5. **Route**: Create page in `routes/(app)/{feature}/`
 6. **Server load**: Add `+page.server.ts` for initial data
 7. **i18n**: Add keys to both `en.json` and `cs.json`
-8. **Navigation**: Update sidebar/header if adding a new page
+8. **Error codes**: If backend has new error codes — add to `ERROR_CODE_MAP` in `error-handling.ts` + translations in both `en.json` and `cs.json`
+9. **Navigation**: Update sidebar/header if adding a new page
 
-Commit atomically: types+aliases → components → route+server-load → i18n keys.
+Commit atomically: types+aliases → components → route+server-load → i18n keys + error codes.

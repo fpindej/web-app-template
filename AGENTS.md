@@ -159,6 +159,37 @@ Do **not** create PRs automatically — only when explicitly requested.
 | **Frontend generic errors** | `getErrorMessage()` → toast notification |
 | **Frontend network errors** | `isFetchErrorWithCode('ECONNREFUSED')` → 503 "Backend unavailable" |
 
+### Localized Error Messages
+
+The backend **never** sends human-readable error text. Instead, it returns machine-readable **error codes** (e.g. `"validation.required"`, `"identity.duplicateEmail"`) that the frontend resolves to localized strings via paraglide-js.
+
+```
+Backend (error codes) → API response → Frontend (resolves to locale-specific text)
+```
+
+This design means:
+- Any future client (mobile, CLI) can use the same codes with its own i18n system
+- Adding a new language only requires updating frontend message files — zero backend changes
+- Error messages are never hardcoded in English on the backend
+
+#### Two Error Response Formats
+
+| Format | HTTP Status | Shape | Used By |
+|---|---|---|---|
+| `ValidationProblemDetails` | 400 | `{ errors: { "Email": ["validation.required"] } }` | Data Annotations + FluentValidation |
+| `ErrorResponse` | 400/401 | `{ message: "identity.duplicateEmail, identity.passwordRequiresDigit" }` | `Result.Failure()` in services |
+
+Both formats are handled transparently by the frontend's `mapFieldErrors()` and `getErrorMessage()` utilities — components don't need to know about error codes.
+
+#### Adding a New Error Code (Full-Stack Checklist)
+
+1. **Backend**: Add constant to `Application/Errors/ErrorCodes.cs`
+2. **Backend**: Use the constant in the service/controller (via `Result.Failure()` or data annotation `ErrorMessage`)
+3. **Frontend**: Add entry to `ERROR_CODE_MAP` in `error-handling.ts`
+4. **Frontend**: Add translations to `en.json` and `cs.json` (key: `errorCode_{domain}_{code}`)
+
+See [`src/backend/AGENTS.md`](src/backend/AGENTS.md) and [`src/frontend/AGENTS.md`](src/frontend/AGENTS.md) for detailed conventions.
+
 ## Local Development
 
 ```bash
@@ -166,10 +197,10 @@ Do **not** create PRs automatically — only when explicitly requested.
 docker compose -f docker-compose.local.yml up -d
 
 # API docs (development only)
-open http://localhost:{INIT_API_PORT}/scalar/v1
+open http://localhost:13002/scalar/v1
 
 # Seq logs
-open http://localhost:{INIT_SEQ_PORT}
+open http://localhost:13008
 ```
 
 ## Deployment
