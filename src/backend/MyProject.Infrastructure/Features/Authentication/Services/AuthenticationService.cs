@@ -1,9 +1,8 @@
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MyProject.Domain;
+using MyProject.Infrastructure.Cryptography;
 using MyProject.Infrastructure.Features.Authentication.Constants;
 using MyProject.Infrastructure.Features.Authentication.Models;
 using MyProject.Infrastructure.Features.Authentication.Options;
@@ -49,7 +48,7 @@ internal class AuthenticationService(
         var refreshTokenEntity = new RefreshToken
         {
             Id = Guid.NewGuid(),
-            Token = HashToken(refreshTokenString),
+            Token = HashHelper.Sha256(refreshTokenString),
             UserId = user.Id,
             CreatedAt = utcNow.UtcDateTime,
             ExpiredAt = utcNow.UtcDateTime.AddDays(_jwtOptions.RefreshToken.ExpiresInDays),
@@ -132,7 +131,7 @@ internal class AuthenticationService(
             return Result<AuthenticationOutput>.Failure("Refresh token is missing.");
         }
 
-        var hashedToken = HashToken(refreshToken);
+        var hashedToken = HashHelper.Sha256(refreshToken);
         var storedToken = await dbContext.RefreshTokens
             .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Token == hashedToken, cancellationToken);
@@ -178,7 +177,7 @@ internal class AuthenticationService(
         var newRefreshTokenEntity = new RefreshToken
         {
             Id = Guid.NewGuid(),
-            Token = HashToken(newRefreshTokenString),
+            Token = HashHelper.Sha256(newRefreshTokenString),
             UserId = user.Id,
             CreatedAt = utcNow.UtcDateTime,
             ExpiredAt = utcNow.UtcDateTime.AddDays(_jwtOptions.RefreshToken.ExpiresInDays),
@@ -239,11 +238,4 @@ internal class AuthenticationService(
             await userManager.UpdateSecurityStampAsync(user);
         }
     }
-
-    private static string HashToken(string token)
-    {
-        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
-        return Convert.ToHexStringLower(bytes);
-    }
 }
-
