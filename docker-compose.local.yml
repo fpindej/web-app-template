@@ -11,6 +11,7 @@ x-api-environment: &api-environment
   Caching__Redis__InstanceName: "{INIT_PROJECT_SLUG}:"
   Caching__Redis__AbortOnConnectFail: false
   Authentication__Jwt__ExpiresInMinutes: 100
+  Authentication__Jwt__Key: ${JWT_SECRET_KEY}
   Authentication__Jwt__RefreshTokenExpiresInDays: 7
   Serilog__WriteTo__0__Name: Seq
   Serilog__WriteTo__0__Args__serverUrl: http://seq:80
