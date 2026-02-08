@@ -35,7 +35,12 @@ internal class AuthenticationService(
             return Result<AuthenticationOutput>.Failure("Invalid username or password.");
         }
 
-        var signInResult = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: false);
+        var signInResult = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
+        if (signInResult.IsLockedOut)
+        {
+            return Result<AuthenticationOutput>.Failure("Account is temporarily locked due to multiple failed login attempts. Please try again later.");
+        }
+
         if (!signInResult.Succeeded)
         {
             return Result<AuthenticationOutput>.Failure("Invalid username or password.");
