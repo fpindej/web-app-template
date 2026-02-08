@@ -373,9 +373,8 @@ fi
 
 if [ -f ".env.example" ]; then
     JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64)
-    STATIC_DEV_KEY="super-secret-jwt-key-for-local-development-only-do-not-use-in-production"
     cp .env.example .env
-    sed_inplace "s|$STATIC_DEV_KEY|$JWT_SECRET|g" .env
+    sed_inplace "s|^JWT_SECRET_KEY=.*|JWT_SECRET_KEY=$JWT_SECRET|" .env
     print_substep "Generated .env with random JWT secret"
 fi
 
