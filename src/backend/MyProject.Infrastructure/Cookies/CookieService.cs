@@ -3,6 +3,16 @@ using MyProject.Application.Cookies;
 
 namespace MyProject.Infrastructure.Cookies;
 
+/// <summary>
+/// Cookie management service.
+/// <para>
+/// All cookies use <c>SameSite=None</c> + <c>Secure=true</c> because this template is designed
+/// for cross-subdomain deployments where the API and frontend are hosted on different origins
+/// (e.g. <c>api.example.com</c> and <c>app.example.com</c>). Without <c>SameSite=None</c>,
+/// browsers would block cookie transmission on cross-origin requests, breaking authentication.
+/// <c>Secure=true</c> is mandatory when <c>SameSite=None</c> is set.
+/// </para>
+/// </summary>
 public class CookieService(IHttpContextAccessor httpContextAccessor) : ICookieService
 {
     public void SetCookie(string key, string value, DateTimeOffset? expires = null)
