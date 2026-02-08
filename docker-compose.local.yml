@@ -15,7 +15,7 @@ x-db-environment: &db-environment
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
 x-frontend-environment: &frontend-environment
-  API_URL: http://api:8080
+  API_URL: ${API_URL:-http://api:8080}
 
 x-common-settings: &common-settings
   restart: unless-stopped
