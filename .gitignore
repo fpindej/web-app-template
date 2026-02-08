@@ -455,3 +455,7 @@ $RECYCLE.BIN/
 
 ## Data from docker
 /data/attachments/*
+
+# Environment files (contain secrets)
+.env
+!.env.example
