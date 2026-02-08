@@ -165,7 +165,7 @@ Key rules:
 
 ## EF Core Configuration
 
-Configurations inherit from `BaseEntityConfiguration<T>`, which handles all `BaseEntity` fields (primary key, audit columns, soft delete index). Override `ConfigureEntity` to add entity-specific mapping:
+Configurations inherit from `BaseEntityConfiguration<T>`, which handles all `BaseEntity` fields (primary key, audit columns, soft delete index, and a global query filter that excludes soft-deleted entities). Override `ConfigureEntity` to add entity-specific mapping:
 
 ```csharp
 // Infrastructure/Features/Orders/Configurations/OrderConfiguration.cs
@@ -494,7 +494,7 @@ public interface IBaseEntityRepository<TEntity> where TEntity : BaseEntity
 }
 ```
 
-All queries automatically exclude soft-deleted records (`WHERE NOT is_deleted`). Use `IUnitOfWork` for explicit save and transaction control:
+All queries automatically exclude soft-deleted records via a global EF Core query filter (`HasQueryFilter(e => !e.IsDeleted)`) configured in `BaseEntityConfiguration`. Use `.IgnoreQueryFilters()` when you need to query deleted entities (e.g., `RestoreAsync`). Use `IUnitOfWork` for explicit save and transaction control:
 
 ```csharp
 await repository.AddAsync(entity, ct);

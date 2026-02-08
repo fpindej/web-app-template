@@ -23,7 +23,7 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
             ? _dbSet.AsTracking()
             : _dbSet.AsNoTracking();
 
-        return await query.FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted, cancellationToken);
+        return await query.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
     public virtual async Task<IReadOnlyList<TEntity>> GetAllAsync(
@@ -33,7 +33,6 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
         CancellationToken cancellationToken = default)
     {
         var query = _dbSet
-            .Where(e => !e.IsDeleted)
             .OrderByDescending(e => e.CreatedAt)
             .Paginate(pageNumber, pageSize);
 
@@ -64,7 +63,7 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
 
     public virtual async Task<Result<TEntity>> SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _dbSet.FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted, cancellationToken);
+        var entity = await _dbSet.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
         if (entity is null)
         {
             return Result<TEntity>.Failure($"Entity with ID {id} not found or already deleted.");
@@ -77,7 +76,9 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
 
     public virtual async Task<Result<TEntity>> RestoreAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await _dbSet.FirstOrDefaultAsync(e => e.Id == id && e.IsDeleted, cancellationToken);
+        var entity = await _dbSet
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(e => e.Id == id && e.IsDeleted, cancellationToken);
         if (entity is null)
         {
             return Result<TEntity>.Failure($"Entity with ID {id} not found or not deleted.");
@@ -93,7 +94,6 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
         CancellationToken cancellationToken = default)
     {
         return await _dbSet
-            .Where(e => !e.IsDeleted)
             .AnyAsync(predicate, cancellationToken);
     }
 }

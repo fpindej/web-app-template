@@ -31,6 +31,10 @@ public abstract class BaseEntityConfiguration<TEntity> : IEntityTypeConfiguratio
         // Add index on IsDeleted for better performance with soft delete filtering
         builder.HasIndex(e => e.IsDeleted);
 
+        // Global query filter — automatically excludes soft-deleted entities from all queries.
+        // Use .IgnoreQueryFilters() to explicitly query deleted entities (e.g., RestoreAsync).
+        builder.HasQueryFilter(e => !e.IsDeleted);
+
         // Configure entity-specific properties
         ConfigureEntity(builder);
     }
