@@ -8,8 +8,8 @@ public static class StringExtensions
     extension(string input)
     {
         /// <summary>
-        /// Escapes special characters in a string for safe use in SQL LIKE queries.
-        /// Removes control characters and escapes SQL LIKE wildcards.
+        /// Escapes special characters in a string for safe use in PostgreSQL LIKE queries.
+        /// Removes control characters and escapes LIKE wildcards using backslash escaping.
         /// </summary>
         /// <returns>A sanitized and escaped string safe for SQL LIKE operations</returns>
         public string EscapeForSqlLike()
@@ -20,9 +20,9 @@ public static class StringExtensions
                 .Trim();
 
             return sanitized
-                .Replace("[", "[[]")
-                .Replace("%", "[%]")
-                .Replace("_", "[_]");
+                .Replace(@"\", @"\\")
+                .Replace("%", @"\%")
+                .Replace("_", @"\_");
         }
 
         /// <summary>
