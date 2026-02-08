@@ -92,6 +92,8 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
         Expression<Func<TEntity, bool>> predicate,
         CancellationToken cancellationToken = default)
     {
-        return await _dbSet.AnyAsync(predicate, cancellationToken);
+        return await _dbSet
+            .Where(e => !e.IsDeleted)
+            .AnyAsync(predicate, cancellationToken);
     }
 }
