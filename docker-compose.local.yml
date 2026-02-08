@@ -1,28 +1,21 @@
 name: {INIT_PROJECT_SLUG}-local
 
 x-api-environment: &api-environment
-  ASPNETCORE_ENVIRONMENT: Development
-  ConnectionStrings__Database: Host=db;Port=5432;Database={INIT_PROJECT_SLUG};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
-  Caching__Redis__Enabled: true
+  ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+  ConnectionStrings__Database: Host=db;Port=5432;Database=${POSTGRES_DB:-{INIT_PROJECT_SLUG}};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
   Caching__Redis__ConnectionString: redis:6379
   Caching__Redis__Password: ${REDIS_PASSWORD}
-  Caching__Redis__UseSsl: false
-  Caching__Redis__DefaultDatabase: 0
-  Caching__Redis__InstanceName: "{INIT_PROJECT_SLUG}:"
-  Caching__Redis__AbortOnConnectFail: false
-  Authentication__Jwt__ExpiresInMinutes: 100
   Authentication__Jwt__Key: ${JWT_SECRET_KEY}
-  Authentication__Jwt__RefreshTokenExpiresInDays: 7
   Serilog__WriteTo__0__Name: Seq
   Serilog__WriteTo__0__Args__serverUrl: http://seq:80
 
 x-db-environment: &db-environment
-  POSTGRES_DB: {INIT_PROJECT_SLUG}
+  POSTGRES_DB: ${POSTGRES_DB:-{INIT_PROJECT_SLUG}}
   POSTGRES_USER: ${POSTGRES_USER}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
 x-frontend-environment: &frontend-environment
-  API_URL: http://api:8080
+  API_URL: ${API_URL:-http://api:8080}
 
 x-common-settings: &common-settings
   restart: unless-stopped
@@ -35,10 +28,11 @@ services:
       context: ./src/backend
       dockerfile: MyProject.WebApi/Dockerfile
     container_name: {INIT_PROJECT_SLUG}-local-api
+    env_file: .env
     environment: *api-environment
     <<: *common-settings
     ports:
-      - "{INIT_API_PORT}:8080"
+      - "${API_PORT:-{INIT_API_PORT}}:8080"
     depends_on:
       - db
       - redis
@@ -51,7 +45,7 @@ services:
       - ACCEPT_EULA=Y
       - SEQ_FIRSTRUN_NOAUTHENTICATION=true
     ports:
-      - "{INIT_SEQ_PORT}:80"
+      - "${SEQ_PORT:-{INIT_SEQ_PORT}}:80"
     <<: *common-settings
     volumes:
       - seq_data:/data
@@ -61,7 +55,7 @@ services:
     container_name: {INIT_PROJECT_SLUG}-local-redis
     <<: *common-settings
     ports:
-      - "{INIT_REDIS_PORT}:6379"
+      - "${REDIS_PORT:-{INIT_REDIS_PORT}}:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
@@ -74,7 +68,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "{INIT_DB_PORT}:5432"
+      - "${DB_PORT:-{INIT_DB_PORT}}:5432"
 
   frontend:
     build:
@@ -86,7 +80,7 @@ services:
       - ./src/frontend:/app
       - frontend_node_modules:/app/node_modules
     ports:
-      - "{INIT_FRONTEND_PORT}:5173"
+      - "${FRONTEND_PORT:-{INIT_FRONTEND_PORT}}:5173"
     depends_on:
       - api
     <<: *common-settings

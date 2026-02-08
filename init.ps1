@@ -330,7 +330,7 @@ if (Test-Path $rootEnvExample) {
     [System.Security.Cryptography.RandomNumberGenerator]::Fill($jwtBytes)
     $jwtSecret = [Convert]::ToBase64String($jwtBytes) -replace '[/+=]', '' | ForEach-Object { $_.Substring(0, [Math]::Min(64, $_.Length)) }
     $envContent = [System.IO.File]::ReadAllText($rootEnvExample)
-    $envContent = $envContent -replace '<generate-a-random-secret-here>', $jwtSecret
+    $envContent = $envContent -replace '(?m)^JWT_SECRET_KEY=.*$', "JWT_SECRET_KEY=$jwtSecret"
     Set-FileContent $rootEnv $envContent
     Write-SubStep "Generated .env with random JWT secret"
 }

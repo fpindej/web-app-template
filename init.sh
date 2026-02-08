@@ -373,10 +373,8 @@ fi
 
 if [ -f ".env.example" ]; then
     JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64)
-    sed_inplace "s|<generate-a-random-secret-here>|$JWT_SECRET|g" .env.example
     cp .env.example .env
-    # Restore the placeholder in .env.example so it stays generic in source control
-    sed_inplace "s|$JWT_SECRET|<generate-a-random-secret-here>|g" .env.example
+    sed_inplace "s|^JWT_SECRET_KEY=.*|JWT_SECRET_KEY=$JWT_SECRET|" .env
     print_substep "Generated .env with random JWT secret"
 fi
 

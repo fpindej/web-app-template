@@ -162,6 +162,9 @@ Do **not** create PRs automatically — only when explicitly requested.
 ## Local Development
 
 ```bash
+# First time (or new machine where init script has already run):
+cp .env.example .env
+
 # Start all services
 docker compose -f docker-compose.local.yml up -d
 
@@ -171,6 +174,82 @@ open http://localhost:{INIT_API_PORT}/scalar/v1
 # Seq logs
 open http://localhost:{INIT_SEQ_PORT}
 ```
+
+### Environment Configuration
+
+`.env.example` contains working dev defaults for every variable. Copy it to `.env` and you're ready — no edits required. The init script does this automatically (and generates a random JWT secret), but a plain `cp` works too since `.env.example` includes a static dev key.
+
+The API container loads `.env` in two ways:
+
+1. **Variable interpolation** — `docker-compose.local.yml` references `${VAR}` / `${VAR:-default}` for values that need renaming or host-specific defaults (connection strings, secrets, ports).
+2. **`env_file: .env`** — every variable in `.env` is also injected into the API container directly. ASP.NET picks up any `Section__Key` variable (e.g. `Authentication__Jwt__ExpiresInMinutes`) automatically.
+
+#### Precedence (highest to lowest)
+
+| Priority | Source | Example |
+|---|---|---|
+| 1 | `docker compose run --env` | CLI override (rare) |
+| 2 | Compose `environment` block | `Authentication__Jwt__Key: ${JWT_SECRET_KEY}` — interpolated from `.env`, set via `environment` |
+| 3 | Compose `env_file: .env` | `Authentication__Jwt__ExpiresInMinutes=100` — passes through directly |
+| 4 | `appsettings.{Environment}.json` | `ExpiresInMinutes: 100` in `appsettings.Development.json` |
+| 5 | `appsettings.json` | Base defaults (e.g. `ExpiresInMinutes: 10`) |
+
+**In practice:** variables in the compose `environment` block (connection strings, secrets, Seq URL) always win. Everything else set in `.env` passes through to the container and overrides appsettings values. When running from Rider/VS (no Docker), only appsettings files apply — `.env` is not read.
+
+#### What lives where
+
+| File | Purpose | Who edits it |
+|---|---|---|
+| `.env.example` | Working dev defaults — copy to `.env` to get started | Rarely edited |
+| `.env` | Local overrides (git-ignored) — copied from `.env.example` | Everyone |
+| `appsettings.json` | Base/production defaults | Backend devs |
+| `appsettings.Development.json` | Dev defaults (generous JWT expiry, debug logging, localhost URLs) | Backend devs |
+| `docker-compose.local.yml` | Docker service wiring (host-specific values only) | Rarely edited |
+
+### Developer Workflows
+
+#### New machine setup
+
+```bash
+cp .env.example .env
+docker compose -f docker-compose.local.yml up -d
+```
+
+That's it. `.env.example` has working defaults for everything.
+
+#### Frontend dev — tweak backend config
+
+Edit `.env` (not `.env.example`), uncomment and change what you need, restart Docker:
+
+```bash
+# Example: longer JWT tokens, relaxed rate limit
+Authentication__Jwt__ExpiresInMinutes=300
+RateLimiting__Global__PermitLimit=1000
+```
+
+```bash
+docker compose -f docker-compose.local.yml up -d
+```
+
+No backend source files need to be touched.
+
+#### Backend dev — debug in Rider/VS with frontend
+
+1. Stop the API container: `docker compose -f docker-compose.local.yml stop api`
+2. In `.env`, uncomment: `API_URL=http://host.docker.internal:5142`
+3. Restart the frontend container: `docker compose -f docker-compose.local.yml restart frontend`
+4. Launch the API from Rider with the "Development - http" profile (port 5142)
+5. Use the frontend at `localhost:{INIT_FRONTEND_PORT}` — it proxies API calls to Rider
+
+The backend loads `appsettings.Development.json` which has `localhost` connection strings for db/redis/seq (pointing at Docker-exposed ports). Breakpoints work.
+
+#### Backend dev — just run everything
+
+```bash
+docker compose -f docker-compose.local.yml up -d
+```
+
+No config changes needed. Defaults work out of the box.
 
 ## Deployment
 
