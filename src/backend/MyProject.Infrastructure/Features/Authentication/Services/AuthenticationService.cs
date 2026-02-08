@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -47,7 +49,7 @@ internal class AuthenticationService(
         var refreshTokenEntity = new RefreshToken
         {
             Id = Guid.NewGuid(),
-            Token = refreshTokenString,
+            Token = HashToken(refreshTokenString),
             UserId = user.Id,
             CreatedAt = utcNow.UtcDateTime,
             ExpiredAt = utcNow.UtcDateTime.AddDays(_jwtOptions.RefreshToken.ExpiresInDays),
@@ -130,9 +132,10 @@ internal class AuthenticationService(
             return Result<AuthenticationOutput>.Failure("Refresh token is missing.");
         }
 
+        var hashedToken = HashToken(refreshToken);
         var storedToken = await dbContext.RefreshTokens
             .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.Token == refreshToken, cancellationToken);
+            .FirstOrDefaultAsync(rt => rt.Token == hashedToken, cancellationToken);
 
         if (storedToken is null)
         {
@@ -175,7 +178,7 @@ internal class AuthenticationService(
         var newRefreshTokenEntity = new RefreshToken
         {
             Id = Guid.NewGuid(),
-            Token = newRefreshTokenString,
+            Token = HashToken(newRefreshTokenString),
             UserId = user.Id,
             CreatedAt = utcNow.UtcDateTime,
             ExpiredAt = utcNow.UtcDateTime.AddDays(_jwtOptions.RefreshToken.ExpiresInDays),
@@ -235,6 +238,12 @@ internal class AuthenticationService(
         {
             await userManager.UpdateSecurityStampAsync(user);
         }
+    }
+
+    private static string HashToken(string token)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToHexStringLower(bytes);
     }
 }
 
