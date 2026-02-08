@@ -40,6 +40,10 @@ public static class ServiceCollectionExtensions
                     opt.Password.RequireNonAlphanumeric = false;
                     opt.Password.RequiredLength = 6;
 
+                    opt.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                    opt.Lockout.MaxFailedAccessAttempts = 5;
+                    opt.Lockout.AllowedForNewUsers = true;
+
                     opt.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
                     opt.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
 
