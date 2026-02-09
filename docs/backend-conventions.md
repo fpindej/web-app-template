@@ -54,8 +54,9 @@ Business logic failures (invalid credentials, duplicate email, etc.) are **expec
 
 `Result` / `Result<T>` makes success and failure explicit at every level:
 
-```
-Service returns Result → Controller maps to HTTP status → Frontend displays error
+```mermaid
+flowchart LR
+    S["Service returns Result"] --> C["Controller maps to HTTP status"] --> F["Frontend displays error"]
 ```
 
 Exceptions are reserved for truly unexpected situations (database down, null reference, etc.) that `ExceptionHandlingMiddleware` catches and maps to 500.
@@ -66,8 +67,13 @@ Exceptions are reserved for truly unexpected situations (database down, null ref
 
 ### The Full Pipeline
 
-```
-Request arrives → Controller receives DTO → Mapper converts to Input → Service processes → Result returned → Controller maps to HTTP response
+```mermaid
+flowchart LR
+    R["Request arrives"] --> C["Controller receives DTO"]
+    C --> M["Mapper converts to Input"]
+    M --> S["Service processes"]
+    S --> RES["Result returned"]
+    RES --> H["Controller maps to HTTP response"]
 ```
 
 Each step has a specific responsibility:
@@ -162,8 +168,13 @@ Configuration follows the ASP.NET Options pattern with startup validation:
 
 `ICacheService` wraps Redis with JSON serialization. The primary pattern is cache-aside via `GetOrSetAsync`:
 
-```
-Check cache → hit? return cached → miss? fetch from source → store in cache → return
+```mermaid
+flowchart LR
+    CHECK["Check cache"] --> HIT{"Hit?"}
+    HIT -->|Yes| RET1["Return cached"]
+    HIT -->|No| FETCH["Fetch from source"]
+    FETCH --> STORE["Store in cache"]
+    STORE --> RET2["Return"]
 ```
 
 Cache keys are defined as static methods in `CacheKeys` (e.g., `CacheKeys.User(userId)` → `"user:{guid}"`). This prevents typos and ensures consistent key formats.

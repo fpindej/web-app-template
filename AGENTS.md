@@ -20,24 +20,27 @@ Full-stack web application template: **.NET 10 API** (Clean Architecture) + **Sv
 
 ## Architecture
 
-```
-Frontend (SvelteKit :5173)
-    │
-    │  /api/* proxy (catch-all server route, forwards cookies + headers)
-    ▼
-Backend API (.NET :8080)
-    │
-    ├── PostgreSQL (:5432)
-    ├── Redis (:6379)
-    └── Seq (:80)
+```mermaid
+flowchart TD
+    FE["Frontend (SvelteKit :5173)"]
+    BE["Backend API (.NET :8080)"]
+    PG["PostgreSQL (:5432)"]
+    RD["Redis (:6379)"]
+    SQ["Seq (:80)"]
+
+    FE -->|"/api/* proxy (cookies + headers)"| BE
+    BE --> PG
+    BE --> RD
+    BE --> SQ
 ```
 
 ### Backend — Clean Architecture
 
-```
-WebApi → Application ← Infrastructure
-              ↓
-           Domain
+```mermaid
+flowchart TD
+    WA["WebApi"] --> APP["Application"]
+    INF["Infrastructure"] --> APP
+    APP --> DOM["Domain"]
 ```
 
 | Layer | Responsibility |
@@ -168,6 +171,8 @@ Never commit code that doesn't compile, has lint errors, or fails type checks.
 
 When a PR changes conventions, architecture, patterns, or workflows, update the relevant `docs/` files and AGENTS.md files in the same PR.
 
+**Before updating any AGENTS.md or docs/ file, discuss the proposed changes with the user.** Explain what you intend to add, modify, or remove, and get confirmation before editing. Documentation defines how the project works — never update it silently.
+
 | If you change... | Update |
 |---|---|
 | Backend patterns, entities, services, EF Core | `src/backend/AGENTS.md` + `docs/backend-conventions.md` |
@@ -179,6 +184,7 @@ When a PR changes conventions, architecture, patterns, or workflows, update the 
 | Git workflow, issues, PRs, labels | `AGENTS.md` + `docs/workflow.md` |
 
 Rules:
+- **Discuss with the user first** — propose the specific docs changes and wait for approval
 - Update docs in the **same commit** as the code change they document (or as a dedicated `docs:` commit in the same PR)
 - AGENTS.md changes = actionable rules, code templates, tables, checklists
 - docs/ changes = explanations, rationale, design decisions

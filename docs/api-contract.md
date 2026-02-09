@@ -4,20 +4,12 @@ The OpenAPI spec at `/openapi/v1.json` is the single source of truth for the fro
 
 ## The Pipeline
 
-```
-Backend DTO + Controller annotations
-    │
-    ▼
-OpenAPI spec (/openapi/v1.json)
-    │
-    ▼
-npm run api:generate
-    │
-    ▼
-src/lib/api/v1.d.ts (TypeScript types)
-    │
-    ▼
-openapi-fetch client (type-safe API calls)
+```mermaid
+flowchart TD
+    DTO["Backend DTO + Controller annotations"] --> SPEC["OpenAPI spec (/openapi/v1.json)"]
+    SPEC --> GEN["npm run api:generate"]
+    GEN --> TYPES["src/lib/api/v1.d.ts (TypeScript types)"]
+    TYPES --> CLIENT["openapi-fetch client (type-safe API calls)"]
 ```
 
 Every change to a backend response DTO (new field, renamed field, changed nullability) requires regenerating frontend types. The pipeline is:

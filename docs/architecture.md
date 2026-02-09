@@ -4,16 +4,18 @@ Full-stack web application template: **.NET 10 API** (Clean Architecture) + **Sv
 
 ## System Overview
 
-```
-Frontend (SvelteKit :5173)
-    │
-    │  /api/* proxy (catch-all server route, forwards cookies + headers)
-    ▼
-Backend API (.NET :8080)
-    │
-    ├── PostgreSQL (:5432)
-    ├── Redis (:6379)
-    └── Seq (:80)
+```mermaid
+flowchart TD
+    FE["Frontend (SvelteKit :5173)"]
+    BE["Backend API (.NET :8080)"]
+    PG["PostgreSQL (:5432)"]
+    RD["Redis (:6379)"]
+    SQ["Seq (:80)"]
+
+    FE -->|"/api/* proxy (cookies + headers)"| BE
+    BE --> PG
+    BE --> RD
+    BE --> SQ
 ```
 
 The frontend never talks to the database or Redis directly. All data access goes through the backend API. The SvelteKit server acts as a BFF (Backend-for-Frontend), proxying `/api/*` requests to the .NET API and forwarding cookies transparently.
@@ -34,10 +36,11 @@ The frontend never talks to the database or Redis directly. All data access goes
 
 ## Backend — Clean Architecture
 
-```
-WebApi → Application ← Infrastructure
-              ↓
-           Domain
+```mermaid
+flowchart TD
+    WA["WebApi"] --> APP["Application"]
+    INF["Infrastructure"] --> APP
+    APP --> DOM["Domain"]
 ```
 
 ### Layer Responsibilities
@@ -73,35 +76,35 @@ Dependencies point **inward**. Domain has no dependencies. Application depends o
 
 ### Request Flow
 
-```
-Browser
-  │
-  ├─ Page navigation → SvelteKit route
-  │   ├─ +layout.server.ts → fetches user via server-side API call
-  │   ├─ +page.server.ts → fetches page data via server-side API call
-  │   └─ +page.svelte → renders with data from load functions
-  │
-  └─ User action (form submit, button click)
-      └─ browserClient.POST('/api/...') → SvelteKit proxy → Backend API
+```mermaid
+flowchart TD
+    Browser --> Nav["Page navigation"]
+    Browser --> Action["User action (form submit, button click)"]
+
+    Nav --> Route["SvelteKit route"]
+    Route --> Layout["+layout.server.ts\nfetches user via server-side API call"]
+    Route --> Page["+page.server.ts\nfetches page data via server-side API call"]
+    Route --> Svelte["+page.svelte\nrenders with data from load functions"]
+
+    Action --> Client["browserClient.POST('/api/...')"]
+    Client --> Proxy["SvelteKit proxy"]
+    Proxy --> BE["Backend API"]
 ```
 
 ### Authentication Flow
 
-```
-Browser request
-    │
-    ▼
-hooks.server.ts          ← Security headers, locale detection
-    │
-    ▼
-+layout.server.ts (root) ← Calls getUser() → GET /api/users/me
-    │                        Returns { user, locale, apiUrl }
-    │
-    ├─► (app)/+layout.server.ts    ← user is null? → redirect 303 /login
-    │                                  user exists?  → pass through { user }
-    │
-    └─► (public)/login/+page.server.ts ← user exists? → redirect 303 /
-                                          user is null? → show login page
+```mermaid
+flowchart TD
+    REQ["Browser request"] --> HOOKS["hooks.server.ts\nSecurity headers, locale detection"]
+    HOOKS --> ROOT["+layout.server.ts (root)\nCalls getUser() → GET /api/users/me\nReturns { user, locale, apiUrl }"]
+    ROOT --> APP["(app)/+layout.server.ts"]
+    ROOT --> PUB["(public)/login/+page.server.ts"]
+
+    APP -->|"user is null"| REDIR1["redirect 303 /login"]
+    APP -->|"user exists"| PASS["pass through { user }"]
+
+    PUB -->|"user exists"| REDIR2["redirect 303 /"]
+    PUB -->|"user is null"| LOGIN["show login page"]
 ```
 
 The root layout fetches the user **once** via `getUser()`. All child layouts access the user through `parent()` — they never re-fetch.
@@ -134,29 +137,45 @@ The `ErrorResponse` type is the **only** error body shape across the entire API 
 
 ## Data Flow Example: Login
 
-```
-1. User submits login form
-2. browserClient.POST('/api/auth/login', { body: { username, password } })
-3. SvelteKit proxy forwards to backend: POST http://api:8080/api/auth/login
-4. Backend validates credentials via ASP.NET Identity
-5. Backend generates JWT access token + refresh token
-6. Backend sets HttpOnly cookies (access_token, refresh_token) on the response
-7. Proxy forwards response (with Set-Cookie headers) back to browser
-8. Browser stores cookies automatically
-9. Frontend redirects to dashboard
-10. All subsequent API calls include cookies automatically
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant SK as SvelteKit Proxy
+    participant API as Backend API
+
+    B->>SK: POST /api/auth/login { username, password }
+    SK->>API: POST http://api:8080/api/auth/login
+    API->>API: Validate credentials (ASP.NET Identity)
+    API->>API: Generate JWT access token + refresh token
+    API-->>SK: 200 OK + Set-Cookie (access_token, refresh_token)
+    SK-->>B: Forward response with Set-Cookie headers
+    B->>B: Store cookies automatically
+    B->>B: Redirect to dashboard
 ```
 
 ## Data Flow Example: Token Refresh
 
-```
-1. browserClient.GET('/api/users/me') returns 401
-2. API client intercepts 401, triggers POST /api/auth/refresh
-3. Refresh request includes refresh_token cookie (automatic)
-4. Backend validates refresh token, rotates it, issues new access token
-5. New cookies set on response
-6. API client retries the original GET /api/users/me with new cookies
-7. If refresh also fails → return 401 to caller → logout
+```mermaid
+sequenceDiagram
+    participant C as API Client
+    participant SK as SvelteKit Proxy
+    participant API as Backend API
+
+    C->>SK: GET /api/users/me
+    SK->>API: Forward request
+    API-->>SK: 401 Unauthorized
+    SK-->>C: 401
+
+    C->>SK: POST /api/auth/refresh (refresh_token cookie)
+    SK->>API: Forward request
+    API->>API: Validate + rotate refresh token, issue new access token
+    API-->>SK: 200 OK + Set-Cookie (new tokens)
+    SK-->>C: Forward response
+
+    C->>SK: Retry GET /api/users/me (new cookies)
+    SK->>API: Forward request
+    API-->>SK: 200 OK + user data
+    SK-->>C: Forward response
 ```
 
 Concurrent requests that hit 401 share a single refresh promise — only one refresh call is made, and all waiting requests retry after it resolves.
