@@ -2,6 +2,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MyProject.Infrastructure.Persistence.Extensions;
 
+/// <summary>
+/// Extension methods for sanitizing and comparing strings in PostgreSQL queries.
+/// </summary>
 public static class StringExtensions
 {
     /// <param name="input">The input string to escape</param>

@@ -7,8 +7,17 @@ using StackExchange.Redis;
 
 namespace MyProject.Infrastructure.Caching.Extensions;
 
+/// <summary>
+/// Extension methods for registering caching services (Redis or in-memory fallback).
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers distributed caching with Redis (if enabled) or in-memory fallback, and the <see cref="ICacheService"/> implementation.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The application configuration for reading caching options.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddCaching(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<CachingOptions>()

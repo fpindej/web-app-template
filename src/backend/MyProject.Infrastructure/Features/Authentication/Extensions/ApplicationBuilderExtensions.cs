@@ -5,8 +5,15 @@ using MyProject.Infrastructure.Features.Authentication.Models;
 
 namespace MyProject.Infrastructure.Features.Authentication.Extensions;
 
+/// <summary>
+/// Extension methods for seeding default Identity users and roles at startup.
+/// </summary>
 public static class ApplicationBuilderExtensions
 {
+    /// <summary>
+    /// Seeds default roles (USER, ADMIN) and test users if they do not already exist.
+    /// </summary>
+    /// <param name="appBuilder">The application builder.</param>
     public static async Task SeedIdentityUsersAsync(this IApplicationBuilder appBuilder)
     {
         using var scope = appBuilder.ApplicationServices.CreateScope();

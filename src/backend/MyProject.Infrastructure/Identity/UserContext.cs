@@ -4,8 +4,12 @@ using MyProject.Application.Identity;
 
 namespace MyProject.Infrastructure.Identity;
 
+/// <summary>
+/// Extracts the current user's identity from <see cref="IHttpContextAccessor"/> JWT claims.
+/// </summary>
 internal class UserContext(IHttpContextAccessor httpContextAccessor) : IUserContext
 {
+    /// <inheritdoc />
     public Guid? UserId
     {
         get
@@ -21,12 +25,16 @@ internal class UserContext(IHttpContextAccessor httpContextAccessor) : IUserCont
         }
     }
 
+    /// <inheritdoc />
     public string? Email => GetClaimValue(ClaimTypes.Email, x => x);
 
+    /// <inheritdoc />
     public string? UserName => GetClaimValue(ClaimTypes.Name, x => x);
 
+    /// <inheritdoc />
     public bool IsAuthenticated => UserId.HasValue;
 
+    /// <inheritdoc />
     public bool IsInRole(string role)
     {
         return httpContextAccessor.HttpContext?.User.IsInRole(role) ?? false;

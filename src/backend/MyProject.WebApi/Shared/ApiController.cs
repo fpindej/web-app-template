@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MyProject.WebApi.Shared;
 
-// This class can be used to define common functionality for all V1 controllers.
-// For example, you can add common methods, properties, or filters that should apply to all V1 controllers.
-
+/// <summary>
+/// Abstract base controller for all authorized, versioned API endpoints.
+/// Provides <c>[ApiController]</c>, <c>[Authorize]</c>, and the <c>api/v1/[controller]</c> route prefix.
+/// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]

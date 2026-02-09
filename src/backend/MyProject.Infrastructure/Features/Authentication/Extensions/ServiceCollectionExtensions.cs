@@ -13,10 +13,20 @@ using MyProject.Application.Features.Authentication;
 
 namespace MyProject.Infrastructure.Features.Authentication.Extensions;
 
+/// <summary>
+/// Extension methods for registering ASP.NET Identity, JWT authentication, and token services.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
+        /// <summary>
+        /// Configures ASP.NET Identity with the given DbContext, registers JWT bearer authentication,
+        /// and adds token provider and authentication service implementations.
+        /// </summary>
+        /// <typeparam name="TContext">The <see cref="DbContext"/> type used by Identity stores.</typeparam>
+        /// <param name="configuration">The application configuration for reading authentication options.</param>
+        /// <returns>The service collection for chaining.</returns>
         public IServiceCollection AddIdentity<TContext>(IConfiguration configuration) where TContext : DbContext
         {
             services.ConfigureIdentity<TContext>(configuration);

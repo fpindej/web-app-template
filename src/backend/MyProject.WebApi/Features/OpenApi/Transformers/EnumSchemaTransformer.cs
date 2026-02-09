@@ -11,6 +11,7 @@ namespace MyProject.WebApi.Features.OpenApi.Transformers;
 /// <remarks>See AGENTS.md → Enum Handling for conventions.</remarks>
 internal sealed class EnumSchemaTransformer : IOpenApiSchemaTransformer
 {
+    /// <inheritdoc />
     public Task TransformAsync(
         OpenApiSchema schema,
         OpenApiSchemaTransformerContext context,

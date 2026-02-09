@@ -5,8 +5,17 @@ using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Extensions;
 
+/// <summary>
+/// Extension methods for registering global rate limiting with fixed-window partitioning.
+/// </summary>
 internal static class RateLimiterExtensions
 {
+    /// <summary>
+    /// Registers rate limiting services with a global fixed-window limiter partitioned by user or IP.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The application configuration for reading rate limiting options.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddRateLimiting(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<RateLimitingOptions>()

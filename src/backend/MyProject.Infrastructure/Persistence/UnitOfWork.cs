@@ -1,13 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage;
 using MyProject.Application.Persistence;
 
 namespace MyProject.Infrastructure.Persistence;
 
+/// <summary>
+/// EF Core implementation of <see cref="IUnitOfWork"/> providing save and transaction control.
+/// </summary>
 internal class UnitOfWork(MyProjectDbContext dbContext)
     : IUnitOfWork
 {
     private IDbContextTransaction _transaction = null!;
 
+    /// <inheritdoc />
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -21,11 +25,13 @@ internal class UnitOfWork(MyProjectDbContext dbContext)
         }
     }
 
+    /// <inheritdoc />
     public void ClearChangeTracker()
     {
         dbContext.ChangeTracker.Clear();
     }
 
+    /// <inheritdoc />
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -39,6 +45,7 @@ internal class UnitOfWork(MyProjectDbContext dbContext)
         }
     }
 
+    /// <inheritdoc />
     public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -58,6 +65,7 @@ internal class UnitOfWork(MyProjectDbContext dbContext)
         }
     }
 
+    /// <inheritdoc />
     public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
         try

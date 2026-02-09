@@ -8,6 +8,9 @@ using MyProject.Infrastructure.Features.Authentication.Models;
 
 namespace MyProject.Infrastructure.Identity.Services;
 
+/// <summary>
+/// Identity-backed implementation of <see cref="IUserService"/> with Redis caching.
+/// </summary>
 internal class UserService(
     UserManager<ApplicationUser> userManager,
     IUserContext userContext,
@@ -16,6 +19,7 @@ internal class UserService(
     private static readonly CacheEntryOptions UserCacheOptions =
         CacheEntryOptions.AbsoluteExpireIn(TimeSpan.FromMinutes(1));
 
+    /// <inheritdoc />
     public async Task<Result<UserOutput>> GetCurrentUserAsync(CancellationToken cancellationToken = default)
     {
         var userId = userContext.UserId;
@@ -59,6 +63,7 @@ internal class UserService(
         return Result<UserOutput>.Success(output);
     }
 
+    /// <inheritdoc />
     public async Task<IList<string>> GetUserRolesAsync(Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
@@ -69,6 +74,7 @@ internal class UserService(
         return await userManager.GetRolesAsync(user);
     }
 
+    /// <inheritdoc />
     public async Task<Result<UserOutput>> UpdateProfileAsync(UpdateProfileInput input, CancellationToken cancellationToken = default)
     {
         var userId = userContext.UserId;

@@ -4,10 +4,16 @@ using MyProject.Infrastructure.Features.Authentication.Models;
 
 namespace MyProject.Infrastructure.Persistence.Extensions;
 
+/// <summary>
+/// Extension methods for configuring the EF Core model with auth schema and fuzzy search support.
+/// </summary>
 internal static class ModelBuilderExtensions
 {
     extension(ModelBuilder builder)
     {
+        /// <summary>
+        /// Moves all ASP.NET Identity tables into the <c>auth</c> schema.
+        /// </summary>
         public void ApplyAuthSchema()
         {
             const string schema = "auth";
@@ -21,6 +27,9 @@ internal static class ModelBuilderExtensions
             _ = builder.Entity<IdentityUserToken<Guid>>().ToTable(name: "UserTokens", schema);
         }
 
+        /// <summary>
+        /// Registers the PostgreSQL <c>similarity</c> function for use in LINQ queries.
+        /// </summary>
         public void ApplyFuzzySearch() =>
             builder
                 .HasDbFunction(

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MyProject.Application.Persistence;
@@ -7,10 +7,18 @@ using MyProject.Infrastructure.Persistence.Interceptors;
 
 namespace MyProject.Infrastructure.Persistence.Extensions;
 
+/// <summary>
+/// Extension methods for registering persistence services (DbContext, repositories, unit of work).
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
+        /// <summary>
+        /// Registers the database context, unit of work, and generic repository.
+        /// </summary>
+        /// <param name="configuration">The application configuration for reading connection strings.</param>
+        /// <returns>The service collection for chaining.</returns>
         public IServiceCollection AddPersistence(IConfiguration configuration)
         {
             services.ConfigureDbContext(configuration);
@@ -20,6 +28,11 @@ public static class ServiceCollectionExtensions
             return services;
         }
 
+        /// <summary>
+        /// Registers ASP.NET Identity, JWT authentication, and authentication services.
+        /// </summary>
+        /// <param name="configuration">The application configuration for reading auth options.</param>
+        /// <returns>The service collection for chaining.</returns>
         public IServiceCollection AddIdentityServices(IConfiguration configuration)
         {
             services.AddIdentity<MyProjectDbContext>(configuration);

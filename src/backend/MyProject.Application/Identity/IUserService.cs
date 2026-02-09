@@ -3,6 +3,9 @@ using MyProject.Domain;
 
 namespace MyProject.Application.Identity;
 
+/// <summary>
+/// Provides operations for retrieving and updating user profile information.
+/// </summary>
 public interface IUserService
 {
     /// <summary>

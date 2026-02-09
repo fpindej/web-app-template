@@ -3,6 +3,9 @@ using MyProject.Domain;
 
 namespace MyProject.Application.Features.Authentication;
 
+/// <summary>
+/// Provides authentication operations including login, registration, logout, and token refresh.
+/// </summary>
 public interface IAuthenticationService
 {
     /// <summary>

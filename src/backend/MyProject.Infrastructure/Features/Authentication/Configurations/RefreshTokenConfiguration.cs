@@ -4,8 +4,12 @@ using MyProject.Infrastructure.Features.Authentication.Models;
 
 namespace MyProject.Infrastructure.Features.Authentication.Configurations;
 
+/// <summary>
+/// EF Core configuration for the <see cref="RefreshToken"/> entity in the <c>auth</c> schema.
+/// </summary>
 internal class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 {
+    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
         builder.ToTable("RefreshTokens", "auth");

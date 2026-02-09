@@ -5,6 +5,9 @@ using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Middlewares;
 
+/// <summary>
+/// Catches unhandled exceptions and maps them to standardized <see cref="ErrorResponse"/> JSON responses.
+/// </summary>
 /// <remarks>Pattern documented in src/backend/AGENTS.md — update both when changing.</remarks>
 public class ExceptionHandlingMiddleware(
     RequestDelegate next,
@@ -16,6 +19,12 @@ public class ExceptionHandlingMiddleware(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
+    /// <summary>
+    /// Invokes the next middleware and catches exceptions, mapping them to HTTP status codes:
+    /// <see cref="KeyNotFoundException"/> to 404,
+    /// <see cref="PaginationException"/> to 400,
+    /// and all others to 500.
+    /// </summary>
     public async Task Invoke(HttpContext context)
     {
         try

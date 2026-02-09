@@ -7,6 +7,9 @@ using MyProject.Infrastructure.Persistence.Extensions;
 
 namespace MyProject.Infrastructure.Persistence;
 
+/// <summary>
+/// Generic EF Core implementation of <see cref="IBaseEntityRepository{TEntity}"/> with soft-delete support.
+/// </summary>
 /// <remarks>Pattern documented in src/backend/AGENTS.md — update both when changing.</remarks>
 internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
     : IBaseEntityRepository<TEntity>
@@ -14,6 +17,7 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
 {
     private readonly DbSet<TEntity> _dbSet = dbContext.Set<TEntity>();
 
+    /// <inheritdoc />
     public virtual async Task<TEntity?> GetByIdAsync(
         Guid id,
         bool asTracking = false,
@@ -26,6 +30,7 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
         return await query.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 
+    /// <inheritdoc />
     public virtual async Task<IReadOnlyList<TEntity>> GetAllAsync(
         int pageNumber,
         int pageSize,
@@ -43,6 +48,7 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
         return await query.ToListAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
     public virtual async Task<Result<TEntity>> AddAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
         try
@@ -56,11 +62,13 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
         }
     }
 
+    /// <inheritdoc />
     public virtual void Update(TEntity entity)
     {
         _dbSet.Update(entity);
     }
 
+    /// <inheritdoc />
     public virtual async Task<Result<TEntity>> SoftDeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await _dbSet.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
@@ -74,6 +82,7 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
         return Result<TEntity>.Success(entity);
     }
 
+    /// <inheritdoc />
     public virtual async Task<Result<TEntity>> RestoreAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await _dbSet
@@ -89,6 +98,7 @@ internal class BaseEntityRepository<TEntity>(MyProjectDbContext dbContext)
         return Result<TEntity>.Success(entity);
     }
 
+    /// <inheritdoc />
     public virtual async Task<bool> ExistsAsync(
         Expression<Func<TEntity, bool>> predicate,
         CancellationToken cancellationToken = default)
