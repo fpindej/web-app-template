@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MyProject.WebApi.Options;
 
-public class CorsOptions : IValidatableObject
+public sealed class CorsOptions : IValidatableObject
 {
     public const string SectionName = "Cors";
 
