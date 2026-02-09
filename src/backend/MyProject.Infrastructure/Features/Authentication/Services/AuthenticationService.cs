@@ -11,6 +11,7 @@ using MyProject.Application.Features.Authentication;
 using MyProject.Application.Features.Authentication.Dtos;
 using MyProject.Application.Cookies;
 using MyProject.Application.Identity;
+using MyProject.Application.Identity.Constants;
 
 namespace MyProject.Infrastructure.Features.Authentication.Services;
 
@@ -109,7 +110,7 @@ internal class AuthenticationService(
             return Result<Guid>.Failure(errors);
         }
 
-        var roleResult = await userManager.AddToRoleAsync(user, "User");
+        var roleResult = await userManager.AddToRoleAsync(user, AppRoles.User);
 
         if (!roleResult.Succeeded)
         {
