@@ -24,7 +24,12 @@ export const createApiClient = (customFetch?: typeof fetch, baseUrl: string = ''
 				});
 			}
 
-			const refreshResponse = await refreshPromise;
+			let refreshResponse: Response;
+			try {
+				refreshResponse = await refreshPromise;
+			} catch {
+				return response;
+			}
 
 			if (refreshResponse.ok) {
 				return f(input, init);
