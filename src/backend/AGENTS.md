@@ -655,6 +655,10 @@ When **not** to use explicit transactions:
 | `dbContext.SaveChangesAsync()` | Default — single batch of changes, implicitly transactional |
 | `BeginTransactionAsync` / `CommitAsync` | Multiple `SaveChangesAsync` calls that must succeed or fail together |
 
+### Optimistic Concurrency
+
+Not enforced globally yet — no entities currently require it. When a use case emerges (e.g., concurrent writes to inventory, order status), discuss the strategy with the user and add concurrency tokens to that specific entity. Options include EF Core's `[ConcurrencyCheck]` attribute, `IsConcurrencyToken()` in Fluent API, or PostgreSQL's `xmin` system column. Handle `DbUpdateConcurrencyException` at the service or middleware level when introduced.
+
 ## Pagination
 
 Use the shared abstract base classes for paginated endpoints:
