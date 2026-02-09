@@ -1,4 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
+import { dev } from '$app/environment';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 import { extractLocaleFromHeader, cookieName, baseLocale } from '$lib/paraglide/runtime';
 
@@ -9,6 +10,14 @@ const SECURITY_HEADERS: Record<string, string> = {
 	'Referrer-Policy': 'strict-origin-when-cross-origin',
 	'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
 };
+
+/**
+ * HSTS header — only applied in production.
+ * HSTS over plain HTTP in local dev would cause browsers to refuse future HTTP connections.
+ */
+if (!dev) {
+	SECURITY_HEADERS['Strict-Transport-Security'] = 'max-age=63072000; includeSubDomains; preload';
+}
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// API proxy routes — backend sets its own security headers
