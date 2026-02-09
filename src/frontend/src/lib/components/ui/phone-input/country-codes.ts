@@ -15,7 +15,7 @@ export interface CountryCode {
 /**
  * Common European and international country codes.
  * Ordered by likely usage frequency for European users.
- * Country names are localized via the `common_country_{code}` translation keys.
+ * Country names are localized via the `country_{code}` translation keys.
  */
 export const COUNTRY_CODES: CountryCode[] = [
 	{ code: 'cz', dialCode: '+420' },
