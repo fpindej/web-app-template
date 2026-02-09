@@ -11,10 +11,12 @@
 		</Dialog.Header>
 		<div class="grid gap-4 py-4">
 			{#each getAllShortcuts() as shortcut (shortcut.action)}
-				<div class="flex items-center justify-between">
-					<span class="text-sm text-muted-foreground">{shortcut.description()}</span>
+				<div class="flex items-center justify-between gap-4">
+					<span class="min-w-0 truncate text-sm text-muted-foreground"
+						>{shortcut.description()}</span
+					>
 					<kbd
-						class="pointer-events-none inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100 select-none"
+						class="pointer-events-none inline-flex h-5 shrink-0 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-xs font-medium text-muted-foreground opacity-100 select-none"
 					>
 						{getShortcutSymbol(shortcut.action)}
 					</kbd>
