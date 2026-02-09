@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.HttpOverrides;
-using MyProject.Infrastructure.Features.Authentication.Extensions;
 using MyProject.Infrastructure.Persistence.Extensions;
 using MyProject.Infrastructure.Caching.Extensions;
 using MyProject.Infrastructure.Cookies.Extensions;
