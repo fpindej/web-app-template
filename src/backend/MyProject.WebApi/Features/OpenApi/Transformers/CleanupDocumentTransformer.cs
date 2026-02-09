@@ -22,6 +22,7 @@ internal sealed class CleanupDocumentTransformer : IOpenApiDocumentTransformer
     private static readonly string[] RedundantContentTypes =
         ["text/plain", "text/json", "application/*+json"];
 
+    /// <inheritdoc />
     public Task TransformAsync(
         OpenApiDocument document,
         OpenApiDocumentTransformerContext context,

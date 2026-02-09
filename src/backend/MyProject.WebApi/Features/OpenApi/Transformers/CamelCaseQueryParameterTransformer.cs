@@ -15,6 +15,7 @@ namespace MyProject.WebApi.Features.OpenApi.Transformers;
 /// </remarks>
 internal sealed class CamelCaseQueryParameterTransformer : IOpenApiOperationTransformer
 {
+    /// <inheritdoc />
     public Task TransformAsync(
         OpenApiOperation operation,
         OpenApiOperationTransformerContext context,

@@ -3,8 +3,16 @@ using Microsoft.OpenApi;
 
 namespace MyProject.WebApi.Features.OpenApi.Transformers;
 
+/// <summary>
+/// Sets the API title, version, description, and security scheme on the generated OpenAPI document.
+/// </summary>
+/// <remarks>
+/// The description documents both Bearer token and cookie-based authentication flows
+/// so consumers of the spec understand both available auth methods.
+/// </remarks>
 internal sealed class ProjectDocumentTransformer : IOpenApiDocumentTransformer
 {
+    /// <inheritdoc />
     public Task TransformAsync(
         OpenApiDocument document,
         OpenApiDocumentTransformerContext context,
