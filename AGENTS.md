@@ -68,6 +68,35 @@ Read the relevant file before working in that area. Both are self-contained with
 
 ---
 
+## Code Quality Principles
+
+These apply across the entire codebase — backend and frontend alike.
+
+### Keep Structures Clean
+
+Public methods should read like a table of contents — delegate implementation details to well-named private methods. If a method does three things, it should call three methods, not contain three inline blocks.
+
+### Deduplicate When It Improves Clarity
+
+When the same pattern appears more than once, extract it. But don't abstract prematurely — duplication is cheaper than the wrong abstraction. Extract when:
+
+- The duplicated logic is **identical in intent**, not just similar in shape
+- A change to one copy would always require the same change to the others
+- The extracted method has a **clear, descriptive name** that improves readability
+
+If the "shared" code would need parameters, flags, or conditionals to handle different callers, it's not real duplication — leave it inline.
+
+### Design for Testability
+
+Write code that is naturally testable through good structure, not by over-abstracting for the sake of mocking:
+
+- **Small, focused methods** — easier to test in isolation
+- **Constructor injection** — dependencies are explicit and swappable
+- **Pure logic where possible** — methods that take inputs and return outputs without side effects are trivially testable
+- **Don't wrap framework types just to mock them** — if testing requires mocking `HttpContext` or `DbContext`, use integration tests instead of creating abstraction layers that exist only for unit tests
+
+---
+
 ## Security-First Development
 
 **Security is the highest priority in every development decision.** When faced with a trade-off between convenience and security, always choose security. When unsure whether something is safe, assume it isn't and investigate.

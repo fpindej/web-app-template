@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.HttpOverrides;
-using MyProject.Infrastructure.Features.Authentication.Extensions;
 using MyProject.Infrastructure.Persistence.Extensions;
 using MyProject.Infrastructure.Caching.Extensions;
 using MyProject.Infrastructure.Cookies.Extensions;
@@ -111,14 +110,8 @@ try
         app.UseHsts();
     }
 
-    if (app.Environment.IsDevelopment())
-    {
-        Log.Debug("Apply migrations to local database");
-        app.ApplyMigrations();
-
-        Log.Debug("Seeding identity data (test and admin users)");
-        await app.SeedIdentityUsersAsync();
-    }
+    Log.Debug("Initializing database");
+    await app.InitializeDatabaseAsync();
 
     Log.Debug("Setting UseCors");
     CorsExtensions.UseCors(app);
