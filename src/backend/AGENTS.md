@@ -614,6 +614,8 @@ Key rules:
 
 ### Saving Changes
 
+Repositories stage changes — they don't save them. **Services** are responsible for calling `SaveChangesAsync` on the `DbContext`. This keeps the save boundary explicit and lets a service coordinate multiple repository calls into a single atomic save.
+
 `SaveChangesAsync` wraps all pending changes in a **single implicit transaction** — if any change fails, they all roll back. For most operations, this is sufficient:
 
 ```csharp
