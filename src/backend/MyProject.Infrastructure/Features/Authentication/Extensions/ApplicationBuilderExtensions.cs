@@ -26,6 +26,13 @@ public static class ApplicationBuilderExtensions
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
 
+        await SeedRolesAsync(roleManager);
+        await SeedUserAsync(userManager, SeedUsers.TestUserEmail, SeedUsers.TestUserPassword, AppRoles.User);
+        await SeedUserAsync(userManager, SeedUsers.AdminEmail, SeedUsers.AdminPassword, AppRoles.Admin);
+    }
+
+    private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager)
+    {
         foreach (var role in AppRoles.All)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -33,21 +40,21 @@ public static class ApplicationBuilderExtensions
                 await roleManager.CreateAsync(new ApplicationRole { Name = role });
             }
         }
+    }
 
-        var testUser = await userManager.FindByNameAsync(SeedUsers.TestUserEmail);
-        if (testUser is null)
+    private static async Task SeedUserAsync(
+        UserManager<ApplicationUser> userManager,
+        string email,
+        string password,
+        string role)
+    {
+        if (await userManager.FindByNameAsync(email) is not null)
         {
-            testUser = new ApplicationUser { UserName = SeedUsers.TestUserEmail, Email = SeedUsers.TestUserEmail, EmailConfirmed = true };
-            await userManager.CreateAsync(testUser, SeedUsers.TestUserPassword);
-            await userManager.AddToRoleAsync(testUser, AppRoles.User);
+            return;
         }
 
-        var adminUser = await userManager.FindByNameAsync(SeedUsers.AdminEmail);
-        if (adminUser is null)
-        {
-            adminUser = new ApplicationUser { UserName = SeedUsers.AdminEmail, Email = SeedUsers.AdminEmail, EmailConfirmed = true };
-            await userManager.CreateAsync(adminUser, SeedUsers.AdminPassword);
-            await userManager.AddToRoleAsync(adminUser, AppRoles.Admin);
-        }
+        var user = new ApplicationUser { UserName = email, Email = email, EmailConfirmed = true };
+        await userManager.CreateAsync(user, password);
+        await userManager.AddToRoleAsync(user, role);
     }
 }
