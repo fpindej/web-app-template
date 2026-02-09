@@ -223,7 +223,7 @@ export interface paths {
 		};
 		get?: never;
 		put?: never;
-		/** Logs out the current user by clearing authentication cookies */
+		/** Logs out the current user by revoking refresh tokens and clearing authentication cookies. */
 		post: {
 			parameters: {
 				query?: never;
@@ -239,6 +239,15 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content?: never;
+				};
+				/** @description If the user is not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
 				};
 			};
 		};

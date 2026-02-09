@@ -22,7 +22,13 @@ export async function getUser(
 }
 
 export async function logout() {
-	await browserClient.POST('/api/auth/logout');
+	try {
+		await browserClient.POST('/api/auth/logout');
+	} catch (e) {
+		// Logout may fail if tokens are already expired — that's fine,
+		// the user is effectively logged out already. Proceed to redirect.
+		console.warn('Logout request failed:', e);
+	}
 	await invalidateAll();
 	await goto(resolve('/login'));
 }
