@@ -90,8 +90,12 @@ export function mapFieldErrors(
  */
 export function getErrorMessage(error: unknown, fallback: string): string {
 	if (typeof error === 'object' && error !== null) {
-		const problemDetails = error as ValidationProblemDetails;
-		return problemDetails.detail || problemDetails.title || fallback;
+		if ('detail' in error && typeof error.detail === 'string') {
+			return error.detail;
+		}
+		if ('title' in error && typeof error.title === 'string') {
+			return error.title;
+		}
 	}
 	return fallback;
 }
