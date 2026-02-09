@@ -21,10 +21,10 @@ internal class AuthenticationService(
     TimeProvider timeProvider,
     ICookieService cookieService,
     IUserContext userContext,
-    IOptions<JwtOptions> jwtOptions,
+    IOptions<AuthenticationOptions> authenticationOptions,
     MyProjectDbContext dbContext) : IAuthenticationService
 {
-    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly AuthenticationOptions.JwtOptions _jwtOptions = authenticationOptions.Value.Jwt;
 
     public async Task<Result<AuthenticationOutput>> Login(string username, string password, bool useCookies = false, CancellationToken cancellationToken = default)
     {

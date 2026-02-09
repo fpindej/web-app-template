@@ -30,8 +30,6 @@ public static class ServiceCollectionExtensions
 
         private IServiceCollection ConfigureIdentity<TContext>(IConfiguration configuration) where TContext : DbContext
         {
-            var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
-
             services.AddIdentity<ApplicationUser, ApplicationRole>(opt =>
                 {
                     opt.Password.RequireDigit = true;
@@ -59,12 +57,13 @@ public static class ServiceCollectionExtensions
 
         private IServiceCollection ConfigureJwtAuthentication(IConfiguration configuration)
         {
-            services.AddOptions<JwtOptions>()
-                .BindConfiguration(JwtOptions.SectionName)
+            services.AddOptions<AuthenticationOptions>()
+                .BindConfiguration(AuthenticationOptions.SectionName)
                 .ValidateDataAnnotations()
                 .ValidateOnStart();
 
-            var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()!;
+            var authOptions = configuration.GetSection(AuthenticationOptions.SectionName).Get<AuthenticationOptions>()!;
+            var jwtOptions = authOptions.Jwt;
             var key = Encoding.UTF8.GetBytes(jwtOptions.Key);
 
             services.AddAuthentication(options =>

@@ -12,10 +12,10 @@ namespace MyProject.Infrastructure.Features.Authentication.Services;
 
 internal class JwtTokenProvider(
     UserManager<ApplicationUser> userManager,
-    IOptions<JwtOptions> jwtOptions,
+    IOptions<AuthenticationOptions> authenticationOptions,
     TimeProvider timeProvider) : ITokenProvider
 {
-    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly AuthenticationOptions.JwtOptions _jwtOptions = authenticationOptions.Value.Jwt;
 
     public async Task<string> GenerateAccessToken(ApplicationUser user)
     {

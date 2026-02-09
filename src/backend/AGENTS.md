@@ -270,11 +270,11 @@ internal class AuthenticationService(
     UserManager<ApplicationUser> userManager,
     ITokenProvider tokenProvider,
     ICookieService cookieService,
-    IOptions<JwtOptions> jwtOptions,
+    IOptions<AuthenticationOptions> authenticationOptions,
     MyProjectDbContext dbContext,
     ILogger<AuthenticationService> logger) : IAuthenticationService
 {
-    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly AuthenticationOptions.JwtOptions _jwtOptions = authenticationOptions.Value.Jwt;
 
     public async Task<Result<Guid>> Register(RegisterInput input)
     {
@@ -542,42 +542,48 @@ Configuration classes use the **Options pattern** with Data Annotations + `IVali
 
 ### Defining Options Classes
 
-Options classes are `public sealed class` with `const string SectionName` matching the `appsettings.json` path. Properties use `init`-only setters with sensible defaults:
+Options classes are `public sealed class` with `const string SectionName` matching the `appsettings.json` path. **The class name must correspond to the closest related parent section** — e.g., if the section is `Authentication:Jwt`, the root class is `AuthenticationOptions` (not `JwtOptions`). Properties use `init`-only setters with sensible defaults:
 
 ```csharp
-// Infrastructure/Features/Authentication/Options/JwtOptions.cs
-public sealed class JwtOptions : IValidatableObject
+// Infrastructure/Features/Authentication/Options/AuthenticationOptions.cs
+public sealed class AuthenticationOptions : IValidatableObject
 {
-    public const string SectionName = "Authentication:Jwt";
+    public const string SectionName = "Authentication";
 
     [Required]
-    [MinLength(32)]
-    public string Key { get; init; } = string.Empty;
-
-    [Required]
-    public string Issuer { get; init; } = string.Empty;
-
-    [Range(1, 120)]
-    public int ExpiresInMinutes { get; init; } = 10;
-
-    public RefreshTokenOptions RefreshToken { get; init; } = new();
+    public JwtOptions Jwt { get; init; } = new();
 
     // Cross-property and complex validation via IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (Key.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase))
+        if (Jwt.Key.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase))
         {
             yield return new ValidationResult(
                 "JWT key contains placeholder text.",
-                [nameof(Key)]);
+                [nameof(Jwt)]);
         }
     }
 
-    // Nested options — no SectionName, bound automatically via parent
-    public sealed class RefreshTokenOptions
+    public sealed class JwtOptions
     {
-        [Range(1, 365)]
-        public int ExpiresInDays { get; [UsedImplicitly] init; } = 7;
+        [Required]
+        [MinLength(32)]
+        public string Key { get; init; } = string.Empty;
+
+        [Required]
+        public string Issuer { get; init; } = string.Empty;
+
+        [Range(1, 120)]
+        public int ExpiresInMinutes { get; init; } = 10;
+
+        public RefreshTokenOptions RefreshToken { get; init; } = new();
+
+        // Nested options — no SectionName, bound automatically via parent
+        public sealed class RefreshTokenOptions
+        {
+            [Range(1, 365)]
+            public int ExpiresInDays { get; [UsedImplicitly] init; } = 7;
+        }
     }
 }
 ```
@@ -645,8 +651,8 @@ This is necessary because `ValidateDataAnnotations()` only invokes `Validate()` 
 Register options in the feature's DI extension using the standard three-call chain:
 
 ```csharp
-services.AddOptions<JwtOptions>()
-    .BindConfiguration(JwtOptions.SectionName)
+services.AddOptions<AuthenticationOptions>()
+    .BindConfiguration(AuthenticationOptions.SectionName)
     .ValidateDataAnnotations()    // Runs [Required], [MinLength], etc. AND IValidatableObject.Validate()
     .ValidateOnStart();           // Fail fast at startup, not on first resolve
 ```
@@ -657,12 +663,12 @@ Only **root** options classes (those with `SectionName`) are registered. Nested/
 
 ### Consuming Options
 
-**Runtime injection** — use `IOptions<T>` in services and extract `.Value` to a readonly field:
+**Runtime injection** — use `IOptions<T>` in services and extract `.Value` to a readonly field. When consuming a child options class, navigate to it from the root:
 
 ```csharp
-internal class MyService(IOptions<JwtOptions> jwtOptions) : IMyService
+internal class MyService(IOptions<AuthenticationOptions> authenticationOptions) : IMyService
 {
-    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly AuthenticationOptions.JwtOptions _jwtOptions = authenticationOptions.Value.Jwt;
 }
 ```
 
@@ -670,8 +676,9 @@ internal class MyService(IOptions<JwtOptions> jwtOptions) : IMyService
 
 ```csharp
 // In a DI extension method that receives IConfiguration
-var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
-    ?? throw new InvalidOperationException("JWT options are not configured properly.");
+var authOptions = configuration.GetSection(AuthenticationOptions.SectionName).Get<AuthenticationOptions>()
+    ?? throw new InvalidOperationException("Authentication options are not configured properly.");
+var jwtOptions = authOptions.Jwt;
 ```
 
 This is common for configuring middleware and third-party libraries (CORS policies, Redis connections, JWT bearer setup, rate limiters) that need values at registration time rather than at request time.
