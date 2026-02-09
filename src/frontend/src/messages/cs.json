@@ -31,6 +31,8 @@
 	"common_user": "Uživatel",
 	"common_language": "Jazyk",
 	"common_theme": "Motiv",
+	"common_close": "Zavřít",
+	"common_toggleNavMenu": "Přepnout navigační menu",
 
 	"shortcuts_title": "Klávesové zkratky",
 	"shortcuts_settings": "Otevřít nastavení",

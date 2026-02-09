@@ -22,8 +22,17 @@ export function renderMarkdown(md: string): string {
 			// Bold and italic
 			.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
 			.replace(/\*([^*]+)\*/g, '<em>$1</em>')
-			// Links
-			.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline">$1</a>')
+			// Links (only allow safe URL schemes to prevent XSS via javascript: or data: URIs)
+			.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, text: string, url: string) => {
+				try {
+					const parsed = new URL(url, 'https://placeholder');
+					if (!['http:', 'https:', 'mailto:'].includes(parsed.protocol)) return text;
+				} catch {
+					// Relative URLs (no protocol) are safe — they resolve against the page origin
+					if (/^[a-z][a-z0-9+.-]*:/i.test(url)) return text;
+				}
+				return `<a href="${url}" class="text-primary underline">${text}</a>`;
+			})
 			// Tables - process complete table blocks
 			.replace(/(\|.+\|\n)+/g, (tableBlock) => {
 				const rows = tableBlock.trim().split('\n');

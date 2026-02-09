@@ -11,10 +11,12 @@
 	import { isValidationProblemDetails, mapFieldErrors, getErrorMessage } from '$lib/api';
 	import { createFieldShakes } from '$lib/state';
 
-	let { open = $bindable(false), onSuccess } = $props<{
+	interface Props {
 		open?: boolean;
 		onSuccess?: (email: string) => void;
-	}>();
+	}
+
+	let { open = $bindable(false), onSuccess }: Props = $props();
 
 	let email = $state('');
 	let password = $state('');

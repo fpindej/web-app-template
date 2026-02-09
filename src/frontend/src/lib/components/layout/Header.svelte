@@ -5,6 +5,7 @@
 	import { SidebarNav, ThemeToggle, LanguageSelector, UserNav } from '$lib/components/layout';
 	import { resolve } from '$app/paths';
 	import type { User } from '$lib/types';
+	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		user: User | null | undefined;
@@ -20,7 +21,7 @@
 			{#snippet child({ props })}
 				<Button variant="outline" size="icon" class="shrink-0 md:hidden" {...props}>
 					<Menu class="h-5 w-5" />
-					<span class="sr-only">Toggle navigation menu</span>
+					<span class="sr-only">{m.common_toggleNavMenu()}</span>
 				</Button>
 			{/snippet}
 		</Sheet.Trigger>
@@ -28,7 +29,7 @@
 			<nav class="grid gap-2 text-lg font-medium">
 				<a href={resolve('/')} class="flex items-center gap-2 text-lg font-semibold">
 					<Package2 class="h-6 w-6" />
-					<span class="sr-only">MyProject</span>
+					<span class="sr-only">{m.app_name()}</span>
 				</a>
 				<SidebarNav onNavigate={() => (open = false)} />
 			</nav>

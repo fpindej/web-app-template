@@ -7,9 +7,14 @@ const STORAGE_KEY = 'sidebar-collapsed';
 
 function getStoredState(): boolean {
 	if (typeof window === 'undefined') return true;
-	const stored = localStorage.getItem(STORAGE_KEY);
-	// Default to collapsed if no preference stored
-	return stored !== 'false';
+	try {
+		const stored = localStorage.getItem(STORAGE_KEY);
+		// Default to collapsed if no preference stored
+		return stored !== 'false';
+	} catch {
+		// localStorage may be unavailable (private browsing, storage full, etc.)
+		return true;
+	}
 }
 
 /**
@@ -41,8 +46,10 @@ export function initSidebar(): void {
  */
 export function toggleSidebar(): void {
 	sidebarState.collapsed = !sidebarState.collapsed;
-	if (typeof window !== 'undefined') {
+	try {
 		localStorage.setItem(STORAGE_KEY, String(sidebarState.collapsed));
+	} catch {
+		// localStorage may be unavailable — state still works in-memory
 	}
 }
 
@@ -51,7 +58,9 @@ export function toggleSidebar(): void {
  */
 export function setSidebarCollapsed(value: boolean): void {
 	sidebarState.collapsed = value;
-	if (typeof window !== 'undefined') {
+	try {
 		localStorage.setItem(STORAGE_KEY, String(sidebarState.collapsed));
+	} catch {
+		// localStorage may be unavailable — state still works in-memory
 	}
 }

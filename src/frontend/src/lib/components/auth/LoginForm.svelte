@@ -4,6 +4,7 @@
 	import { createShake } from '$lib/state';
 	import { onMount } from 'svelte';
 	import { goto, invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -56,8 +57,7 @@
 				isRedirecting = true;
 				await delay(500);
 				await invalidateAll();
-				// eslint-disable-next-line svelte/no-navigation-without-resolve
-				await goto('/');
+				await goto(resolve('/'));
 			} else {
 				let errorMessage = '';
 				if (response.status === 401) {
