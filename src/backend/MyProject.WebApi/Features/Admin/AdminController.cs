@@ -12,9 +12,10 @@ namespace MyProject.WebApi.Features.Admin;
 
 /// <summary>
 /// Administrative endpoints for managing users and roles.
-/// All endpoints require the Admin role.
+/// Requires the Admin or SuperAdmin role. Role hierarchy and self-action protection
+/// are enforced at the service layer.
 /// </summary>
-[Authorize(Roles = AppRoles.Admin)]
+[Authorize(Roles = $"{AppRoles.Admin},{AppRoles.SuperAdmin}")]
 public class AdminController(IAdminService adminService) : ApiController
 {
     /// <summary>
@@ -25,7 +26,7 @@ public class AdminController(IAdminService adminService) : ApiController
     /// <response code="200">Returns the paginated user list</response>
     /// <response code="400">If the pagination parameters are invalid</response>
     /// <response code="401">If the user is not authenticated</response>
-    /// <response code="403">If the user does not have the Admin role</response>
+    /// <response code="403">If the user does not have the Admin or SuperAdmin role</response>
     [HttpGet("users")]
     [ProducesResponseType(typeof(ListUsersResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -48,7 +49,7 @@ public class AdminController(IAdminService adminService) : ApiController
     /// <returns>The user's admin-level details</returns>
     /// <response code="200">Returns the user details</response>
     /// <response code="401">If the user is not authenticated</response>
-    /// <response code="403">If the user does not have the Admin role</response>
+    /// <response code="403">If the user does not have the Admin or SuperAdmin role</response>
     /// <response code="404">If the user was not found</response>
     [HttpGet("users/{id:guid}")]
     [ProducesResponseType(typeof(AdminUserResponse), StatusCodes.Status200OK)]
@@ -63,15 +64,16 @@ public class AdminController(IAdminService adminService) : ApiController
     }
 
     /// <summary>
-    /// Assigns a role to a user.
+    /// Assigns a role to a user. The caller must outrank the target user
+    /// and can only assign roles below their own rank.
     /// </summary>
     /// <param name="id">The user ID</param>
     /// <param name="request">The role to assign</param>
     /// <returns>No content on success</returns>
     /// <response code="204">Role assigned successfully</response>
-    /// <response code="400">If the role is invalid or the user already has it</response>
+    /// <response code="400">If the role is invalid, the user already has it, or hierarchy check fails</response>
     /// <response code="401">If the user is not authenticated</response>
-    /// <response code="403">If the user does not have the Admin role</response>
+    /// <response code="403">If the user does not have the Admin or SuperAdmin role</response>
     /// <response code="404">If the user was not found</response>
     [HttpPost("users/{id:guid}/roles")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -84,7 +86,8 @@ public class AdminController(IAdminService adminService) : ApiController
         [FromBody] AssignRoleRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await adminService.AssignRoleAsync(id, request.ToInput(), cancellationToken);
+        var callerUserId = GetCurrentUserId();
+        var result = await adminService.AssignRoleAsync(callerUserId, id, request.ToInput(), cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -95,15 +98,16 @@ public class AdminController(IAdminService adminService) : ApiController
     }
 
     /// <summary>
-    /// Removes a role from a user.
+    /// Removes a role from a user. The caller must outrank the target user
+    /// and cannot remove roles at or above their own rank.
     /// </summary>
     /// <param name="id">The user ID</param>
     /// <param name="role">The role name to remove</param>
     /// <returns>No content on success</returns>
     /// <response code="204">Role removed successfully</response>
-    /// <response code="400">If the role is invalid or the user doesn't have it</response>
+    /// <response code="400">If the role is invalid, the user doesn't have it, or hierarchy check fails</response>
     /// <response code="401">If the user is not authenticated</response>
-    /// <response code="403">If the user does not have the Admin role</response>
+    /// <response code="403">If the user does not have the Admin or SuperAdmin role</response>
     /// <response code="404">If the user was not found</response>
     [HttpDelete("users/{id:guid}/roles/{role}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -113,12 +117,8 @@ public class AdminController(IAdminService adminService) : ApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RemoveRole(Guid id, string role, CancellationToken cancellationToken)
     {
-        if (string.Equals(role, AppRoles.Admin, StringComparison.OrdinalIgnoreCase) && IsCurrentUser(id))
-        {
-            return BadRequest(new ErrorResponse { Message = "Cannot remove the Admin role from your own account." });
-        }
-
-        var result = await adminService.RemoveRoleAsync(id, role, cancellationToken);
+        var callerUserId = GetCurrentUserId();
+        var result = await adminService.RemoveRoleAsync(callerUserId, id, role, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -129,14 +129,15 @@ public class AdminController(IAdminService adminService) : ApiController
     }
 
     /// <summary>
-    /// Locks a user account, preventing login.
+    /// Locks a user account, preventing login. The caller must outrank the target user
+    /// and cannot lock themselves.
     /// </summary>
     /// <param name="id">The user ID</param>
     /// <returns>No content on success</returns>
     /// <response code="204">User locked successfully</response>
-    /// <response code="400">If the lock operation failed</response>
+    /// <response code="400">If the lock operation failed or hierarchy check fails</response>
     /// <response code="401">If the user is not authenticated</response>
-    /// <response code="403">If the user does not have the Admin role</response>
+    /// <response code="403">If the user does not have the Admin or SuperAdmin role</response>
     /// <response code="404">If the user was not found</response>
     [HttpPost("users/{id:guid}/lock")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -146,12 +147,8 @@ public class AdminController(IAdminService adminService) : ApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> LockUser(Guid id, CancellationToken cancellationToken)
     {
-        if (IsCurrentUser(id))
-        {
-            return BadRequest(new ErrorResponse { Message = "Cannot lock your own account." });
-        }
-
-        var result = await adminService.LockUserAsync(id, cancellationToken);
+        var callerUserId = GetCurrentUserId();
+        var result = await adminService.LockUserAsync(callerUserId, id, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -162,14 +159,14 @@ public class AdminController(IAdminService adminService) : ApiController
     }
 
     /// <summary>
-    /// Unlocks a user account, allowing login.
+    /// Unlocks a user account, allowing login. The caller must outrank the target user.
     /// </summary>
     /// <param name="id">The user ID</param>
     /// <returns>No content on success</returns>
     /// <response code="204">User unlocked successfully</response>
-    /// <response code="400">If the unlock operation failed</response>
+    /// <response code="400">If the unlock operation failed or hierarchy check fails</response>
     /// <response code="401">If the user is not authenticated</response>
-    /// <response code="403">If the user does not have the Admin role</response>
+    /// <response code="403">If the user does not have the Admin or SuperAdmin role</response>
     /// <response code="404">If the user was not found</response>
     [HttpPost("users/{id:guid}/unlock")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -179,7 +176,8 @@ public class AdminController(IAdminService adminService) : ApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UnlockUser(Guid id, CancellationToken cancellationToken)
     {
-        var result = await adminService.UnlockUserAsync(id, cancellationToken);
+        var callerUserId = GetCurrentUserId();
+        var result = await adminService.UnlockUserAsync(callerUserId, id, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -190,14 +188,15 @@ public class AdminController(IAdminService adminService) : ApiController
     }
 
     /// <summary>
-    /// Permanently deletes a user account.
+    /// Permanently deletes a user account. The caller must outrank the target user
+    /// and cannot delete themselves or the last user with an administrative role.
     /// </summary>
     /// <param name="id">The user ID</param>
     /// <returns>No content on success</returns>
     /// <response code="204">User deleted successfully</response>
-    /// <response code="400">If the delete operation failed</response>
+    /// <response code="400">If the delete operation failed or hierarchy check fails</response>
     /// <response code="401">If the user is not authenticated</response>
-    /// <response code="403">If the user does not have the Admin role</response>
+    /// <response code="403">If the user does not have the Admin or SuperAdmin role</response>
     /// <response code="404">If the user was not found</response>
     [HttpDelete("users/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -207,12 +206,8 @@ public class AdminController(IAdminService adminService) : ApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteUser(Guid id, CancellationToken cancellationToken)
     {
-        if (IsCurrentUser(id))
-        {
-            return BadRequest(new ErrorResponse { Message = "Cannot delete your own account." });
-        }
-
-        var result = await adminService.DeleteUserAsync(id, cancellationToken);
+        var callerUserId = GetCurrentUserId();
+        var result = await adminService.DeleteUserAsync(callerUserId, id, cancellationToken);
 
         if (!result.IsSuccess)
         {
@@ -228,7 +223,7 @@ public class AdminController(IAdminService adminService) : ApiController
     /// <returns>A list of roles with the number of users in each</returns>
     /// <response code="200">Returns the list of roles</response>
     /// <response code="401">If the user is not authenticated</response>
-    /// <response code="403">If the user does not have the Admin role</response>
+    /// <response code="403">If the user does not have the Admin or SuperAdmin role</response>
     [HttpGet("roles")]
     [ProducesResponseType(typeof(IReadOnlyList<AdminRoleResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -241,10 +236,15 @@ public class AdminController(IAdminService adminService) : ApiController
         return Ok(roles.Select(r => r.ToResponse()).ToList());
     }
 
-    private bool IsCurrentUser(Guid targetUserId)
+    private Guid GetCurrentUserId()
     {
-        var currentUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        return Guid.TryParse(currentUserIdClaim, out var currentUserId) && currentUserId == targetUserId;
+        if (!Guid.TryParse(claim, out var userId))
+        {
+            throw new UnauthorizedAccessException("Unable to determine the current user identity.");
+        }
+
+        return userId;
     }
 }

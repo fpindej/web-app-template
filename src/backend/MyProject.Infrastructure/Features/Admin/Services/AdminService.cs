@@ -15,6 +15,15 @@ namespace MyProject.Infrastructure.Features.Admin.Services;
 
 /// <summary>
 /// Identity-backed implementation of <see cref="IAdminService"/> for administrative user and role management.
+/// <para>
+/// All mutation operations enforce role hierarchy: the caller must have a strictly higher role rank
+/// than the target user. Self-action protection and last-admin guards are applied at this layer
+/// to ensure consistent enforcement regardless of the consumer (controller, background job, etc.).
+/// </para>
+/// <para>
+/// Destructive actions (lock, role removal, deletion) revoke all active refresh tokens for the
+/// affected user and rotate their security stamp to invalidate in-flight access tokens.
+/// </para>
 /// </summary>
 internal class AdminService(
     UserManager<ApplicationUser> userManager,
@@ -66,7 +75,7 @@ internal class AdminService(
     }
 
     /// <inheritdoc />
-    public async Task<Result> AssignRoleAsync(Guid userId, AssignRoleInput input,
+    public async Task<Result> AssignRoleAsync(Guid callerUserId, Guid userId, AssignRoleInput input,
         CancellationToken cancellationToken = default)
     {
         if (!AppRoles.All.Contains(input.Role))
@@ -79,6 +88,20 @@ internal class AdminService(
         if (user is null)
         {
             throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
+        }
+
+        var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
+        if (!hierarchyResult.IsSuccess)
+        {
+            return hierarchyResult;
+        }
+
+        var callerRoles = await GetUserRolesAsync(callerUserId);
+        var callerRank = AppRoles.GetHighestRank(callerRoles);
+
+        if (AppRoles.GetRoleRank(input.Role) >= callerRank)
+        {
+            return Result.Failure("Cannot assign a role at or above your own rank.");
         }
 
         if (await userManager.IsInRoleAsync(user, input.Role))
@@ -95,13 +118,14 @@ internal class AdminService(
         }
 
         await InvalidateUserCacheAsync(userId);
-        logger.LogInformation("Role '{Role}' assigned to user '{UserId}'", input.Role, userId);
+        logger.LogInformation("Role '{Role}' assigned to user '{UserId}' by admin '{CallerUserId}'",
+            input.Role, userId, callerUserId);
 
         return Result.Success();
     }
 
     /// <inheritdoc />
-    public async Task<Result> RemoveRoleAsync(Guid userId, string role,
+    public async Task<Result> RemoveRoleAsync(Guid callerUserId, Guid userId, string role,
         CancellationToken cancellationToken = default)
     {
         if (!AppRoles.All.Contains(role))
@@ -116,9 +140,34 @@ internal class AdminService(
             throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
         }
 
+        if (callerUserId == userId)
+        {
+            return Result.Failure("Cannot remove a role from your own account.");
+        }
+
+        var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
+        if (!hierarchyResult.IsSuccess)
+        {
+            return hierarchyResult;
+        }
+
+        var callerRoles = await GetUserRolesAsync(callerUserId);
+        var callerRank = AppRoles.GetHighestRank(callerRoles);
+
+        if (AppRoles.GetRoleRank(role) >= callerRank)
+        {
+            return Result.Failure("Cannot remove a role at or above your own rank.");
+        }
+
         if (!await userManager.IsInRoleAsync(user, role))
         {
             return Result.Failure($"User does not have the '{role}' role.");
+        }
+
+        var lastAdminResult = await EnforceLastAdminProtectionAsync(userId, role, cancellationToken);
+        if (!lastAdminResult.IsSuccess)
+        {
+            return lastAdminResult;
         }
 
         var result = await userManager.RemoveFromRoleAsync(user, role);
@@ -129,20 +178,34 @@ internal class AdminService(
             return Result.Failure(errors);
         }
 
+        await RevokeUserSessionsAsync(user, userId, cancellationToken);
         await InvalidateUserCacheAsync(userId);
-        logger.LogInformation("Role '{Role}' removed from user '{UserId}'", role, userId);
+        logger.LogInformation("Role '{Role}' removed from user '{UserId}' by admin '{CallerUserId}'",
+            role, userId, callerUserId);
 
         return Result.Success();
     }
 
     /// <inheritdoc />
-    public async Task<Result> LockUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Result> LockUserAsync(Guid callerUserId, Guid userId,
+        CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
 
         if (user is null)
         {
             throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
+        }
+
+        if (callerUserId == userId)
+        {
+            return Result.Failure("Cannot lock your own account.");
+        }
+
+        var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
+        if (!hierarchyResult.IsSuccess)
+        {
+            return hierarchyResult;
         }
 
         // Set lockout end to 100 years in the future (effectively permanent)
@@ -155,20 +218,29 @@ internal class AdminService(
             return Result.Failure(errors);
         }
 
+        await RevokeUserSessionsAsync(user, userId, cancellationToken);
         await InvalidateUserCacheAsync(userId);
-        logger.LogWarning("User '{UserId}' has been locked out by admin", userId);
+        logger.LogWarning("User '{UserId}' has been locked out by admin '{CallerUserId}'",
+            userId, callerUserId);
 
         return Result.Success();
     }
 
     /// <inheritdoc />
-    public async Task<Result> UnlockUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Result> UnlockUserAsync(Guid callerUserId, Guid userId,
+        CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
 
         if (user is null)
         {
             throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
+        }
+
+        var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
+        if (!hierarchyResult.IsSuccess)
+        {
+            return hierarchyResult;
         }
 
         var result = await userManager.SetLockoutEndDateAsync(user, null);
@@ -183,13 +255,15 @@ internal class AdminService(
         await userManager.ResetAccessFailedCountAsync(user);
 
         await InvalidateUserCacheAsync(userId);
-        logger.LogInformation("User '{UserId}' has been unlocked by admin", userId);
+        logger.LogInformation("User '{UserId}' has been unlocked by admin '{CallerUserId}'",
+            userId, callerUserId);
 
         return Result.Success();
     }
 
     /// <inheritdoc />
-    public async Task<Result> DeleteUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteUserAsync(Guid callerUserId, Guid userId,
+        CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
 
@@ -197,6 +271,27 @@ internal class AdminService(
         {
             throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
         }
+
+        if (callerUserId == userId)
+        {
+            return Result.Failure("Cannot delete your own account.");
+        }
+
+        var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
+        if (!hierarchyResult.IsSuccess)
+        {
+            return hierarchyResult;
+        }
+
+        var targetRoles = await userManager.GetRolesAsync(user);
+        var lastAdminCheckResult = await EnforceLastAdminProtectionForDeletionAsync(
+            targetRoles, cancellationToken);
+        if (!lastAdminCheckResult.IsSuccess)
+        {
+            return lastAdminCheckResult;
+        }
+
+        await RevokeUserSessionsAsync(user, userId, cancellationToken);
 
         var result = await userManager.DeleteAsync(user);
 
@@ -207,7 +302,8 @@ internal class AdminService(
         }
 
         await InvalidateUserCacheAsync(userId);
-        logger.LogWarning("User '{UserId}' has been deleted by admin", userId);
+        logger.LogWarning("User '{UserId}' has been deleted by admin '{CallerUserId}'",
+            userId, callerUserId);
 
         return Result.Success();
     }
@@ -231,6 +327,115 @@ internal class AdminService(
                 role.Name ?? string.Empty,
                 roleCounts.GetValueOrDefault(role.Id)))
             .ToList();
+    }
+
+    /// <summary>
+    /// Verifies that the caller has a strictly higher role rank than the target user.
+    /// Returns <see cref="Result.Failure(string)"/> if the hierarchy check fails.
+    /// </summary>
+    private async Task<Result> EnforceHierarchyAsync(Guid callerUserId, ApplicationUser targetUser)
+    {
+        var callerRoles = await GetUserRolesAsync(callerUserId);
+        var targetRoles = await userManager.GetRolesAsync(targetUser);
+
+        var callerRank = AppRoles.GetHighestRank(callerRoles);
+        var targetRank = AppRoles.GetHighestRank(targetRoles);
+
+        if (callerRank <= targetRank)
+        {
+            return Result.Failure("You do not have sufficient privileges to manage this user.");
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Prevents removal of an administrative role if the target user is the last user with that role.
+    /// Only applies to Admin and SuperAdmin roles.
+    /// </summary>
+    private async Task<Result> EnforceLastAdminProtectionAsync(Guid userId, string role,
+        CancellationToken cancellationToken)
+    {
+        if (role is not (AppRoles.Admin or AppRoles.SuperAdmin))
+        {
+            return Result.Success();
+        }
+
+        var roleEntity = await roleManager.FindByNameAsync(role);
+        if (roleEntity is null)
+        {
+            return Result.Success();
+        }
+
+        var usersInRoleCount = await dbContext.UserRoles
+            .CountAsync(ur => ur.RoleId == roleEntity.Id, cancellationToken);
+
+        if (usersInRoleCount <= 1)
+        {
+            return Result.Failure($"Cannot remove the '{role}' role — this is the last user with this role.");
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Prevents deletion of a user if they are the last user holding any administrative role
+    /// (Admin or SuperAdmin).
+    /// </summary>
+    private async Task<Result> EnforceLastAdminProtectionForDeletionAsync(
+        IList<string> targetRoles, CancellationToken cancellationToken)
+    {
+        foreach (var role in targetRoles.Where(r => r is AppRoles.Admin or AppRoles.SuperAdmin))
+        {
+            var roleEntity = await roleManager.FindByNameAsync(role);
+            if (roleEntity is null) continue;
+
+            var usersInRoleCount = await dbContext.UserRoles
+                .CountAsync(ur => ur.RoleId == roleEntity.Id, cancellationToken);
+
+            if (usersInRoleCount <= 1)
+            {
+                return Result.Failure(
+                    $"Cannot delete this user — they are the last user with the '{role}' role.");
+            }
+        }
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Revokes all active refresh tokens for a user and rotates their security stamp,
+    /// forcing re-authentication on all devices.
+    /// </summary>
+    private async Task RevokeUserSessionsAsync(ApplicationUser user, Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var tokens = await dbContext.RefreshTokens
+            .Where(rt => rt.UserId == userId && !rt.Invalidated)
+            .ToListAsync(cancellationToken);
+
+        foreach (var token in tokens)
+        {
+            token.Invalidated = true;
+        }
+
+        if (tokens.Count > 0)
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        await userManager.UpdateSecurityStampAsync(user);
+    }
+
+    private async Task<IList<string>> GetUserRolesAsync(Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return [];
+        }
+
+        return await userManager.GetRolesAsync(user);
     }
 
     private async Task<IReadOnlyList<AdminUserOutput>> MapUsersToOutputsAsync(

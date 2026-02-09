@@ -5,7 +5,11 @@ namespace MyProject.Application.Features.Admin;
 
 /// <summary>
 /// Provides administrative operations for managing users and roles.
-/// All operations require the caller to have the Admin role.
+/// <para>
+/// All mutation operations require a <c>callerUserId</c> parameter to enforce role hierarchy
+/// and self-action protection at the service layer. The caller must have a strictly higher
+/// role rank than the target user (see <see cref="MyProject.Application.Identity.Constants.AppRoles"/>).
+/// </para>
 /// </summary>
 public interface IAdminService
 {
@@ -30,47 +34,58 @@ public interface IAdminService
     Task<AdminUserOutput> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Assigns a role to a user.
+    /// Assigns a role to a user. The caller must have a strictly higher role rank than the target user,
+    /// and can only assign roles below their own rank.
     /// </summary>
-    /// <param name="userId">The user ID.</param>
+    /// <param name="callerUserId">The ID of the admin performing the action.</param>
+    /// <param name="userId">The target user ID.</param>
     /// <param name="input">The role assignment input.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>Success or failure with an error message.</returns>
-    Task<Result> AssignRoleAsync(Guid userId, AssignRoleInput input, CancellationToken cancellationToken = default);
+    Task<Result> AssignRoleAsync(Guid callerUserId, Guid userId, AssignRoleInput input,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Removes a role from a user.
+    /// Removes a role from a user. The caller must have a strictly higher role rank than the target user,
+    /// and cannot remove roles at or above their own rank.
     /// </summary>
-    /// <param name="userId">The user ID.</param>
+    /// <param name="callerUserId">The ID of the admin performing the action.</param>
+    /// <param name="userId">The target user ID.</param>
     /// <param name="role">The role name to remove.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>Success or failure with an error message.</returns>
-    Task<Result> RemoveRoleAsync(Guid userId, string role, CancellationToken cancellationToken = default);
+    Task<Result> RemoveRoleAsync(Guid callerUserId, Guid userId, string role,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Locks a user account, preventing login.
+    /// Locks a user account, preventing login. The caller must have a strictly higher role rank
+    /// than the target user and cannot lock themselves.
     /// </summary>
-    /// <param name="userId">The user ID.</param>
+    /// <param name="callerUserId">The ID of the admin performing the action.</param>
+    /// <param name="userId">The target user ID.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>Success or failure with an error message.</returns>
-    Task<Result> LockUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result> LockUserAsync(Guid callerUserId, Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Unlocks a user account, allowing login.
+    /// Unlocks a user account, allowing login. The caller must have a strictly higher role rank
+    /// than the target user.
     /// </summary>
-    /// <param name="userId">The user ID.</param>
+    /// <param name="callerUserId">The ID of the admin performing the action.</param>
+    /// <param name="userId">The target user ID.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>Success or failure with an error message.</returns>
-    Task<Result> UnlockUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result> UnlockUserAsync(Guid callerUserId, Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Soft-deletes a user account.
-    /// Identity does not natively support soft delete, so this permanently deletes the user.
+    /// Permanently deletes a user account. The caller must have a strictly higher role rank
+    /// than the target user and cannot delete themselves.
     /// </summary>
-    /// <param name="userId">The user ID.</param>
+    /// <param name="callerUserId">The ID of the admin performing the action.</param>
+    /// <param name="userId">The target user ID.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>Success or failure with an error message.</returns>
-    Task<Result> DeleteUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Result> DeleteUserAsync(Guid callerUserId, Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all roles with user counts.

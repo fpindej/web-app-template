@@ -6,6 +6,7 @@ using MyProject.Application.Cookies;
 using MyProject.Application.Cookies.Constants;
 using MyProject.Application.Features.Authentication.Dtos;
 using MyProject.Application.Identity;
+using MyProject.Application.Identity.Constants;
 using MyProject.Application.Identity.Dtos;
 using MyProject.Domain;
 using MyProject.Infrastructure.Features.Authentication.Models;
@@ -18,6 +19,7 @@ namespace MyProject.Infrastructure.Identity.Services;
 /// </summary>
 internal class UserService(
     UserManager<ApplicationUser> userManager,
+    RoleManager<ApplicationRole> roleManager,
     IUserContext userContext,
     ICacheService cacheService,
     MyProjectDbContext dbContext,
@@ -155,10 +157,42 @@ internal class UserService(
             return Result.Failure("Invalid password.");
         }
 
+        var lastAdminResult = await EnforceLastAdminProtectionForDeletionAsync(user, cancellationToken);
+        if (!lastAdminResult.IsSuccess)
+        {
+            return lastAdminResult;
+        }
+
         await RevokeUserTokens(user, userId.Value, cancellationToken);
         await DeleteUser(user);
         ClearAuthCookies();
         await InvalidateUserCache(userId.Value);
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Prevents self-deletion if the user is the last holder of any administrative role.
+    /// </summary>
+    private async Task<Result> EnforceLastAdminProtectionForDeletionAsync(
+        ApplicationUser user, CancellationToken cancellationToken)
+    {
+        var userRoles = await userManager.GetRolesAsync(user);
+
+        foreach (var role in userRoles.Where(r => r is AppRoles.Admin or AppRoles.SuperAdmin))
+        {
+            var roleEntity = await roleManager.FindByNameAsync(role);
+            if (roleEntity is null) continue;
+
+            var usersInRoleCount = await dbContext.UserRoles
+                .CountAsync(ur => ur.RoleId == roleEntity.Id, cancellationToken);
+
+            if (usersInRoleCount <= 1)
+            {
+                return Result.Failure(
+                    $"Cannot delete your account — you are the last user with the '{role}' role.");
+            }
+        }
 
         return Result.Success();
     }
