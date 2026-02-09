@@ -595,6 +595,47 @@ public sealed class AuthenticationOptions : IValidatableObject
 | Infrastructure | `Features/{Feature}/Options/` or `{Feature}/Options/` | Options consumed by Infrastructure services (JWT, caching, etc.) |
 | WebApi | `Options/` | Options consumed only at the API layer (CORS, rate limiting) |
 
+### XML Documentation
+
+Every Options class and every property must have `/// <summary>` XML docs. This includes nested child classes and their properties. Follow the same style as `CachingOptions.cs`:
+
+```csharp
+/// <summary>
+/// Root authentication configuration options.
+/// Maps to the "Authentication" section in appsettings.json.
+/// </summary>
+public sealed class AuthenticationOptions
+{
+    public const string SectionName = "Authentication";
+
+    /// <summary>
+    /// Gets or sets the JWT token configuration.
+    /// Contains signing key, issuer, audience, and token lifetime settings.
+    /// </summary>
+    [Required]
+    public JwtOptions Jwt { get; init; } = new();
+
+    /// <summary>
+    /// Configuration options for JWT token generation and validation.
+    /// </summary>
+    public sealed class JwtOptions
+    {
+        /// <summary>
+        /// Gets or sets the symmetric signing key for JWT tokens.
+        /// Must be at least 32 characters for HMAC-SHA256.
+        /// </summary>
+        [Required]
+        public string Key { get; init; } = string.Empty;
+    }
+}
+```
+
+Rules:
+- **Class-level** `/// <summary>` — describe what the options configure and which `appsettings.json` section they map to (for root classes)
+- **Property-level** `/// <summary>` — start with "Gets or sets…", describe the purpose, mention defaults and constraints when relevant
+- **Nested class** `/// <summary>` — describe what the sub-section configures
+- Use the same `Gets or sets` wording as `CachingOptions` for consistency across the codebase
+
 ### Child Options (Sub-Sections)
 
 Child options model nested `appsettings.json` sections (e.g., `Authentication:Jwt:RefreshToken`). **Always nest them as `public sealed class` inside the parent.** They have no `SectionName` — they bind automatically through the parent. They are not registered independently with `AddOptions<>`.

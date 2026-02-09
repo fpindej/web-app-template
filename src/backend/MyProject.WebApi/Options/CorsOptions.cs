@@ -2,6 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MyProject.WebApi.Options;
 
+/// <summary>
+/// Root CORS configuration options.
+/// Maps to the "Cors" section in appsettings.json.
+/// Controls which origins, headers, and methods are allowed for cross-origin requests.
+/// </summary>
 public sealed class CorsOptions : IValidatableObject
 {
     public const string SectionName = "Cors";
