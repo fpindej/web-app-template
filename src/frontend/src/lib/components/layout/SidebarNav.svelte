@@ -57,7 +57,7 @@
 		}
 	];
 
-	let isAdmin = $derived(user?.roles?.includes('Admin') ?? false);
+	let isAdmin = $derived(user?.roles?.some((r) => r === 'Admin' || r === 'SuperAdmin') ?? false);
 
 	function isActive(href: string, pathname: string) {
 		if (href === resolve('/')) {

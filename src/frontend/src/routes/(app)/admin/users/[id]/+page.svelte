@@ -38,7 +38,7 @@
 	</div>
 	<div class="h-px w-full bg-border"></div>
 
-	{#if data.adminUser}
-		<UserDetailCards user={data.adminUser} roles={data.roles ?? []} />
+	{#if data.adminUser && data.user}
+		<UserDetailCards user={data.adminUser} roles={data.roles ?? []} currentUser={data.user} />
 	{/if}
 </div>

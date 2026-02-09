@@ -8,7 +8,8 @@ export const load: LayoutServerLoad = async ({ parent }) => {
 		throw redirect(303, '/login');
 	}
 
-	if (!user.roles?.includes('Admin')) {
+	const isAdmin = user.roles?.some((r) => r === 'Admin' || r === 'SuperAdmin') ?? false;
+	if (!isAdmin) {
 		throw redirect(303, '/');
 	}
 

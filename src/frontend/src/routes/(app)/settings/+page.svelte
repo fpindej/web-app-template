@@ -38,7 +38,11 @@
 								{m.settings_deleteAccount_description()}
 							</p>
 						</div>
-						<Button variant="destructive" class="shrink-0" onclick={() => (deleteDialogOpen = true)}>
+						<Button
+							variant="destructive"
+							class="shrink-0"
+							onclick={() => (deleteDialogOpen = true)}
+						>
 							{m.settings_deleteAccount_title()}
 						</Button>
 					</div>

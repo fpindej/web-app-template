@@ -22,15 +22,17 @@
 		CheckCircle,
 		XCircle
 	} from '@lucide/svelte';
-	import type { AdminUser, AdminRole } from '$lib/types';
+	import type { AdminUser, AdminRole, User } from '$lib/types';
+	import { canManageUser, getAssignableRoles, getRoleRank, getHighestRank } from '$lib/utils';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
 		user: AdminUser;
 		roles: AdminRole[];
+		currentUser: User;
 	}
 
-	let { user, roles }: Props = $props();
+	let { user, roles, currentUser }: Props = $props();
 
 	let deleteDialogOpen = $state(false);
 	let isLocking = $state(false);
@@ -39,9 +41,22 @@
 	let isAssigningRole = $state(false);
 	let isRemovingRole = $state<string | null>(null);
 
+	let callerRoles = $derived(currentUser.roles ?? []);
+	let targetRoles = $derived(user.roles ?? []);
+	let canManage = $derived(canManageUser(callerRoles, targetRoles));
+	let callerRank = $derived(getHighestRank(callerRoles));
+
 	let availableRoles = $derived(
-		(roles ?? []).filter((r) => !user.roles?.includes(r.name ?? '')).map((r) => r.name ?? '')
+		getAssignableRoles(
+			callerRoles,
+			(roles ?? []).map((r) => r.name ?? '')
+		).filter((role) => !targetRoles.includes(role))
 	);
+
+	/** Returns true if the caller can remove a specific role from the target. */
+	function canRemoveRole(role: string): boolean {
+		return canManage && getRoleRank(role) < callerRank;
+	}
 
 	let selectedRole = $state('');
 
@@ -226,14 +241,16 @@
 					{#each user.roles ?? [] as role (role)}
 						<Badge variant="secondary" class="gap-1">
 							{role}
-							<button
-								class="ms-1 inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-muted"
-								aria-label="{m.admin_userDetail_removeRole()} {role}"
-								disabled={isRemovingRole === role}
-								onclick={() => removeRole(role)}
-							>
-								<X class="h-3 w-3" />
-							</button>
+							{#if canRemoveRole(role)}
+								<button
+									class="ms-1 inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-muted"
+									aria-label="{m.admin_userDetail_removeRole()} {role}"
+									disabled={isRemovingRole === role}
+									onclick={() => removeRole(role)}
+								>
+									<X class="h-3 w-3" />
+								</button>
+							{/if}
 						</Badge>
 					{:else}
 						<span class="text-sm text-muted-foreground">{m.admin_userDetail_noRoles()}</span>
@@ -241,7 +258,7 @@
 				</div>
 			</div>
 
-			{#if availableRoles.length > 0}
+			{#if canManage && availableRoles.length > 0}
 				<div class="flex items-end gap-2">
 					<div class="flex-1">
 						<label for="role-select" class="mb-1 block text-sm font-medium">
@@ -274,46 +291,52 @@
 			<Card.Description>{m.admin_userDetail_accountActionsDescription()}</Card.Description>
 		</Card.Header>
 		<Card.Content>
-			<div class="flex flex-wrap gap-3">
-				{#if user.isLockedOut}
-					<Button variant="outline" disabled={isUnlocking} onclick={unlockUser}>
-						<Unlock class="me-2 h-4 w-4" />
-						{m.admin_userDetail_unlockAccount()}
-					</Button>
-				{:else}
-					<Button variant="outline" disabled={isLocking} onclick={lockUser}>
-						<Lock class="me-2 h-4 w-4" />
-						{m.admin_userDetail_lockAccount()}
-					</Button>
-				{/if}
+			{#if canManage}
+				<div class="flex flex-wrap gap-3">
+					{#if user.isLockedOut}
+						<Button variant="outline" disabled={isUnlocking} onclick={unlockUser}>
+							<Unlock class="me-2 h-4 w-4" />
+							{m.admin_userDetail_unlockAccount()}
+						</Button>
+					{:else}
+						<Button variant="outline" disabled={isLocking} onclick={lockUser}>
+							<Lock class="me-2 h-4 w-4" />
+							{m.admin_userDetail_lockAccount()}
+						</Button>
+					{/if}
 
-				<Dialog.Root bind:open={deleteDialogOpen}>
-					<Dialog.Trigger>
-						{#snippet child({ props })}
-							<Button variant="destructive" {...props}>
-								<Trash2 class="me-2 h-4 w-4" />
-								{m.admin_userDetail_deleteAccount()}
-							</Button>
-						{/snippet}
-					</Dialog.Trigger>
-					<Dialog.Content>
-						<Dialog.Header>
-							<Dialog.Title>{m.admin_userDetail_deleteConfirmTitle()}</Dialog.Title>
-							<Dialog.Description>
-								{m.admin_userDetail_deleteConfirmDescription()}
-							</Dialog.Description>
-						</Dialog.Header>
-						<Dialog.Footer class="flex-col-reverse sm:flex-row">
-							<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>
-								{m.admin_userDetail_deleteCancel()}
-							</Button>
-							<Button variant="destructive" disabled={isDeleting} onclick={deleteUser}>
-								{m.admin_userDetail_deleteConfirm()}
-							</Button>
-						</Dialog.Footer>
-					</Dialog.Content>
-				</Dialog.Root>
-			</div>
+					<Dialog.Root bind:open={deleteDialogOpen}>
+						<Dialog.Trigger>
+							{#snippet child({ props })}
+								<Button variant="destructive" {...props}>
+									<Trash2 class="me-2 h-4 w-4" />
+									{m.admin_userDetail_deleteAccount()}
+								</Button>
+							{/snippet}
+						</Dialog.Trigger>
+						<Dialog.Content>
+							<Dialog.Header>
+								<Dialog.Title>{m.admin_userDetail_deleteConfirmTitle()}</Dialog.Title>
+								<Dialog.Description>
+									{m.admin_userDetail_deleteConfirmDescription()}
+								</Dialog.Description>
+							</Dialog.Header>
+							<Dialog.Footer class="flex-col-reverse sm:flex-row">
+								<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>
+									{m.admin_userDetail_deleteCancel()}
+								</Button>
+								<Button variant="destructive" disabled={isDeleting} onclick={deleteUser}>
+									{m.admin_userDetail_deleteConfirm()}
+								</Button>
+							</Dialog.Footer>
+						</Dialog.Content>
+					</Dialog.Root>
+				</div>
+			{:else}
+				<p class="text-sm text-muted-foreground">
+					{m.admin_userDetail_cannotManage()}
+				</p>
+			{/if}
 		</Card.Content>
 	</Card.Root>
 </div>

@@ -278,6 +278,7 @@
 	"admin_userDetail_deleteCancel": "Zrušit",
 	"admin_userDetail_deleteSuccess": "Uživatelský účet byl smazán",
 	"admin_userDetail_deleteError": "Nepodařilo se smazat uživatelský účet",
+	"admin_userDetail_cannotManage": "Nemáte dostatečná oprávnění ke správě tohoto uživatele.",
 	"admin_userDetail_loadError": "Nepodařilo se načíst detail uživatele",
 
 	"admin_roles_title": "Role",

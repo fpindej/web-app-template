@@ -278,6 +278,7 @@
 	"admin_userDetail_deleteCancel": "Cancel",
 	"admin_userDetail_deleteSuccess": "User account deleted",
 	"admin_userDetail_deleteError": "Failed to delete user account",
+	"admin_userDetail_cannotManage": "You do not have sufficient privileges to manage this user.",
 	"admin_userDetail_loadError": "Failed to load user details",
 
 	"admin_roles_title": "Roles",
