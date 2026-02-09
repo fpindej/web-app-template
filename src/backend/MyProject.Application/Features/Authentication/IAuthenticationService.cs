@@ -4,7 +4,7 @@ using MyProject.Domain;
 namespace MyProject.Application.Features.Authentication;
 
 /// <summary>
-/// Provides authentication operations including login, registration, logout, and token refresh.
+/// Provides authentication operations including login, registration, logout, token refresh, and password management.
 /// </summary>
 public interface IAuthenticationService
 {
@@ -41,4 +41,13 @@ public interface IAuthenticationService
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A result containing new authentication tokens on success.</returns>
     Task<Result<AuthenticationOutput>> RefreshTokenAsync(string refreshToken, bool useCookies = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Changes the current user's password after verifying the current password.
+    /// Revokes all existing refresh tokens to force re-authentication on other devices.
+    /// </summary>
+    /// <param name="input">The change password input containing current and new passwords.</param>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>A result indicating success or failure.</returns>
+    Task<Result> ChangePasswordAsync(ChangePasswordInput input, CancellationToken cancellationToken = default);
 }

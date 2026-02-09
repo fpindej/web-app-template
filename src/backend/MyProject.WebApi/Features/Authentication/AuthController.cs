@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.Cookies.Constants;
 using MyProject.Application.Features.Authentication;
+using MyProject.WebApi.Features.Authentication.Dtos.ChangePassword;
 using MyProject.WebApi.Features.Authentication.Dtos.Login;
 using MyProject.WebApi.Features.Authentication.Dtos.Register;
 using MyProject.WebApi.Shared;
@@ -123,5 +124,31 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
 
         var response = new RegisterResponse { Id = result.Value };
         return Created(string.Empty, response);
+    }
+
+    /// <summary>
+    /// Changes the current authenticated user's password.
+    /// Revokes all existing refresh tokens to force re-authentication on other devices.
+    /// </summary>
+    /// <param name="request">The change password request containing current and new passwords</param>
+    /// <returns>A 204 No Content response on success</returns>
+    /// <response code="204">Password changed successfully</response>
+    /// <response code="400">If the request is invalid or the current password is incorrect</response>
+    /// <response code="401">If the user is not authenticated</response>
+    [Authorize]
+    [HttpPost("change-password")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        var result = await authenticationService.ChangePasswordAsync(request.ToChangePasswordInput(), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new ErrorResponse { Message = result.Error });
+        }
+
+        return NoContent();
     }
 }

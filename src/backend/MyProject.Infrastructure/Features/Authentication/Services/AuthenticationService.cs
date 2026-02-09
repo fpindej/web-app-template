@@ -232,6 +232,43 @@ internal class AuthenticationService(
         }
     }
 
+    /// <inheritdoc />
+    public async Task<Result> ChangePasswordAsync(ChangePasswordInput input, CancellationToken cancellationToken = default)
+    {
+        var userId = userContext.UserId;
+
+        if (!userId.HasValue)
+        {
+            return Result.Failure("User is not authenticated.");
+        }
+
+        var user = await userManager.FindByIdAsync(userId.Value.ToString());
+
+        if (user is null)
+        {
+            return Result.Failure("User not found.");
+        }
+
+        var passwordValid = await userManager.CheckPasswordAsync(user, input.CurrentPassword);
+
+        if (!passwordValid)
+        {
+            return Result.Failure("Current password is incorrect.");
+        }
+
+        var changeResult = await userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);
+
+        if (!changeResult.Succeeded)
+        {
+            var errors = string.Join(", ", changeResult.Errors.Select(e => e.Description));
+            return Result.Failure(errors);
+        }
+
+        await RevokeUserTokens(userId.Value, cancellationToken);
+
+        return Result.Success();
+    }
+
     private async Task RevokeUserTokens(Guid userId, CancellationToken cancellationToken = default)
     {
         var tokens = await dbContext.RefreshTokens
