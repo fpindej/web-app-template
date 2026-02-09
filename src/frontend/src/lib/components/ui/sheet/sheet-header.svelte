@@ -8,6 +8,6 @@
 	}: import('svelte/elements').HTMLAttributes<HTMLDivElement> = $props();
 </script>
 
-<div class={cn('flex flex-col space-y-2 text-center sm:text-left', className)} {...restProps}>
+<div class={cn('flex flex-col space-y-2 text-center sm:text-start', className)} {...restProps}>
 	{@render children?.()}
 </div>
