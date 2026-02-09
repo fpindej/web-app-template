@@ -115,9 +115,15 @@ try
     {
         Log.Debug("Apply migrations to local database");
         app.ApplyMigrations();
+    }
 
-        Log.Debug("Seeding identity data (test and admin users)");
-        await app.SeedIdentityUsersAsync();
+    Log.Debug("Seeding identity roles");
+    await app.SeedRolesAsync();
+
+    if (app.Environment.IsDevelopment())
+    {
+        Log.Debug("Seeding development test users");
+        await app.SeedDevelopmentUsersAsync();
     }
 
     Log.Debug("Setting UseCors");

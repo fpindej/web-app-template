@@ -8,31 +8,20 @@ using MyProject.Infrastructure.Features.Authentication.Models;
 namespace MyProject.Infrastructure.Features.Authentication.Extensions;
 
 /// <summary>
-/// Extension methods for seeding default Identity users and roles at startup.
+/// Extension methods for seeding Identity roles and development test users at startup.
 /// </summary>
 public static class ApplicationBuilderExtensions
 {
     /// <summary>
-    /// Seeds default roles and test users if they do not already exist.
-    /// <para>
-    /// Roles are defined in <see cref="AppRoles"/> — this method ensures all roles from
-    /// <see cref="AppRoles.All"/> exist, then creates test users for development.
-    /// </para>
+    /// Seeds all roles defined in <see cref="AppRoles.All"/> if they do not already exist.
+    /// This should run in every environment to ensure the role set is consistent.
     /// </summary>
     /// <param name="appBuilder">The application builder.</param>
-    public static async Task SeedIdentityUsersAsync(this IApplicationBuilder appBuilder)
+    public static async Task SeedRolesAsync(this IApplicationBuilder appBuilder)
     {
         using var scope = appBuilder.ApplicationServices.CreateScope();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
 
-        await SeedRolesAsync(roleManager);
-        await SeedUserAsync(userManager, SeedUsers.TestUserEmail, SeedUsers.TestUserPassword, AppRoles.User);
-        await SeedUserAsync(userManager, SeedUsers.AdminEmail, SeedUsers.AdminPassword, AppRoles.Admin);
-    }
-
-    private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager)
-    {
         foreach (var role in AppRoles.All)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -40,6 +29,23 @@ public static class ApplicationBuilderExtensions
                 await roleManager.CreateAsync(new ApplicationRole { Name = role });
             }
         }
+    }
+
+    /// <summary>
+    /// Seeds test users for local development. Must not be called in production.
+    /// <para>
+    /// User credentials are defined in <see cref="SeedUsers"/>.
+    /// Roles must already exist — call <see cref="SeedRolesAsync"/> first.
+    /// </para>
+    /// </summary>
+    /// <param name="appBuilder">The application builder.</param>
+    public static async Task SeedDevelopmentUsersAsync(this IApplicationBuilder appBuilder)
+    {
+        using var scope = appBuilder.ApplicationServices.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        await SeedUserAsync(userManager, SeedUsers.TestUserEmail, SeedUsers.TestUserPassword, AppRoles.User);
+        await SeedUserAsync(userManager, SeedUsers.AdminEmail, SeedUsers.AdminPassword, AppRoles.Admin);
     }
 
     private static async Task SeedUserAsync(
