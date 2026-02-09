@@ -19,18 +19,14 @@ export const createApiClient = (customFetch?: typeof fetch, baseUrl: string = ''
 
 			if (!refreshPromise) {
 				const refreshUrl = baseUrl ? `${baseUrl}/api/auth/refresh` : '/api/auth/refresh';
-				refreshPromise = f(refreshUrl, {
-					method: 'POST'
-				}).then((res) => {
+				refreshPromise = f(refreshUrl, { method: 'POST' }).finally(() => {
 					refreshPromise = null;
-					return res;
 				});
 			}
 
 			const refreshResponse = await refreshPromise;
 
-			if (refreshResponse && refreshResponse.ok) {
-				// Retry the original request
+			if (refreshResponse.ok) {
 				return f(input, init);
 			}
 		}
