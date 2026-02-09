@@ -15,9 +15,11 @@ src/backend/
 │   ├── Features/
 │   │   └── {Feature}/
 │   │       ├── I{Feature}Service.cs
-│   │       └── Dtos/
-│   │           ├── {Operation}Input.cs
-│   │           └── {Entity}Output.cs
+│   │       ├── Dtos/
+│   │       │   ├── {Operation}Input.cs
+│   │       │   └── {Entity}Output.cs
+│   │       └── Persistence/           # Optional — only if custom queries needed
+│   │           └── I{Feature}Repository.cs
 │   ├── Persistence/
 │   │   └── IBaseEntityRepository.cs
 │   ├── Caching/
@@ -33,6 +35,7 @@ src/backend/
 │   ├── Features/
 │   │   └── {Feature}/
 │   │       ├── Services/          # Service implementations
+│   │       ├── Persistence/       # Custom repository implementations (optional)
 │   │       ├── Models/            # EF/Identity models
 │   │       ├── Configurations/    # IEntityTypeConfiguration
 │   │       ├── Extensions/        # DI registration
@@ -513,9 +516,19 @@ HSTS (`Strict-Transport-Security`) is enabled via `app.UseHsts()` in non-develop
 
 The frontend applies the same headers to page responses via the `handle` hook in `hooks.server.ts`. API proxy routes (`/api/*`) are skipped — they receive headers from the backend directly.
 
-## Repository & Unit of Work
+## Repository Pattern & Persistence
 
-`IBaseEntityRepository<T>` provides standard CRUD with automatic soft-delete filtering:
+### DbContext Lifecycle
+
+`MyProjectDbContext` is registered as **scoped** (one per HTTP request) via `AddDbContext`. This is the correct lifetime for web APIs — each request gets a clean change tracker.
+
+- **Services** that need direct query access inject `MyProjectDbContext` via primary constructor
+- **Repositories** wrap `DbContext` with entity-specific query methods
+- **Never** use `IDbContextFactory` for HTTP request handling — it's for background services that need parallel/concurrent DB operations
+
+### Generic Repository — `IBaseEntityRepository<T>`
+
+Provides standard CRUD with automatic soft-delete filtering:
 
 ```csharp
 public interface IBaseEntityRepository<TEntity> where TEntity : BaseEntity
@@ -530,21 +543,117 @@ public interface IBaseEntityRepository<TEntity> where TEntity : BaseEntity
 }
 ```
 
-All queries automatically exclude soft-deleted records via a global EF Core query filter (`HasQueryFilter(e => !e.IsDeleted)`) configured in `BaseEntityConfiguration`. Use `.IgnoreQueryFilters()` when you need to query deleted entities (e.g., `RestoreAsync`). Save changes via `DbContext.SaveChangesAsync()`:
+All queries automatically exclude soft-deleted records via a global EF Core query filter (`HasQueryFilter(e => !e.IsDeleted)`) configured in `BaseEntityConfiguration`. Use `.IgnoreQueryFilters()` when you need to query deleted entities (e.g., `RestoreAsync`).
+
+The open generic registration `IBaseEntityRepository<T> → BaseEntityRepository<T>` covers entities that only need standard CRUD. For entities with custom queries, create a feature-specific repository (see below).
+
+### Custom Repositories
+
+When an entity needs queries beyond basic CRUD, create a dedicated repository:
+
+**1. Define the interface (Application layer):**
+
+```csharp
+// Application/Features/Orders/Persistence/IOrderRepository.cs
+public interface IOrderRepository : IBaseEntityRepository<Order>
+{
+    /// <summary>
+    /// Gets all orders for a specific user, ordered by creation date descending.
+    /// </summary>
+    Task<IReadOnlyList<Order>> GetByUserIdAsync(Guid userId, int pageNumber, int pageSize,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets an order by its order number. Returns null if not found.
+    /// </summary>
+    Task<Order?> GetByOrderNumberAsync(string orderNumber, CancellationToken ct = default);
+}
+```
+
+**2. Implement (Infrastructure layer):**
+
+```csharp
+// Infrastructure/Features/Orders/Persistence/OrderRepository.cs
+internal class OrderRepository(MyProjectDbContext dbContext)
+    : BaseEntityRepository<Order>(dbContext), IOrderRepository
+{
+    public async Task<IReadOnlyList<Order>> GetByUserIdAsync(Guid userId, int pageNumber, int pageSize,
+        CancellationToken ct = default)
+    {
+        return await dbContext.Orders
+            .AsNoTracking()
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .Paginate(pageNumber, pageSize)
+            .ToListAsync(ct);
+    }
+
+    public async Task<Order?> GetByOrderNumberAsync(string orderNumber, CancellationToken ct = default)
+    {
+        return await dbContext.Orders
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber, ct);
+    }
+}
+```
+
+**3. Register in DI (Infrastructure layer):**
+
+```csharp
+services.AddScoped<IOrderRepository, OrderRepository>();
+```
+
+The open generic registration still serves entities without custom repositories. Feature-specific registrations take precedence when the specific interface is injected.
+
+Key rules:
+- **Interface** in `Application/Features/{Feature}/Persistence/` — extends `IBaseEntityRepository<T>`
+- **Implementation** in `Infrastructure/Features/{Feature}/Persistence/` — extends `BaseEntityRepository<T>`, marked `internal`
+- **Query methods** belong on the repository, not scattered across services — the repository is the single source of truth for how an entity is queried
+- **Override `virtual` methods** from `BaseEntityRepository<T>` when you need custom behavior (e.g., eager loading with `.Include()`)
+- **Inject the specific interface** (`IOrderRepository`) in services, not the generic one — this gives access to custom methods while inheriting all base CRUD operations
+
+### Saving Changes
+
+`SaveChangesAsync` wraps all pending changes in a **single implicit transaction** — if any change fails, they all roll back. For most operations, this is sufficient:
 
 ```csharp
 await repository.AddAsync(entity, ct);
 await dbContext.SaveChangesAsync(ct);
 ```
 
-For transactions spanning multiple operations, use `DbContext.Database` directly:
+### Explicit Transactions
+
+Use explicit transactions only when you need **multiple `SaveChangesAsync` calls** to be atomic — for example, when you need an ID from the first save to use in the second:
 
 ```csharp
 await using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
-// ... multiple repository operations ...
-await dbContext.SaveChangesAsync(ct);
-await transaction.CommitAsync(ct);
+try
+{
+    await dbContext.Orders.AddAsync(order, ct);
+    await dbContext.SaveChangesAsync(ct); // order.Id is now set
+
+    var audit = new AuditEntry(order.Id, "Created");
+    await dbContext.AuditEntries.AddAsync(audit, ct);
+    await dbContext.SaveChangesAsync(ct);
+
+    await transaction.CommitAsync(ct);
+}
+catch
+{
+    await transaction.RollbackAsync(ct);
+    throw;
+}
 ```
+
+When **not** to use explicit transactions:
+- Single `SaveChangesAsync` call — already atomic
+- Read-only queries — no writes to coordinate
+- Operations across different services — redesign to keep the transaction boundary within one service method
+
+| Pattern | When |
+|---|---|
+| `dbContext.SaveChangesAsync()` | Default — single batch of changes, implicitly transactional |
+| `BeginTransactionAsync` / `CommitAsync` | Multiple `SaveChangesAsync` calls that must succeed or fail together |
 
 ## Pagination
 
@@ -1006,15 +1115,17 @@ Before adding or modifying any endpoint, verify:
 2. **Domain**: If the entity has enum properties, define them with explicit integer values in `Domain/Entities/` (or `Domain/Enums/` if shared)
 3. **Application**: Define `I{Feature}Service` in `Application/Features/{Feature}/`
 4. **Application**: Create Input/Output record DTOs in `Application/Features/{Feature}/Dtos/`
-5. **Infrastructure**: Implement service in `Infrastructure/Features/{Feature}/Services/` (mark `internal`)
-6. **Infrastructure**: Add EF configuration in `Infrastructure/Features/{Feature}/Configurations/` (extend `BaseEntityConfiguration<T>`) — add `.HasComment()` on enum columns
-7. **Infrastructure**: Create DI extension in `Infrastructure/Features/{Feature}/Extensions/ServiceCollectionExtensions.cs`
-8. **Infrastructure**: Add `DbSet<Entity>` to `MyProjectDbContext`
-9. **WebApi**: Create controller in `WebApi/Features/{Feature}/` (extend `ApiController` or `ControllerBase`)
-10. **WebApi**: Create Request/Response DTOs in `WebApi/Features/{Feature}/Dtos/{Operation}/`
-11. **WebApi**: Create Mapper in `WebApi/Features/{Feature}/{Feature}Mapper.cs`
-12. **WebApi**: Add validators co-located with request DTOs
-13. **WebApi**: Wire DI call in `Program.cs`
-14. **Migration**: `dotnet ef migrations add ...`
+5. **Application**: If the entity needs custom queries, define `I{Feature}Repository` in `Application/Features/{Feature}/Persistence/` extending `IBaseEntityRepository<T>`
+6. **Infrastructure**: Implement service in `Infrastructure/Features/{Feature}/Services/` (mark `internal`)
+7. **Infrastructure**: If custom repository was defined, implement in `Infrastructure/Features/{Feature}/Persistence/` extending `BaseEntityRepository<T>` (mark `internal`)
+8. **Infrastructure**: Add EF configuration in `Infrastructure/Features/{Feature}/Configurations/` (extend `BaseEntityConfiguration<T>`) — add `.HasComment()` on enum columns
+9. **Infrastructure**: Create DI extension in `Infrastructure/Features/{Feature}/Extensions/ServiceCollectionExtensions.cs`
+10. **Infrastructure**: Add `DbSet<Entity>` to `MyProjectDbContext`
+11. **WebApi**: Create controller in `WebApi/Features/{Feature}/` (extend `ApiController` or `ControllerBase`)
+12. **WebApi**: Create Request/Response DTOs in `WebApi/Features/{Feature}/Dtos/{Operation}/`
+13. **WebApi**: Create Mapper in `WebApi/Features/{Feature}/{Feature}Mapper.cs`
+14. **WebApi**: Add validators co-located with request DTOs
+15. **WebApi**: Wire DI call in `Program.cs`
+16. **Migration**: `dotnet ef migrations add ...`
 
-Commit atomically: entity+config → service interface+DTOs → service implementation+DI → controller+DTOs+mapper+validators → migration.
+Commit atomically: entity+config → service interface+DTOs+repository interface → service implementation+repository implementation+DI → controller+DTOs+mapper+validators → migration.
