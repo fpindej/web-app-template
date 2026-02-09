@@ -16,7 +16,7 @@
 	import { LoginBackground, RegisterDialog } from '$lib/components/auth';
 	import { toast } from '$lib/components/ui/sonner';
 
-	let { apiUrl } = $props();
+	let { apiUrl }: { apiUrl?: string } = $props();
 
 	let email = $state('');
 	let password = $state('');
@@ -91,7 +91,7 @@
 		title={apiUrl}
 	>
 		<StatusIndicator status={isApiOnline ? 'online' : 'offline'} size="sm" />
-		<span class="hidden group-hover:inline">{apiUrl}</span>
+		<span class="hidden group-hover:inline">{apiUrl ?? 'API'}</span>
 	</div>
 
 	{#if !isSuccess}

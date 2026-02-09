@@ -473,12 +473,12 @@ export const load: LayoutServerLoad = async ({ parent }) => {
 
 ### Root Layout Data
 
-The root `+layout.server.ts` fetches the user and locale for all routes:
+The root `+layout.server.ts` fetches the user and locale for all routes. In development, it also exposes the internal API URL for debugging (visible in the login page status indicator):
 
 ```typescript
 export const load: LayoutServerLoad = async ({ locals, fetch, url }) => {
 	const user = await getUser(fetch, url.origin);
-	return { user, apiUrl: SERVER_CONFIG.API_URL, locale: locals.locale };
+	return { user, locale: locals.locale, apiUrl: dev ? SERVER_CONFIG.API_URL : undefined };
 };
 ```
 
