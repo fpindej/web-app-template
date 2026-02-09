@@ -1104,5 +1104,6 @@ Use alongside FluentValidation — annotations feed the spec, FluentValidation h
 14. **WebApi**: Add validators co-located with request DTOs
 15. **WebApi**: Wire DI call in `Program.cs`
 16. **Migration**: `dotnet ef migrations add ...`
+17. **Docs**: Update `docs/` and AGENTS.md if the feature introduces new patterns or conventions (see root `AGENTS.md` — Documentation Maintenance)
 
 Commit atomically: entity+config → service interface+DTOs+repository interface → service implementation+repository implementation+DI → controller+DTOs+mapper+validators → migration.

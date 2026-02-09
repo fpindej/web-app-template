@@ -881,5 +881,6 @@ npm run build    # Production build
 8. **Navigation**: Update sidebar/header if adding a new page
 9. **Responsive**: Verify at 320px, 375px, 768px, 1024px
 10. **Accessibility**: Touch targets ≥40px, logical properties, `prefers-reduced-motion`
+11. **Docs**: Update `docs/` and AGENTS.md if the feature introduces new patterns or conventions (see root `AGENTS.md` — Documentation Maintenance)
 
 Commit atomically: types+aliases → components → route+server-load → i18n keys.

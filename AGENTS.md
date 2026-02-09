@@ -164,6 +164,27 @@ Before **every** commit:
 
 Never commit code that doesn't compile, has lint errors, or fails type checks.
 
+### Documentation Maintenance
+
+When a PR changes conventions, architecture, patterns, or workflows, update the relevant `docs/` files and AGENTS.md files in the same PR.
+
+| If you change... | Update |
+|---|---|
+| Backend patterns, entities, services, EF Core | `src/backend/AGENTS.md` + `docs/backend-conventions.md` |
+| Frontend patterns, components, state, CSS | `src/frontend/AGENTS.md` + `docs/frontend-conventions.md` |
+| Security headers, CSP, auth, cookies | Layer AGENTS.md + `docs/security.md` |
+| API contract, DTOs, OpenAPI annotations | `src/backend/AGENTS.md` + `docs/api-contract.md` |
+| Architecture, layers, request flow | `AGENTS.md` + `docs/architecture.md` |
+| Dev setup, Docker, environment config | `docs/getting-started.md` |
+| Git workflow, issues, PRs, labels | `AGENTS.md` + `docs/workflow.md` |
+
+Rules:
+- Update docs in the **same commit** as the code change they document (or as a dedicated `docs:` commit in the same PR)
+- AGENTS.md changes = actionable rules, code templates, tables, checklists
+- docs/ changes = explanations, rationale, design decisions
+- If adding a new convention, add the rule to AGENTS.md **and** the rationale to docs/
+- If removing or changing a convention, update **both** places
+
 ### Session Documentation
 
 When the user asks to wrap up or create session docs:
