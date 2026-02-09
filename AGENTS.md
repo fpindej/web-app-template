@@ -148,14 +148,30 @@ When creating GitHub issues, use `gh issue create` with:
 
 When an issue spans multiple layers (backend + frontend), involves multiple logical steps, or could realistically be worked on by different developers in parallel, break it into **sub-issues**. The parent issue describes the overall goal; sub-issues are independently deliverable units of work.
 
-Use `gh issue create` for each sub-issue and link them to the parent with a task list in the parent body:
+Use `gh issue create` for each sub-issue, then link them to the parent using the **GitHub Sub-Issues API**:
 
-```markdown
-## Sub-issues
+```bash
+# 1. Create the parent issue
+gh issue create --title "feat(auth): add change password endpoint" \
+  --body "..." --label "backend,frontend,feature"
 
-- [ ] #101 — feat(auth): add change password endpoint (backend)
-- [ ] #102 — feat(auth): add change password form (frontend)
+# 2. Create each sub-issue
+gh issue create --title "feat(auth): add change password endpoint (backend)" \
+  --body "..." --label "backend,feature"
+gh issue create --title "feat(auth): add change password form (frontend)" \
+  --body "..." --label "frontend,feature"
+
+# 3. Get the sub-issue's numeric ID (not the issue number)
+gh api --method GET /repos/{owner}/{repo}/issues/{sub_issue_number} --jq '.id'
+
+# 4. Link each sub-issue to the parent
+gh api --method POST /repos/{owner}/{repo}/issues/{parent_number}/sub_issues \
+  --field sub_issue_id={sub_issue_id}
 ```
+
+This gives GitHub native progress tracking on the parent issue (completion count and percentage) rather than relying on markdown task lists.
+
+> **Do not** use markdown checkbox task lists (`- [ ] #101`) to track sub-issues. Always use the Sub-Issues API so GitHub tracks hierarchy and progress natively.
 
 **When to split:**
 
