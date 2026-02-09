@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Options;
 
 namespace MyProject.WebApi.Options;
 
@@ -16,6 +17,7 @@ public sealed class RateLimitingOptions
     /// Applies a fixed-window limit across all endpoints.
     /// </summary>
     [Required]
+    [ValidateObjectMembers]
     public GlobalLimitOptions Global { get; init; } = new();
 
     /// <summary>

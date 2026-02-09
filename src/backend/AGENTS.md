@@ -546,23 +546,13 @@ Options classes are `public sealed class` with `const string SectionName` matchi
 
 ```csharp
 // Infrastructure/Features/Authentication/Options/AuthenticationOptions.cs
-public sealed class AuthenticationOptions : IValidatableObject
+public sealed class AuthenticationOptions
 {
     public const string SectionName = "Authentication";
 
     [Required]
+    [ValidateObjectMembers]           // Recurses into JwtOptions data annotations
     public JwtOptions Jwt { get; init; } = new();
-
-    // Cross-property and complex validation via IValidatableObject
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    {
-        if (Jwt.Key.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase))
-        {
-            yield return new ValidationResult(
-                "JWT key contains placeholder text.",
-                [nameof(Jwt)]);
-        }
-    }
 
     public sealed class JwtOptions
     {
@@ -576,6 +566,7 @@ public sealed class AuthenticationOptions : IValidatableObject
         [Range(1, 120)]
         public int ExpiresInMinutes { get; init; } = 10;
 
+        [ValidateObjectMembers]       // Recurses into RefreshTokenOptions
         public RefreshTokenOptions RefreshToken { get; init; } = new();
 
         // Nested options — no SectionName, bound automatically via parent
@@ -613,6 +604,7 @@ public sealed class AuthenticationOptions
     /// Contains signing key, issuer, audience, and token lifetime settings.
     /// </summary>
     [Required]
+    [ValidateObjectMembers]
     public JwtOptions Jwt { get; init; } = new();
 
     /// <summary>
@@ -646,6 +638,7 @@ public sealed class RateLimitingOptions
     public const string SectionName = "RateLimiting";
 
     [Required]
+    [ValidateObjectMembers]
     public GlobalLimitOptions Global { get; init; } = new();
 
     public sealed class GlobalLimitOptions
@@ -667,14 +660,18 @@ Use `[UsedImplicitly]` on `init` setters of child options properties that are on
 | Mechanism | Use For |
 |---|---|
 | **Data Annotations** (`[Required]`, `[MinLength]`, `[Range]`) | Simple property-level constraints |
-| **`IValidatableObject.Validate()`** | Cross-property rules, business logic checks, placeholder detection |
+| **`[ValidateObjectMembers]`** | Properties holding nested options objects with their own data annotations — ensures `ValidateDataAnnotations()` recurses into children |
+| **`IValidatableObject.Validate()`** | Cross-property rules, conditional validation, business logic checks |
 
-**Never** use `IValidateOptions<T>` — keep all validation on the options class itself via `IValidatableObject`. This keeps validation co-located with the configuration it validates.
+**`[ValidateObjectMembers]`** (from `Microsoft.Extensions.Options`) tells `ValidateDataAnnotations()` to recurse into a nested object and validate its data annotations. Without it, `ValidateDataAnnotations()` only checks the root class — annotations on nested objects are silently ignored. **Every property that holds a child options object with data annotations must have `[ValidateObjectMembers]`.**
 
-When a parent options class composes child options that have their own `IValidatableObject.Validate()`, the parent must **delegate** validation to the children:
+**Never** use `IValidateOptions<T>` — keep all validation on the options class itself via data annotations, `[ValidateObjectMembers]`, or `IValidatableObject`. This keeps validation co-located with the configuration it validates.
+
+When a parent options class composes child options that have their own `IValidatableObject.Validate()` and validation must be **conditional**, the parent must delegate validation to the children manually (because `[ValidateObjectMembers]` validates unconditionally):
 
 ```csharp
-// Parent delegates to children conditionally
+// Parent delegates to children conditionally — CachingOptions pattern
+// Use this ONLY when you need conditional validation (e.g., validate Redis only when enabled)
 public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
 {
     if (Redis.Enabled)
@@ -685,7 +682,7 @@ public IEnumerable<ValidationResult> Validate(ValidationContext validationContex
 }
 ```
 
-This is necessary because `ValidateDataAnnotations()` only invokes `Validate()` on the **root** options class — it does not recurse into composed children automatically.
+For the common case where child validation is unconditional, prefer `[ValidateObjectMembers]` over manual delegation — it's simpler and less error-prone.
 
 ### Registration
 

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using JetBrains.Annotations;
+using Microsoft.Extensions.Options;
 
 namespace MyProject.Infrastructure.Features.Authentication.Options;
 
@@ -16,6 +17,7 @@ public sealed class AuthenticationOptions
     /// Contains signing key, issuer, audience, and token lifetime settings.
     /// </summary>
     [Required]
+    [ValidateObjectMembers]
     public JwtOptions Jwt { get; init; } = new();
 
     /// <summary>
@@ -55,6 +57,7 @@ public sealed class AuthenticationOptions
         /// <summary>
         /// Gets or sets the refresh token configuration.
         /// </summary>
+        [ValidateObjectMembers]
         public RefreshTokenOptions RefreshToken { get; init; } = new();
 
         /// <summary>
