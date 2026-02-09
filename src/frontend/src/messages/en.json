@@ -31,6 +31,8 @@
 	"common_user": "User",
 	"common_language": "Language",
 	"common_theme": "Theme",
+	"common_close": "Close",
+	"common_toggleNavMenu": "Toggle navigation menu",
 
 	"shortcuts_title": "Keyboard Shortcuts",
 	"shortcuts_settings": "Open Settings",
