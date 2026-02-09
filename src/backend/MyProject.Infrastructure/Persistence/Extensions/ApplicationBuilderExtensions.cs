@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MyProject.Infrastructure.Features.Authentication.Extensions;
+using MyProject.Application.Identity.Constants;
+using MyProject.Infrastructure.Features.Authentication.Constants;
+using MyProject.Infrastructure.Features.Authentication.Models;
 
 namespace MyProject.Infrastructure.Persistence.Extensions;
 
@@ -27,11 +30,11 @@ public static class ApplicationBuilderExtensions
             ApplyMigrations(services);
         }
 
-        await IdentitySeedExtensions.SeedRolesAsync(services);
+        await SeedRolesAsync(services);
 
         if (isDevelopment)
         {
-            await IdentitySeedExtensions.SeedDevelopmentUsersAsync(services);
+            await SeedDevelopmentUsersAsync(services);
         }
     }
 
@@ -39,5 +42,42 @@ public static class ApplicationBuilderExtensions
     {
         var dbContext = serviceProvider.GetRequiredService<MyProjectDbContext>();
         dbContext.Database.Migrate();
+    }
+
+    private static async Task SeedRolesAsync(IServiceProvider serviceProvider)
+    {
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+
+        foreach (var role in AppRoles.All)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+            {
+                await roleManager.CreateAsync(new ApplicationRole { Name = role });
+            }
+        }
+    }
+
+    private static async Task SeedDevelopmentUsersAsync(IServiceProvider serviceProvider)
+    {
+        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+        await SeedUserAsync(userManager, SeedUsers.TestUserEmail, SeedUsers.TestUserPassword, AppRoles.User);
+        await SeedUserAsync(userManager, SeedUsers.AdminEmail, SeedUsers.AdminPassword, AppRoles.Admin);
+    }
+
+    private static async Task SeedUserAsync(
+        UserManager<ApplicationUser> userManager,
+        string email,
+        string password,
+        string role)
+    {
+        if (await userManager.FindByNameAsync(email) is not null)
+        {
+            return;
+        }
+
+        var user = new ApplicationUser { UserName = email, Email = email, EmailConfirmed = true };
+        await userManager.CreateAsync(user, password);
+        await userManager.AddToRoleAsync(user, role);
     }
 }
