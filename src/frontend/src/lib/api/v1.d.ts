@@ -43,7 +43,10 @@ export interface paths {
 		};
 		put?: never;
 		post?: never;
-		/** Permanently deletes the current authenticated user's account. Requires password confirmation. Revokes all tokens and clears auth cookies. */
+		/**
+		 * Permanently deletes the current authenticated user's account.
+		 *     Requires password confirmation. Revokes all tokens and clears auth cookies.
+		 */
 		delete: {
 			parameters: {
 				query?: never;
@@ -298,512 +301,6 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/api/v1/admin/users': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Gets a paginated list of all users, optionally filtered by a search term. */
-		get: {
-			parameters: {
-				query?: {
-					/** @description The page number to retrieve (1-based). */
-					pageNumber?: number;
-					/** @description The number of items per page (maximum 100). */
-					pageSize?: number;
-					/** @description Optional search term to filter users by name or email. */
-					search?: string;
-				};
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Returns the paginated user list */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['ListUsersResponse'];
-					};
-				};
-				/** @description If the pagination parameters are invalid */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['ErrorResponse'];
-					};
-				};
-				/** @description If the user is not authenticated */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user does not have the Admin role */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/admin/users/{id}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path: {
-				id: string;
-			};
-			cookie?: never;
-		};
-		/** Gets a single user by ID with full admin-level details. */
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					id: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Returns the user details */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['AdminUserResponse'];
-					};
-				};
-				/** @description If the user is not authenticated */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user does not have the Admin role */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user was not found */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		/** Permanently deletes a user account. */
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					id: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description User deleted successfully */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the delete operation failed */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['ErrorResponse'];
-					};
-				};
-				/** @description If the user is not authenticated */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user does not have the Admin role */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user was not found */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/admin/users/{id}/roles': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path: {
-				id: string;
-			};
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Assigns a role to a user. */
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					id: string;
-				};
-				cookie?: never;
-			};
-			/** @description The role to assign */
-			requestBody: {
-				content: {
-					'application/json': components['schemas']['AssignRoleRequest'];
-				};
-			};
-			responses: {
-				/** @description Role assigned successfully */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the role is invalid or the user already has it */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['ErrorResponse'];
-					};
-				};
-				/** @description If the user is not authenticated */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user does not have the Admin role */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user was not found */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/admin/users/{id}/roles/{role}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path: {
-				id: string;
-				role: string;
-			};
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		/** Removes a role from a user. */
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					id: string;
-					role: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Role removed successfully */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the role is invalid or the user doesn't have it */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['ErrorResponse'];
-					};
-				};
-				/** @description If the user is not authenticated */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user does not have the Admin role */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user was not found */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/admin/users/{id}/lock': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path: {
-				id: string;
-			};
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Locks a user account, preventing login. */
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					id: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description User locked successfully */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the lock operation failed */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['ErrorResponse'];
-					};
-				};
-				/** @description If the user is not authenticated */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user does not have the Admin role */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user was not found */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/admin/users/{id}/unlock': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path: {
-				id: string;
-			};
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		/** Unlocks a user account, allowing login. */
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					id: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description User unlocked successfully */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the unlock operation failed */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['ErrorResponse'];
-					};
-				};
-				/** @description If the user is not authenticated */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user does not have the Admin role */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user was not found */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/admin/roles': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		/** Gets all roles with user counts. */
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Returns the list of roles */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['AdminRoleResponse'][];
-					};
-				};
-				/** @description If the user is not authenticated */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-				/** @description If the user does not have the Admin role */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
 	'/api/auth/register': {
 		parameters: {
 			query?: never;
@@ -914,10 +411,628 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	'/api/v1/admin/users': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Gets a paginated list of all users, optionally filtered by a search term. */
+		get: {
+			parameters: {
+				query?: {
+					/** @description Optional search term to filter users by name or email. */
+					search?: string;
+					/** @description The page number to retrieve (1-based). */
+					pageNumber?: number;
+					/** @description The number of items per page (maximum 100). */
+					pageSize?: number;
+				};
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Returns the paginated user list */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ListUsersResponse'];
+					};
+				};
+				/** @description If the pagination parameters are invalid */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				/** @description If the user is not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user does not have the Admin or SuperAdmin role */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/admin/users/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Gets a single user by ID with full admin-level details. */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description The user ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Returns the user details */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['AdminUserResponse'];
+					};
+				};
+				/** @description If the user is not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user does not have the Admin or SuperAdmin role */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user was not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		/**
+		 * Permanently deletes a user account. The caller must outrank the target user
+		 *     and cannot delete themselves or the last user with an administrative role.
+		 */
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description The user ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description User deleted successfully */
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				/** @description If the delete operation failed or hierarchy check fails */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				/** @description If the user is not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user does not have the Admin or SuperAdmin role */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user was not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/admin/users/{id}/roles': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * Assigns a role to a user. The caller must outrank the target user
+		 *     and can only assign roles below their own rank.
+		 */
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description The user ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			/** @description The role to assign */
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['AssignRoleRequest'];
+				};
+			};
+			responses: {
+				/** @description Role assigned successfully */
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				/** @description If the role is invalid, the user already has it, or hierarchy check fails */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				/** @description If the user is not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user does not have the Admin or SuperAdmin role */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user was not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/admin/users/{id}/roles/{role}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		/**
+		 * Removes a role from a user. The caller must outrank the target user
+		 *     and cannot remove roles at or above their own rank.
+		 */
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description The user ID */
+					id: string;
+					/** @description The role name to remove */
+					role: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Role removed successfully */
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				/** @description If the role is invalid, the user doesn't have it, or hierarchy check fails */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				/** @description If the user is not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user does not have the Admin or SuperAdmin role */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user was not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/admin/users/{id}/lock': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/**
+		 * Locks a user account, preventing login. The caller must outrank the target user
+		 *     and cannot lock themselves.
+		 */
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description The user ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description User locked successfully */
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				/** @description If the lock operation failed or hierarchy check fails */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				/** @description If the user is not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user does not have the Admin or SuperAdmin role */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user was not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/admin/users/{id}/unlock': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		/** Unlocks a user account, allowing login. The caller must outrank the target user. */
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					/** @description The user ID */
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description User unlocked successfully */
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				/** @description If the unlock operation failed or hierarchy check fails */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				/** @description If the user is not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user does not have the Admin or SuperAdmin role */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user was not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/admin/roles': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Gets all roles with user counts. */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Returns the list of roles */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['AdminRoleResponse'][];
+					};
+				};
+				/** @description If the user is not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the user does not have the Admin or SuperAdmin role */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 }
 export type webhooks = Record<string, never>;
 export interface components {
 	schemas: {
+		/** @description Represents a role with its associated user count. */
+		AdminRoleResponse: {
+			/**
+			 * Format: uuid
+			 * @description The unique identifier of the role.
+			 */
+			id?: string;
+			/** @description The name of the role. */
+			name?: string;
+			/**
+			 * Format: int32
+			 * @description The number of users assigned to this role.
+			 */
+			userCount?: number;
+		};
+		/** @description Represents a user's full profile and account details for admin views. */
+		AdminUserResponse: {
+			/**
+			 * Format: uuid
+			 * @description The unique identifier of the user.
+			 */
+			id?: string;
+			/** @description The username of the user (same as email). */
+			username?: string;
+			/** @description The email address of the user. */
+			email?: string;
+			/** @description The first name of the user. */
+			firstName?: null | string;
+			/** @description The last name of the user. */
+			lastName?: null | string;
+			/** @description The phone number of the user. */
+			phoneNumber?: null | string;
+			/** @description A short biography or description of the user. */
+			bio?: null | string;
+			/** @description The URL to the user's avatar image. */
+			avatarUrl?: null | string;
+			/** @description The roles assigned to the user. */
+			roles?: string[];
+			/** @description Whether the user's email address has been confirmed. */
+			emailConfirmed?: boolean;
+			/** @description Whether lockout is enabled for this user. */
+			lockoutEnabled?: boolean;
+			/**
+			 * Format: date-time
+			 * @description When the lockout ends, or null if the user is not locked out.
+			 */
+			lockoutEnd?: null | string;
+			/**
+			 * Format: int32
+			 * @description The number of consecutive failed login attempts.
+			 */
+			accessFailedCount?: number;
+			/** @description Whether the user is currently locked out. */
+			isLockedOut?: boolean;
+		};
+		/** @description Request to assign a role to a user. */
+		AssignRoleRequest: {
+			/** @description The name of the role to assign. */
+			role: string;
+		};
 		/**
 		 * @description Response containing authentication tokens for API clients.
 		 *     Web clients can ignore this response body as tokens are also set in HttpOnly cookies.
@@ -941,6 +1056,11 @@ export interface components {
 			/** @description The new password to set for the account. */
 			newPassword: string;
 		};
+		/** @description Represents a request to permanently delete the current user's account. */
+		DeleteAccountRequest: {
+			/** @description The user's current password for confirmation. */
+			password: string;
+		};
 		/** @description Response DTO for error information. */
 		ErrorResponse: {
 			/** @description The main error message. */
@@ -948,10 +1068,34 @@ export interface components {
 			/** @description Additional error details or technical information. */
 			details?: null | string;
 		};
-		/** @description Represents a request to permanently delete the current user's account. */
-		DeleteAccountRequest: {
-			/** @description The user's current password for confirmation. */
-			password: string;
+		/** @description Paginated response containing a list of admin user records. */
+		ListUsersResponse: {
+			/** @description The users for the current page. */
+			items?: components['schemas']['AdminUserResponse'][];
+			/**
+			 * Format: int32
+			 * @description The total number of items (across all pages).
+			 */
+			totalCount?: number;
+			/**
+			 * Format: int32
+			 * @description The current page number.
+			 */
+			pageNumber?: number;
+			/**
+			 * Format: int32
+			 * @description The number of items per page.
+			 */
+			pageSize?: number;
+			/**
+			 * Format: int32
+			 * @description The total number of pages.
+			 */
+			totalPages?: number;
+			/** @description Indicates if there is a previous page. */
+			hasPreviousPage?: boolean;
+			/** @description Indicates if there is a next page. */
+			hasNextPage?: boolean;
 		};
 		/** @description Represents a user login request with credentials. */
 		LoginRequest: {
@@ -1016,95 +1160,6 @@ export interface components {
 			 * @description The URL to the user's avatar image.
 			 */
 			avatarUrl?: null | string;
-		};
-		/** @description Represents a user's full profile and account details for admin views. */
-		AdminUserResponse: {
-			/**
-			 * Format: uuid
-			 * @description The unique identifier of the user.
-			 */
-			id?: string;
-			/** @description The username of the user (same as email). */
-			username?: string;
-			/** @description The email address of the user. */
-			email?: string;
-			/** @description The first name of the user. */
-			firstName?: null | string;
-			/** @description The last name of the user. */
-			lastName?: null | string;
-			/** @description The phone number of the user. */
-			phoneNumber?: null | string;
-			/** @description A short biography or description of the user. */
-			bio?: null | string;
-			/** @description The URL to the user's avatar image. */
-			avatarUrl?: null | string;
-			/** @description The roles assigned to the user. */
-			roles?: string[];
-			/** @description Whether the user's email address has been confirmed. */
-			emailConfirmed?: boolean;
-			/** @description Whether lockout is enabled for this user. */
-			lockoutEnabled?: boolean;
-			/**
-			 * Format: date-time
-			 * @description When the lockout ends, or null if the user is not locked out.
-			 */
-			lockoutEnd?: null | string;
-			/**
-			 * Format: int32
-			 * @description The number of consecutive failed login attempts.
-			 */
-			accessFailedCount?: number;
-			/** @description Whether the user is currently locked out. */
-			isLockedOut?: boolean;
-		};
-		/** @description Represents a role with its associated user count. */
-		AdminRoleResponse: {
-			/**
-			 * Format: uuid
-			 * @description The unique identifier of the role.
-			 */
-			id?: string;
-			/** @description The name of the role. */
-			name?: string;
-			/**
-			 * Format: int32
-			 * @description The number of users assigned to this role.
-			 */
-			userCount?: number;
-		};
-		/** @description Request to assign a role to a user. */
-		AssignRoleRequest: {
-			/** @description The name of the role to assign. */
-			role: string;
-		};
-		/** @description Paginated response containing a list of admin user records. */
-		ListUsersResponse: {
-			/**
-			 * Format: int32
-			 * @description The total number of items (across all pages).
-			 */
-			totalCount?: number;
-			/**
-			 * Format: int32
-			 * @description The current page number.
-			 */
-			pageNumber?: number;
-			/**
-			 * Format: int32
-			 * @description The number of items per page.
-			 */
-			pageSize?: number;
-			/**
-			 * Format: int32
-			 * @description The total number of pages.
-			 */
-			totalPages?: number;
-			/** @description Indicates if there is a previous page. */
-			hasPreviousPage?: boolean;
-			/** @description Indicates if there is a next page. */
-			hasNextPage?: boolean;
-			/** @description The users for the current page. */
-			items?: components['schemas']['AdminUserResponse'][];
 		};
 		/** @description Represents the current user's information. */
 		UserResponse: {
