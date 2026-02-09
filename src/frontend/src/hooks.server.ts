@@ -2,8 +2,16 @@ import type { Handle } from '@sveltejs/kit';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 import { extractLocaleFromHeader, cookieName, baseLocale } from '$lib/paraglide/runtime';
 
+/** Security headers applied to all page responses (not API proxy routes). */
+const SECURITY_HEADERS: Record<string, string> = {
+	'X-Content-Type-Options': 'nosniff',
+	'X-Frame-Options': 'DENY',
+	'Referrer-Policy': 'strict-origin-when-cross-origin',
+	'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
+};
+
 export const handle: Handle = async ({ event, resolve }) => {
-	// Skip auth check for API routes to avoid infinite loops
+	// API proxy routes — backend sets its own security headers
 	if (event.url.pathname.startsWith('/api')) {
 		return resolve(event);
 	}
@@ -20,8 +28,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 		event.locals.locale = locale;
 		event.locals.user = null;
 
-		return resolve(event, {
+		const response = await resolve(event, {
 			transformPageChunk: ({ html }) => html.replace('%lang%', locale)
 		});
+
+		for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
+			response.headers.set(header, value);
+		}
+
+		return response;
 	});
 };

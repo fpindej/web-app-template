@@ -115,6 +115,21 @@ Rules:
 - **Never use `null!`** (the null-forgiving operator) — it defeats the purpose of NRT. If you need it, the design is wrong.
 - **DTOs**: match nullability to whether the field is required in the API contract — this flows through to the OpenAPI spec and generated TypeScript types
 
+### XML Documentation
+
+All **public and internal API surface** must have `/// <summary>` XML docs. This includes interfaces, extension method classes, middleware, shared base classes, and service implementations — not just controllers and DTOs.
+
+| Item | What to document |
+|---|---|
+| **Interfaces** (`I{Feature}Service`) | Class-level summary of the contract; each method's purpose, parameters, and return semantics |
+| **Extension classes** (`CorsExtensions`, `SecurityHeaderExtensions`) | Class-level summary of what the extensions configure; method-level docs explaining behavior, parameters, and side effects |
+| **Middleware** (`ExceptionHandlingMiddleware`) | Class-level summary; document which exceptions map to which status codes |
+| **Shared base classes** (`ApiController`, `BaseEntityConfiguration<T>`) | Class-level summary of what inheritors get for free |
+| **Options classes** | Already covered in the [Options Pattern](#options-pattern) section — every class and property gets `/// <summary>` |
+| **Controllers and DTOs** | Already covered in the [OpenAPI](#openapi-specification--the-api-contract) section — `/// <summary>` on actions and every property |
+
+When adding or modifying any of these types, apply the boy-scout rule: leave the file better than you found it. If a class is missing docs, add them while you're there.
+
 ## Entity Definition
 
 All domain entities extend `BaseEntity`, which provides audit fields and soft delete:
@@ -476,6 +491,29 @@ public class ErrorResponse
 ```
 
 `ErrorResponse` is the **only** error body type across the entire API — both controllers and middleware return it. The middleware serializes with explicit `JsonNamingPolicy.CamelCase` to match ASP.NET's controller serialization. Never return raw strings, anonymous objects, or other shapes for errors.
+
+## Security
+
+### Principle: Restrictive by Default
+
+Always default to the most restrictive security posture and only relax constraints when a feature explicitly requires it. This applies to headers, permissions, CORS, cookie policies, and any browser-facing configuration.
+
+### Security Response Headers
+
+`SecurityHeaderExtensions.UseSecurityHeaders()` adds security headers to every API response. These are browser-instructional — they tell browsers how to behave when handling responses. They have **zero impact** on non-browser clients (mobile apps, curl, etc.).
+
+| Header | Value | Purpose |
+|---|---|---|
+| `X-Content-Type-Options` | `nosniff` | Prevents MIME-type sniffing (XSS via content type confusion) |
+| `X-Frame-Options` | `DENY` | Prevents embedding in iframes (clickjacking) |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Prevents leaking URL paths to third-party sites |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disables browser APIs the app doesn't use |
+
+`Permissions-Policy` uses `()` (empty allowlist) to deny access entirely. If a feature needs a browser API (e.g., webcam for avatar capture), change the value to `(self)` for that specific directive — never remove the header or use `*`.
+
+HSTS (`Strict-Transport-Security`) is enabled via `app.UseHsts()` in non-development environments.
+
+The frontend applies the same headers to page responses via the `handle` hook in `hooks.server.ts`. API proxy routes (`/api/*`) are skipped — they receive headers from the backend directly.
 
 ## Repository & Unit of Work
 

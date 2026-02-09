@@ -102,6 +102,15 @@ try
         app.UseOpenApiDocumentation();
     }
 
+    Log.Debug("Setting security headers");
+    app.UseSecurityHeaders();
+
+    if (!app.Environment.IsDevelopment())
+    {
+        Log.Debug("Setting HSTS");
+        app.UseHsts();
+    }
+
     if (app.Environment.IsDevelopment())
     {
         Log.Debug("Apply migrations to local database");

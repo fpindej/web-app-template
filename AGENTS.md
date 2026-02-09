@@ -68,6 +68,38 @@ Read the relevant file before working in that area. Both are self-contained with
 
 ---
 
+## Security-First Development
+
+**Security is the highest priority in every development decision.** When faced with a trade-off between convenience and security, always choose security. When unsure whether something is safe, assume it isn't and investigate.
+
+### Guiding Principles
+
+| Principle | What it means in practice |
+|---|---|
+| **Restrictive by default** | Deny access, disable features, block origins, strip headers — then selectively open what's needed. Never start permissive and try to lock down later. |
+| **Defense in depth** | Don't rely on a single layer. Validate on both frontend and backend. Check auth in middleware *and* controllers. Use security headers *and* CSP. |
+| **Least privilege** | Services, tokens, cookies, and API responses should expose the minimum data and permissions required. |
+| **Fail closed** | If validation fails, token parsing fails, or an origin check fails — reject the request. Never fall through to a permissive default. |
+| **Secrets never in code** | Connection strings, API keys, JWT secrets — always in `.env` or environment variables, never in source. Rotate compromised secrets immediately. |
+| **Audit new dependencies** | Before adding a NuGet package or npm module, consider its attack surface. Prefer well-maintained, minimal-dependency libraries. |
+
+### When Building Features
+
+1. **Think about abuse first.** Before implementing, ask: how could this be exploited? What happens if the input is malicious? What if the user is unauthenticated?
+2. **Validate all input.** Never trust client data — validate on the backend even if the frontend already validates. Use FluentValidation for complex rules, Data Annotations for simple constraints.
+3. **Sanitize all output.** Prevent XSS by escaping user-generated content. Never render raw HTML from user input. Validate URLs to block `javascript:` schemes.
+4. **Protect state-changing operations.** All mutations (POST/PUT/DELETE) must verify authentication, authorization, and CSRF protection. The SvelteKit API proxy validates Origin headers; the backend validates JWT tokens.
+5. **Log security events.** Failed login attempts, token refresh failures, authorization denials — these should be logged at Warning/Error level for monitoring.
+
+### Layer-Specific Security
+
+Detailed security conventions (headers, CSRF, Permissions-Policy, HSTS) are documented in each layer's AGENTS.md:
+
+- **Backend**: [`src/backend/AGENTS.md` — Security section](src/backend/AGENTS.md)
+- **Frontend**: [`src/frontend/AGENTS.md` — Security section](src/frontend/AGENTS.md)
+
+---
+
 ## Agent Workflow
 
 ### Git Discipline

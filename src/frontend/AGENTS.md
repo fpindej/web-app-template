@@ -233,6 +233,29 @@ if (isFetchErrorWithCode(err, 'ECONNREFUSED')) {
 }
 ```
 
+## Security
+
+### Principle: Restrictive by Default
+
+Always default to the most restrictive security posture and only relax constraints when a feature explicitly requires it.
+
+### Security Response Headers
+
+The `handle` hook in `hooks.server.ts` adds security headers to all page responses. API proxy routes (`/api/*`) are skipped — those receive headers from the backend.
+
+| Header                   | Value                                      | Purpose                                     |
+| ------------------------ | ------------------------------------------ | ------------------------------------------- |
+| `X-Content-Type-Options` | `nosniff`                                  | Prevents MIME-type sniffing                 |
+| `X-Frame-Options`        | `DENY`                                     | Prevents iframe embedding (clickjacking)    |
+| `Referrer-Policy`        | `strict-origin-when-cross-origin`          | Prevents leaking URL paths to third parties |
+| `Permissions-Policy`     | `camera=(), microphone=(), geolocation=()` | Disables unused browser APIs                |
+
+`Permissions-Policy` directives use `()` (empty allowlist) to deny access entirely. If a feature needs a browser API (e.g., webcam for avatar capture), change the specific directive to `(self)` — never remove the header or use `*`.
+
+### CSRF Protection
+
+The API proxy at `routes/api/[...path]/+server.ts` validates the `Origin` header on state-changing requests (POST/PUT/PATCH/DELETE). Cross-origin requests are rejected with 403. This complements SvelteKit's built-in CSRF protection, which only covers form actions — not `+server.ts` routes.
+
 ## Svelte 5 Patterns
 
 **Runes only.** Never use `export let` — always `$props()`.
