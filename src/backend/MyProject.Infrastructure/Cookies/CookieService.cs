@@ -13,7 +13,7 @@ namespace MyProject.Infrastructure.Cookies;
 /// <c>Secure=true</c> is mandatory when <c>SameSite=None</c> is set.
 /// </para>
 /// </summary>
-public class CookieService(IHttpContextAccessor httpContextAccessor) : ICookieService
+internal class CookieService(IHttpContextAccessor httpContextAccessor) : ICookieService
 {
     /// <inheritdoc />
     public void SetCookie(string key, string value, DateTimeOffset? expires = null)

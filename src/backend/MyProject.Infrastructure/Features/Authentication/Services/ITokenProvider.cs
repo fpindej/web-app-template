@@ -3,9 +3,13 @@ using MyProject.Infrastructure.Features.Authentication.Models;
 namespace MyProject.Infrastructure.Features.Authentication.Services;
 
 /// <summary>
-/// Provider interface for generating authentication tokens.
+/// Internal provider interface for generating authentication tokens.
+/// <para>
+/// This interface is internal to the Infrastructure layer — it is consumed only by
+/// <see cref="AuthenticationService"/> and implemented by <see cref="JwtTokenProvider"/>.
+/// </para>
 /// </summary>
-public interface ITokenProvider
+internal interface ITokenProvider
 {
     /// <summary>
     /// Generates an access token for the specified user.

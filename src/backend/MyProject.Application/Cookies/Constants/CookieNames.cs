@@ -1,8 +1,12 @@
-namespace MyProject.Infrastructure.Features.Authentication.Constants;
+namespace MyProject.Application.Cookies.Constants;
 
 /// <summary>
 /// Cookie names used for JWT authentication tokens.
+/// <para>
 /// Uses the <c>__Secure-</c> prefix which requires the <c>Secure</c> attribute.
+/// Defined in the Application layer so both WebApi (controllers) and Infrastructure
+/// (services, JWT middleware) can reference them without cross-assembly leakage.
+/// </para>
 /// </summary>
 public static class CookieNames
 {
