@@ -10,6 +10,9 @@ using MyProject.Infrastructure.Features.Authentication.Options;
 
 namespace MyProject.Infrastructure.Features.Authentication.Services;
 
+/// <summary>
+/// HMAC-SHA256 JWT implementation of <see cref="ITokenProvider"/>.
+/// </summary>
 internal class JwtTokenProvider(
     UserManager<ApplicationUser> userManager,
     IOptions<AuthenticationOptions> authenticationOptions,
@@ -17,6 +20,7 @@ internal class JwtTokenProvider(
 {
     private readonly AuthenticationOptions.JwtOptions _jwtOptions = authenticationOptions.Value.Jwt;
 
+    /// <inheritdoc />
     public async Task<string> GenerateAccessToken(ApplicationUser user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Key));
@@ -45,6 +49,7 @@ internal class JwtTokenProvider(
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    /// <inheritdoc />
     public string GenerateRefreshToken()
     {
         return Convert.ToBase64String(GenerateSecureToken(32));

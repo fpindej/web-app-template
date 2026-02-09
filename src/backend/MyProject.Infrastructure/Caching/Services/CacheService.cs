@@ -6,12 +6,16 @@ using MyProject.Infrastructure.Caching.Options;
 
 namespace MyProject.Infrastructure.Caching.Services;
 
+/// <summary>
+/// Redis-backed implementation of <see cref="ICacheService"/> using JSON serialization.
+/// </summary>
 internal class CacheService(
     IDistributedCache distributedCache,
     IOptions<CachingOptions> cachingOptions) : ICacheService
 {
     private readonly TimeSpan _defaultExpiration = cachingOptions.Value.DefaultExpiration;
 
+    /// <inheritdoc />
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
     {
         var cachedValue = await distributedCache.GetStringAsync(key, cancellationToken);
@@ -19,6 +23,7 @@ internal class CacheService(
         return string.IsNullOrEmpty(cachedValue) ? default : JsonSerializer.Deserialize<T>(cachedValue);
     }
 
+    /// <inheritdoc />
     public async Task SetAsync<T>(
         string key,
         T value,
@@ -29,6 +34,7 @@ internal class CacheService(
         await distributedCache.SetStringAsync(key, serializedValue, ToDistributedOptions(options), cancellationToken);
     }
 
+    /// <inheritdoc />
     public async Task<T?> GetOrSetAsync<T>(
         string key,
         Func<CancellationToken, Task<T>> factory,
@@ -50,6 +56,7 @@ internal class CacheService(
         return value;
     }
 
+    /// <inheritdoc />
     public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         await distributedCache.RemoveAsync(key, cancellationToken);

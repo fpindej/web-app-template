@@ -15,6 +15,7 @@ namespace MyProject.Infrastructure.Cookies;
 /// </summary>
 public class CookieService(IHttpContextAccessor httpContextAccessor) : ICookieService
 {
+    /// <inheritdoc />
     public void SetCookie(string key, string value, DateTimeOffset? expires = null)
     {
         var options = new CookieOptions
@@ -28,6 +29,7 @@ public class CookieService(IHttpContextAccessor httpContextAccessor) : ICookieSe
         httpContextAccessor.HttpContext?.Response.Cookies.Append(key, value, options);
     }
 
+    /// <inheritdoc />
     public void SetSecureCookie(string key, string value, DateTimeOffset? expires = null)
     {
         var options = new CookieOptions
@@ -41,6 +43,7 @@ public class CookieService(IHttpContextAccessor httpContextAccessor) : ICookieSe
         httpContextAccessor.HttpContext?.Response.Cookies.Append(key, value, options);
     }
 
+    /// <inheritdoc />
     public void DeleteCookie(string key)
     {
         httpContextAccessor.HttpContext?.Response.Cookies.Delete(key, new CookieOptions
@@ -51,6 +54,7 @@ public class CookieService(IHttpContextAccessor httpContextAccessor) : ICookieSe
         });
     }
 
+    /// <inheritdoc />
     public string? GetCookie(string key)
     {
         return httpContextAccessor.HttpContext?.Request.Cookies[key];

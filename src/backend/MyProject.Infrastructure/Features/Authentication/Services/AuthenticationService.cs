@@ -14,6 +14,9 @@ using MyProject.Application.Identity;
 
 namespace MyProject.Infrastructure.Features.Authentication.Services;
 
+/// <summary>
+/// Identity-backed implementation of <see cref="IAuthenticationService"/> with JWT token rotation.
+/// </summary>
 internal class AuthenticationService(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
@@ -26,6 +29,7 @@ internal class AuthenticationService(
 {
     private readonly AuthenticationOptions.JwtOptions _jwtOptions = authenticationOptions.Value.Jwt;
 
+    /// <inheritdoc />
     public async Task<Result<AuthenticationOutput>> Login(string username, string password, bool useCookies = false, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByNameAsync(username);
@@ -85,6 +89,7 @@ internal class AuthenticationService(
         return Result<AuthenticationOutput>.Success(output);
     }
 
+    /// <inheritdoc />
     public async Task<Result<Guid>> Register(RegisterInput input, CancellationToken cancellationToken = default)
     {
         var user = new ApplicationUser
@@ -115,6 +120,7 @@ internal class AuthenticationService(
         return Result<Guid>.Success(user.Id);
     }
 
+    /// <inheritdoc />
     public async Task Logout(CancellationToken cancellationToken = default)
     {
         // Get user ID before clearing cookies
@@ -129,6 +135,7 @@ internal class AuthenticationService(
         }
     }
 
+    /// <inheritdoc />
     public async Task<Result<AuthenticationOutput>> RefreshTokenAsync(string refreshToken, bool useCookies = false, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(refreshToken))
