@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.Features.Authentication;
 using MyProject.Infrastructure.Features.Authentication.Constants;
@@ -86,12 +87,15 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     }
 
     /// <summary>
-    /// Logs out the current user by clearing authentication cookies
+    /// Logs out the current user by revoking refresh tokens and clearing authentication cookies.
     /// </summary>
     /// <returns>A 204 No Content response</returns>
     /// <response code="204">Successfully logged out</response>
+    /// <response code="401">If the user is not authenticated</response>
+    [Authorize]
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> Logout(CancellationToken cancellationToken)
     {
         await authenticationService.Logout(cancellationToken);
