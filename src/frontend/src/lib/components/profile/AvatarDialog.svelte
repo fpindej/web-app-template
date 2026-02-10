@@ -86,8 +86,11 @@
 				open = false;
 				await invalidateAll();
 			} else {
-				const errorMessage = getErrorMessage(apiError, m.profile_avatar_updateError());
-				toast.error(m.profile_avatar_updateError(), { description: errorMessage });
+				const errorMessage = getErrorMessage(apiError, '');
+				toast.error(
+					m.profile_avatar_updateError(),
+					errorMessage ? { description: errorMessage } : undefined
+				);
 				fieldShakes.trigger('avatarUrl');
 			}
 		} catch {

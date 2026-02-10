@@ -1,4 +1,4 @@
-import { createApiClient } from '$lib/api';
+import { createApiClient, getErrorMessage } from '$lib/api';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -13,7 +13,10 @@ export const load: PageServerLoad = async ({ fetch, url, params }) => {
 	]);
 
 	if (!userResult.response.ok) {
-		throw error(userResult.response.status, 'Failed to load user details');
+		throw error(
+			userResult.response.status,
+			getErrorMessage(userResult.error, 'Failed to load user details')
+		);
 	}
 
 	return {
