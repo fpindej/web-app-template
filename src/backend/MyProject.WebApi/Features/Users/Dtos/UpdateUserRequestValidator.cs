@@ -1,4 +1,5 @@
 using FluentValidation;
+using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Features.Users.Dtos;
 
@@ -7,8 +8,6 @@ namespace MyProject.WebApi.Features.Users.Dtos;
 /// </summary>
 public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
 {
-    private const string PhoneNumberPattern = @"^(\+\d{1,3})? ?\d{6,14}$";
-
     /// <summary>
     /// Initializes validation rules for profile update requests.
     /// </summary>
@@ -22,7 +21,7 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
 
         RuleFor(x => x.PhoneNumber)
             .MaximumLength(20)
-            .Matches(PhoneNumberPattern)
+            .Matches(ValidationConstants.PhoneNumberPattern)
             .WithMessage("Phone number must be a valid format (e.g. +420123456789)")
             .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
 
@@ -31,8 +30,9 @@ public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
 
         RuleFor(x => x.AvatarUrl)
             .MaximumLength(500)
-            .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
-            .WithMessage("Avatar URL must be a valid absolute URL.")
+            .Must(url => Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                         && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            .WithMessage("Avatar URL must be a valid absolute HTTP or HTTPS URL.")
             .When(x => !string.IsNullOrEmpty(x.AvatarUrl));
     }
 }

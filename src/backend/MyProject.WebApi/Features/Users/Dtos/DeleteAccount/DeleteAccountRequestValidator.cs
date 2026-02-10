@@ -14,7 +14,6 @@ public class DeleteAccountRequestValidator : AbstractValidator<DeleteAccountRequ
     {
         RuleFor(x => x.Password)
             .NotEmpty()
-            .MinimumLength(6)
             .MaximumLength(255);
     }
 }

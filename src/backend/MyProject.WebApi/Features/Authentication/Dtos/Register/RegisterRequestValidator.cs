@@ -1,4 +1,5 @@
 using FluentValidation;
+using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Features.Authentication.Dtos.Register;
 
@@ -7,8 +8,6 @@ namespace MyProject.WebApi.Features.Authentication.Dtos.Register;
 /// </summary>
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {
-    private const string PhoneNumberPattern = @"^(\+\d{1,3})? ?\d{6,14}$";
-
     /// <summary>
     /// Initializes validation rules for registration requests.
     /// </summary>
@@ -22,11 +21,17 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
         RuleFor(x => x.Password)
             .NotEmpty()
             .MinimumLength(6)
-            .MaximumLength(255);
+            .MaximumLength(255)
+            .Matches("[a-z]")
+            .WithMessage("Password must contain at least one lowercase letter.")
+            .Matches("[A-Z]")
+            .WithMessage("Password must contain at least one uppercase letter.")
+            .Matches("[0-9]")
+            .WithMessage("Password must contain at least one digit.");
 
         RuleFor(x => x.PhoneNumber)
             .MaximumLength(20)
-            .Matches(PhoneNumberPattern)
+            .Matches(ValidationConstants.PhoneNumberPattern)
             .WithMessage("Phone number must be a valid format (e.g. +420123456789)")
             .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
 

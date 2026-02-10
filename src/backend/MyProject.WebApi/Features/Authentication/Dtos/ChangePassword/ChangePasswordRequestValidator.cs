@@ -20,6 +20,12 @@ public class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRe
             .NotEmpty()
             .MinimumLength(6)
             .MaximumLength(255)
+            .Matches("[a-z]")
+            .WithMessage("New password must contain at least one lowercase letter.")
+            .Matches("[A-Z]")
+            .WithMessage("New password must contain at least one uppercase letter.")
+            .Matches("[0-9]")
+            .WithMessage("New password must contain at least one digit.")
             .NotEqual(x => x.CurrentPassword)
             .WithMessage("New password must be different from the current password.");
     }
