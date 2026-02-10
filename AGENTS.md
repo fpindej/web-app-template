@@ -261,6 +261,22 @@ When the user asks to create a PR, use `gh pr create` with:
 
 Do **not** create PRs automatically — only when explicitly requested.
 
+#### Merging PRs
+
+Always use **squash and merge** (`gh pr merge --squash`). This collapses all branch commits into a single commit on `master`, keeping the main branch history clean and linear. Provide a meaningful squash commit message:
+
+- **`--subject`**: Conventional Commit format summarizing the entire PR
+- **`--body`**: Brief description of what changed and why, plus `Closes #N` if applicable
+
+```bash
+gh pr merge <number> --squash \
+  --subject "fix(auth): add per-endpoint rate limiting for registration" \
+  --body "Add dedicated fixed-window rate limiter for registration endpoint.
+Closes #53"
+```
+
+Never use regular merge commits or rebase-merge — squash is the only merge strategy for this project.
+
 ### Labels
 
 Always label issues and PRs. Use the project labels below — apply **all** that fit (they are not mutually exclusive). If a new label would genuinely help categorize work and none of the existing ones cover it, create it with `gh label create` before applying.
