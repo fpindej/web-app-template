@@ -690,6 +690,32 @@ For custom CSS animations in `animations.css`, add a `prefers-reduced-motion: re
 
 9. **Use `shrink-0`** on elements that must not compress (icons, badges, buttons alongside text).
 
+10. **Account for sidebar width when choosing grid breakpoints.** The app sidebar consumes ~200–250px on `md:` and above. A `lg:grid-cols-2` (1024px) leaves only ~770px for content — too cramped for two card columns. Use `xl:grid-cols-2` (1280px) for content-area grids so tablets (iPad Pro at 1024px) stay single-column.
+
+    ```html
+    <!-- ✅ Correct — 2-col kicks in at 1280px, comfortable with sidebar -->
+    <div class="grid gap-6 xl:grid-cols-2">
+    	<!-- ❌ Wrong — 2-col at 1024px is cramped when sidebar takes ~250px -->
+    	<div class="grid gap-6 lg:grid-cols-2"></div>
+    </div>
+    ```
+
+11. **Don't constrain card widths with `max-w-*`.** Cards inside the app layout should fill their container. The sidebar + main area padding already constrains width. Adding `max-w-2xl` or similar creates an awkward gap on the right side of wider screens.
+
+#### Page Layout Patterns
+
+| Page type                  | Layout                             | Example                                                                                     |
+| -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------- |
+| **Info + actions** (2-col) | `grid gap-6 xl:grid-cols-2`        | Profile (form left, account details right), Admin user detail (info left, management right) |
+| **Single-column forms**    | `space-y-8` (no max-width)         | Settings (change password, danger zone stacked vertically)                                  |
+| **Table + search**         | Full-width table, search bar above | Admin users list, roles list                                                                |
+
+Key principles:
+
+- **`xl:grid-cols-2`** (not `lg:`) for side-by-side layouts — accounts for sidebar width on tablets
+- **No `max-w-*`** on page content — the app shell already constrains width via sidebar + padding
+- **Cards fill their container** — they provide their own visual boundaries
+
 #### Test Viewports
 
 When making responsive changes, mentally verify at these widths: **320px**, **375px**, **768px**, **1024px**, **1440px**.
@@ -701,6 +727,7 @@ The app layout uses a mobile-first sidebar pattern:
 - `md:hidden` — mobile hamburger menu (sheet drawer)
 - `hidden md:block` — desktop sidebar
 - `h-dvh` — full dynamic viewport height
+- Content grids: `xl:grid-cols-2` (sidebar-aware — not `lg:`)
 - Feature grids: `sm:grid-cols-2 xl:grid-cols-4`
 - Dialog footers: `flex-col-reverse sm:flex-row`
 - Text sizes: `text-sm sm:text-base md:text-lg`
@@ -967,6 +994,8 @@ npm run build    # Production build
 - `p-16` or large flat padding — scale responsively (`p-4 sm:p-6 lg:p-8`)
 - `grid-cols-2+` inside dialogs without `grid-cols-1` mobile fallback
 - `h-screen` — use `h-dvh` for full-height layouts
+- `lg:grid-cols-2` for content-area grids — use `xl:grid-cols-2` (sidebar takes ~250px at `lg:`)
+- `max-w-2xl` or similar on page content — cards should fill their container
 - `null!` non-null assertions
 - Import server config from barrel (`$lib/config`)
 - Leave components in `$lib/components/` root — use feature folders
