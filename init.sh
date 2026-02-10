@@ -15,7 +15,6 @@
 #    --no-migration Skip migration creation
 #    --no-commit    Skip git commits
 #    --no-docker    Skip starting docker
-#    --keep-scripts Keep init scripts after completion
 #    --help, -h     Show this help
 #
 #══════════════════════════════════════════════════════════════════════════════
@@ -29,11 +28,10 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
 CYAN='\033[0;36m'
 BOLD='\033[1m'
 DIM='\033[2m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper Functions
@@ -69,24 +67,22 @@ print_info() {
     echo -e "${DIM}ℹ${NC} $1"
 }
 
-# Prompt with default value. Usage: prompt "Question" "default" -> returns answer
-# [Y/n] means Enter=Yes, [y/N] means Enter=No
 prompt_yn() {
     local question=$1
-    local default=$2  # "y" or "n"
-    
+    local default=$2
+
     if [[ "$YES_TO_ALL" == "true" ]]; then
         [[ "$default" == "y" ]] && echo "y" || echo "n"
         return
     fi
-    
+
     local prompt_hint
     if [[ "$default" == "y" ]]; then
         prompt_hint="[Y/n]"
     else
         prompt_hint="[y/N]"
     fi
-    
+
     read -p "$(echo -e "${BOLD}$question${NC} $prompt_hint: ")" answer
     answer=${answer:-$default}
     echo "$answer" | tr '[:upper:]' '[:lower:]'
@@ -95,17 +91,17 @@ prompt_yn() {
 prompt_value() {
     local question=$1
     local default=$2
-    
+
     if [[ "$YES_TO_ALL" == "true" && -n "$default" ]]; then
         echo "$default"
         return
     fi
-    
+
     local prompt_text="$question"
     if [[ -n "$default" ]]; then
         prompt_text="$question [${default}]"
     fi
-    
+
     read -p "$(echo -e "${BOLD}$prompt_text${NC}: ")" answer
     echo "${answer:-$default}"
 }
@@ -124,7 +120,6 @@ show_help() {
     echo "      --no-migration    Skip creating initial migration"
     echo "      --no-commit       Skip git commits"
     echo "      --no-docker       Skip starting docker compose"
-    echo "      --keep-scripts    Keep init.sh and init.ps1 after completion"
     echo "  -h, --help            Show this help message"
     echo ""
     echo "Port allocation:"
@@ -141,11 +136,11 @@ show_help() {
 
 check_prerequisites() {
     local missing=()
-    
+
     command -v git >/dev/null 2>&1 || missing+=("git")
     command -v dotnet >/dev/null 2>&1 || missing+=("dotnet")
     command -v docker >/dev/null 2>&1 || missing+=("docker")
-    
+
     if [[ ${#missing[@]} -gt 0 ]]; then
         print_error "Missing required tools: ${missing[*]}"
         echo "Please install them before running this script."
@@ -155,35 +150,103 @@ check_prerequisites() {
 
 validate_project_name() {
     local name=$1
-    
+
     if [[ -z "$name" ]]; then
         print_error "Project name cannot be empty"
         return 1
     fi
-    
+
     if [[ ! "$name" =~ ^[A-Z][a-zA-Z0-9]*$ ]]; then
         print_error "Project name must start with uppercase letter and contain only alphanumeric characters"
         print_info "Example: MyAwesomeApi, TodoApp, WebApi"
         return 1
     fi
-    
+
     return 0
 }
 
 validate_port() {
     local port=$1
-    
+
     if ! [[ "$port" =~ ^[0-9]+$ ]]; then
         print_error "Port must be a number"
         return 1
     fi
-    
+
     if [[ $port -lt 1024 || $port -gt 65530 ]]; then
         print_error "Port must be between 1024 and 65530"
         return 1
     fi
-    
+
     return 0
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Interactive Checklist
+# ─────────────────────────────────────────────────────────────────────────────
+# Renders a toggleable checklist. User presses 1-N to toggle, Enter to confirm.
+# Arguments: option labels as positional args
+# Globals:  CHECKLIST_DEFAULTS (array of 0/1 for initial state)
+# Returns:  CHECKLIST_RESULTS (array of 0/1)
+prompt_checklist() {
+    local options=("$@")
+    local count=${#options[@]}
+    local selected=()
+
+    # Initialize from defaults
+    for ((i = 0; i < count; i++)); do
+        selected[$i]=${CHECKLIST_DEFAULTS[$i]:-1}
+    done
+
+    # Non-interactive: just use defaults
+    if [[ "$YES_TO_ALL" == "true" ]]; then
+        CHECKLIST_RESULTS=("${selected[@]}")
+        return
+    fi
+
+    while true; do
+        echo ""
+        echo -e "${BOLD}  Toggle options (press number), Enter to confirm:${NC}"
+        echo ""
+
+        for ((i = 0; i < count; i++)); do
+            local num=$((i + 1))
+            if [[ "${selected[$i]}" == "1" ]]; then
+                echo -e "  ${GREEN}[${num}] ✓${NC} ${options[$i]}"
+            else
+                echo -e "  ${DIM}[${num}] ○${NC} ${options[$i]}"
+            fi
+        done
+
+        echo ""
+        read -p "$(echo -e "${BOLD}Toggle [1-${count}]${NC} or ${BOLD}Enter${NC} to continue: ")" choice
+
+        if [[ -z "$choice" ]]; then
+            break
+        fi
+
+        if [[ "$choice" =~ ^[0-9]+$ ]] && [[ $choice -ge 1 ]] && [[ $choice -le $count ]]; then
+            local idx=$((choice - 1))
+            if [[ "${selected[$idx]}" == "1" ]]; then
+                selected[$idx]=0
+            else
+                selected[$idx]=1
+            fi
+            # Move cursor up to redraw (count + 4 lines: header, blank, items, blank, prompt)
+            local lines_up=$((count + 4))
+            for ((j = 0; j < lines_up; j++)); do
+                echo -en "\033[A\033[2K"
+            done
+        else
+            # Invalid input — redraw
+            local lines_up=$((count + 4))
+            for ((j = 0; j < lines_up; j++)); do
+                echo -en "\033[A\033[2K"
+            done
+        fi
+    done
+
+    CHECKLIST_RESULTS=("${selected[@]}")
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -195,7 +258,6 @@ YES_TO_ALL="false"
 CREATE_MIGRATION="ask"
 DO_COMMIT="ask"
 START_DOCKER="ask"
-DELETE_SCRIPTS="ask"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -223,10 +285,6 @@ while [[ $# -gt 0 ]]; do
             START_DOCKER="n"
             shift
             ;;
-        --keep-scripts)
-            DELETE_SCRIPTS="n"
-            shift
-            ;;
         -h|--help)
             show_help
             exit 0
@@ -251,28 +309,30 @@ check_prerequisites
 print_success "All prerequisites found (git, dotnet, docker)"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Configuration Phase
+# Step 1: Project Name
 # ─────────────────────────────────────────────────────────────────────────────
-print_header "Configuration"
+print_step "Project setup"
+echo ""
 
-# Project Name
 while true; do
     if [[ -z "$PROJECT_NAME" ]]; then
-        PROJECT_NAME=$(prompt_value "Project name (e.g., MyAwesomeApi)" "")
+        PROJECT_NAME=$(prompt_value "Project name (PascalCase, e.g. MyAwesomeApi)" "")
     fi
-    
+
     if validate_project_name "$PROJECT_NAME"; then
         break
     fi
     PROJECT_NAME=""
 done
 
-# Base Port
+# ─────────────────────────────────────────────────────────────────────────────
+# Step 2: Base Port
+# ─────────────────────────────────────────────────────────────────────────────
 while true; do
     if [[ "$YES_TO_ALL" != "true" ]]; then
         BASE_PORT=$(prompt_value "Base port" "$BASE_PORT")
     fi
-    
+
     if validate_port "$BASE_PORT"; then
         break
     fi
@@ -285,31 +345,72 @@ DB_PORT=$((BASE_PORT + 4))
 REDIS_PORT=$((BASE_PORT + 6))
 SEQ_PORT=$((BASE_PORT + 8))
 
+# Show port allocation
+echo ""
+echo -e "  ${BOLD}Port allocation${NC}"
+echo -e "  ─────────────────────────────────────"
+echo -e "  Frontend:  ${CYAN}$FRONTEND_PORT${NC}"
+echo -e "  API:       ${CYAN}$API_PORT${NC}"
+echo -e "  Database:  ${CYAN}$DB_PORT${NC}"
+echo -e "  Redis:     ${CYAN}$REDIS_PORT${NC}"
+echo -e "  Seq:       ${CYAN}$SEQ_PORT${NC}"
+
 # Convert PascalCase to kebab-case (MyAwesomeApi -> my-awesome-api)
 to_kebab_case() {
     echo "$1" | sed 's/\([a-z]\)\([A-Z]\)/\1-\2/g' | tr '[:upper:]' '[:lower:]'
 }
 PROJECT_SLUG=$(to_kebab_case "$PROJECT_NAME")
 
-# Additional options (with sensible defaults)
-echo ""
-print_info "Additional options:"
+# ─────────────────────────────────────────────────────────────────────────────
+# Step 3: Options Checklist
+# ─────────────────────────────────────────────────────────────────────────────
+# Determine which options to ask about
+CHECKLIST_OPTIONS=()
+CHECKLIST_DEFAULTS=()
+CHECKLIST_MAP=()
 
 if [[ "$CREATE_MIGRATION" == "ask" ]]; then
-    CREATE_MIGRATION=$(prompt_yn "  Create fresh Initial migration?" "y")
+    CHECKLIST_OPTIONS+=("Create initial database migration")
+    CHECKLIST_DEFAULTS+=(1)
+    CHECKLIST_MAP+=("migration")
 fi
 
 if [[ "$DO_COMMIT" == "ask" ]]; then
-    DO_COMMIT=$(prompt_yn "  Auto-commit changes to git?" "y")
+    CHECKLIST_OPTIONS+=("Auto-commit changes to git")
+    CHECKLIST_DEFAULTS+=(1)
+    CHECKLIST_MAP+=("commit")
 fi
 
 if [[ "$START_DOCKER" == "ask" ]]; then
-    START_DOCKER=$(prompt_yn "  Start docker compose after setup?" "n")
+    CHECKLIST_OPTIONS+=("Start docker compose after setup")
+    CHECKLIST_DEFAULTS+=(0)
+    CHECKLIST_MAP+=("docker")
 fi
 
-if [[ "$DELETE_SCRIPTS" == "ask" ]]; then
-    DELETE_SCRIPTS=$(prompt_yn "  Delete init scripts when done?" "y")
+# Only show checklist if there are options to configure
+if [[ ${#CHECKLIST_OPTIONS[@]} -gt 0 ]]; then
+    prompt_checklist "${CHECKLIST_OPTIONS[@]}"
+
+    # Map results back to variables
+    for ((i = 0; i < ${#CHECKLIST_MAP[@]}; i++)); do
+        case "${CHECKLIST_MAP[$i]}" in
+            migration)
+                [[ "${CHECKLIST_RESULTS[$i]}" == "1" ]] && CREATE_MIGRATION="y" || CREATE_MIGRATION="n"
+                ;;
+            commit)
+                [[ "${CHECKLIST_RESULTS[$i]}" == "1" ]] && DO_COMMIT="y" || DO_COMMIT="n"
+                ;;
+            docker)
+                [[ "${CHECKLIST_RESULTS[$i]}" == "1" ]] && START_DOCKER="y" || START_DOCKER="n"
+                ;;
+        esac
+    done
 fi
+
+# Apply defaults for any options set via CLI flags
+[[ "$CREATE_MIGRATION" == "ask" ]] && CREATE_MIGRATION="y"
+[[ "$DO_COMMIT" == "ask" ]] && DO_COMMIT="y"
+[[ "$START_DOCKER" == "ask" ]] && START_DOCKER="n"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Summary & Confirmation
@@ -317,28 +418,26 @@ fi
 print_header "Summary"
 
 echo -e "
-  ${BOLD}Project Configuration${NC}
+  ${BOLD}Project${NC}
   ─────────────────────────────────────
-  Project Name:     ${GREEN}$PROJECT_NAME${NC}
-  Docker Slug:      ${GREEN}$PROJECT_SLUG${NC}
-  
-  ${BOLD}Port Allocation${NC}
+  Name:             ${GREEN}$PROJECT_NAME${NC}
+  Slug:             ${GREEN}$PROJECT_SLUG${NC}
+
+  ${BOLD}Ports${NC}
   ─────────────────────────────────────
   Frontend:         ${CYAN}$FRONTEND_PORT${NC}
   API:              ${CYAN}$API_PORT${NC}
   Database:         ${CYAN}$DB_PORT${NC}
   Redis:            ${CYAN}$REDIS_PORT${NC}
   Seq:              ${CYAN}$SEQ_PORT${NC}
-  
-  ${BOLD}Actions${NC}
+
+  ${BOLD}Options${NC}
   ─────────────────────────────────────
   Create migration: $([ "$CREATE_MIGRATION" == "y" ] && echo -e "${GREEN}Yes${NC}" || echo -e "${DIM}No${NC}")
   Git commits:      $([ "$DO_COMMIT" == "y" ] && echo -e "${GREEN}Yes${NC}" || echo -e "${DIM}No${NC}")
   Start docker:     $([ "$START_DOCKER" == "y" ] && echo -e "${GREEN}Yes${NC}" || echo -e "${DIM}No${NC}")
-  Delete scripts:   $([ "$DELETE_SCRIPTS" == "y" ] && echo -e "${GREEN}Yes${NC}" || echo -e "${DIM}No${NC}")
 "
 
-echo ""
 PROCEED=$(prompt_yn "Proceed with initialization?" "y")
 if [[ "$PROCEED" != "y" ]]; then
     print_warning "Aborted by user"
@@ -471,28 +570,28 @@ fi
 # Step 4: Create Migration
 if [[ "$CREATE_MIGRATION" == "y" ]]; then
     print_step "Creating initial migration..."
-    
+
     MIGRATION_DIR="src/backend/$NEW_NAME.Infrastructure/Features/Postgres/Migrations"
-    
+
     if [ -d "$MIGRATION_DIR" ]; then
         print_substep "Clearing existing migrations..."
         rm -rf "$MIGRATION_DIR"/*
     else
         mkdir -p "$MIGRATION_DIR"
     fi
-    
+
     print_substep "Restoring dotnet tools..."
     # Use explicit config file since root may not have NuGet sources, fallback to default
     if ! dotnet tool restore --configfile "src/backend/nuget.config" >/dev/null 2>&1; then
         dotnet tool restore >/dev/null 2>&1 || true
     fi
-    
+
     print_substep "Restoring dependencies..."
     if ! dotnet restore "src/backend/$NEW_NAME.WebApi" >/dev/null 2>&1; then
         print_error "Failed to restore dependencies"
         print_info "You can run manually: dotnet restore src/backend/$NEW_NAME.WebApi"
     fi
-    
+
     print_substep "Building project..."
     if ! dotnet build "src/backend/$NEW_NAME.WebApi" --no-restore -v q >/dev/null 2>&1; then
         print_error "Build failed. Migration will be skipped."
@@ -508,9 +607,9 @@ if [[ "$CREATE_MIGRATION" == "y" ]]; then
             --startup-project "src/backend/$NEW_NAME.WebApi" \
             --output-dir Features/Postgres/Migrations \
             --no-build >/dev/null 2>&1; then
-            
+
             print_success "Migration 'Initial' created"
-            
+
             # Commit migration
             if [[ "$DO_COMMIT" == "y" ]]; then
                 print_substep "Committing migration..."
@@ -529,23 +628,20 @@ if [[ "$CREATE_MIGRATION" == "y" ]]; then
     fi
 fi
 
-# Step 5: Delete init scripts
-if [[ "$DELETE_SCRIPTS" == "y" ]]; then
-    print_step "Cleaning up init scripts..."
-    
-    # Use git rm to properly stage deletions
-    if git rev-parse --git-dir > /dev/null 2>&1; then
-        git rm -f init.sh init.ps1 >/dev/null 2>&1 || rm -f init.sh init.ps1
-    else
-        rm -f init.sh init.ps1
-    fi
-    
-    if [[ "$DO_COMMIT" == "y" ]]; then
-        git commit -m "chore: remove initialization scripts" >/dev/null 2>&1
-    fi
-    
-    print_success "Init scripts removed"
+# Step 5: Delete init scripts (always — fire and forget)
+print_step "Cleaning up init scripts..."
+
+if git rev-parse --git-dir > /dev/null 2>&1; then
+    git rm -f init.sh init.ps1 >/dev/null 2>&1 || rm -f init.sh init.ps1
+else
+    rm -f init.sh init.ps1
 fi
+
+if [[ "$DO_COMMIT" == "y" ]]; then
+    git commit -m "chore: remove initialization scripts" >/dev/null 2>&1
+fi
+
+print_success "Init scripts removed"
 
 # Step 6: Start Docker
 if [[ "$START_DOCKER" == "y" ]]; then
@@ -557,26 +653,26 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # Complete!
 # ─────────────────────────────────────────────────────────────────────────────
-print_header "Setup Complete! 🎉"
+print_header "Setup Complete!"
 
 echo -e "
   ${BOLD}Your project is ready!${NC}
-  
+
   ${BOLD}Quick Start${NC}
   ─────────────────────────────────────
   ${DIM}# Start the development environment${NC}
   docker compose -f docker-compose.local.yml up -d --build
-  
+
   ${DIM}# Or run the API directly${NC}
   cd src/backend/$NEW_NAME.WebApi
   dotnet run
-  
+
   ${BOLD}URLs${NC}
   ─────────────────────────────────────
   Frontend:  ${CYAN}http://localhost:$FRONTEND_PORT${NC}
   API:       ${CYAN}http://localhost:$API_PORT${NC}
   API Docs:  ${CYAN}http://localhost:$API_PORT/scalar${NC}
   Seq:       ${CYAN}http://localhost:$SEQ_PORT${NC}
-  
-  ${DIM}Happy coding! 🚀${NC}
+
+  ${DIM}Happy coding!${NC}
 "

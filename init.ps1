@@ -28,9 +28,6 @@
 .PARAMETER NoDocker
     Skip starting docker compose after setup.
 
-.PARAMETER KeepScripts
-    Keep init.ps1 and init.sh after completion.
-
 .EXAMPLE
     .\init.ps1
     # Interactive mode - prompts for all options
@@ -56,8 +53,7 @@ param (
 
     [switch]$NoMigration,
     [switch]$NoCommit,
-    [switch]$NoDocker,
-    [switch]$KeepScripts
+    [switch]$NoDocker
 )
 
 $ErrorActionPreference = "Stop"
@@ -203,6 +199,80 @@ function Set-FileContent {
     [System.IO.File]::WriteAllText($Path, $Content, $utf8NoBom)
 }
 
+function ConvertTo-KebabCase {
+    param([string]$Text)
+    ($Text -creplace '([a-z])([A-Z])', '$1-$2').ToLower()
+}
+
+# -----------------------------------------------------------------------------
+# Interactive Checklist
+# -----------------------------------------------------------------------------
+# Renders a toggleable checklist. User presses 1-N to toggle, Enter to confirm.
+function Read-Checklist {
+    param(
+        [string[]]$Options,
+        [bool[]]$Defaults
+    )
+
+    # Non-interactive: just use defaults
+    if ($Yes) {
+        return $Defaults
+    }
+
+    $selected = [bool[]]::new($Options.Count)
+    for ($i = 0; $i -lt $Options.Count; $i++) {
+        $selected[$i] = $Defaults[$i]
+    }
+
+    $firstDraw = $true
+
+    while ($true) {
+        # Clear previous draw (except first time)
+        if (-not $firstDraw) {
+            $linesToClear = $Options.Count + 4
+            for ($j = 0; $j -lt $linesToClear; $j++) {
+                [Console]::SetCursorPosition(0, [Console]::CursorTop - 1)
+                [Console]::Write((" " * [Console]::WindowWidth))
+                [Console]::SetCursorPosition(0, [Console]::CursorTop)
+            }
+        }
+        $firstDraw = $false
+
+        Write-Host ""
+        Write-Host "  Toggle options (press number), Enter to confirm:" -ForegroundColor White
+        Write-Host ""
+
+        for ($i = 0; $i -lt $Options.Count; $i++) {
+            $num = $i + 1
+            if ($selected[$i]) {
+                Write-Host "  " -NoNewline
+                Write-Host "[$num]" -ForegroundColor Green -NoNewline
+                Write-Host " " -NoNewline
+                Write-Host $Options[$i] -ForegroundColor Green
+            }
+            else {
+                Write-Host "  " -NoNewline
+                Write-Host "[$num]" -ForegroundColor DarkGray -NoNewline
+                Write-Host " " -NoNewline
+                Write-Host $Options[$i] -ForegroundColor DarkGray
+            }
+        }
+
+        Write-Host ""
+        $choice = Read-Host "Toggle [1-$($Options.Count)] or Enter to continue"
+
+        if ([string]::IsNullOrWhiteSpace($choice)) {
+            return $selected
+        }
+
+        $num = 0
+        if ([int]::TryParse($choice, [ref]$num) -and $num -ge 1 -and $num -le $Options.Count) {
+            $idx = $num - 1
+            $selected[$idx] = -not $selected[$idx]
+        }
+    }
+}
+
 # -----------------------------------------------------------------------------
 # Main Script
 # -----------------------------------------------------------------------------
@@ -215,14 +285,14 @@ Test-Prerequisites
 Write-Success "All prerequisites found (git, dotnet, docker)"
 
 # -----------------------------------------------------------------------------
-# Configuration Phase
+# Step 1: Project Name
 # -----------------------------------------------------------------------------
-Write-Header "Configuration"
+Write-Step "Project setup"
+Write-Host ""
 
-# Project Name
 while ($true) {
     if ([string]::IsNullOrWhiteSpace($Name)) {
-        $Name = Read-Value "Project name (e.g., MyAwesomeApi)"
+        $Name = Read-Value "Project name (PascalCase, e.g. MyAwesomeApi)"
     }
 
     if (Test-ProjectName $Name) {
@@ -231,7 +301,9 @@ while ($true) {
     $Name = ""
 }
 
-# Base Port
+# -----------------------------------------------------------------------------
+# Step 2: Base Port
+# -----------------------------------------------------------------------------
 while ($true) {
     if (-not $Yes) {
         $portInput = Read-Value "Base port" $Port.ToString()
@@ -250,21 +322,60 @@ $DbPort = $Port + 4
 $RedisPort = $Port + 6
 $SeqPort = $Port + 8
 
-# Convert PascalCase to kebab-case (MyAwesomeApi -> my-awesome-api)
-function ConvertTo-KebabCase {
-    param([string]$Text)
-    ($Text -creplace '([a-z])([A-Z])', '$1-$2').ToLower()
-}
+# Show port allocation
+Write-Host ""
+Write-Host "  Port allocation" -ForegroundColor White
+Write-Host "  -------------------------------------"
+Write-Host "  Frontend:  " -NoNewline; Write-Host $FrontendPort -ForegroundColor Cyan
+Write-Host "  API:       " -NoNewline; Write-Host $ApiPort -ForegroundColor Cyan
+Write-Host "  Database:  " -NoNewline; Write-Host $DbPort -ForegroundColor Cyan
+Write-Host "  Redis:     " -NoNewline; Write-Host $RedisPort -ForegroundColor Cyan
+Write-Host "  Seq:       " -NoNewline; Write-Host $SeqPort -ForegroundColor Cyan
+
 $ProjectSlug = ConvertTo-KebabCase $Name
 
-# Additional options
-Write-Host ""
-Write-Info "Additional options:"
+# -----------------------------------------------------------------------------
+# Step 3: Options Checklist
+# -----------------------------------------------------------------------------
+$checklistOptions = @()
+$checklistDefaults = @()
+$checklistMap = @()
 
-$CreateMigration = if ($NoMigration) { $false } else { Read-YesNo "  Create fresh Initial migration?" $true }
-$DoCommit = if ($NoCommit) { $false } else { Read-YesNo "  Auto-commit changes to git?" $true }
-$StartDocker = if ($NoDocker) { $false } else { Read-YesNo "  Start docker compose after setup?" $false }
-$DeleteScripts = if ($KeepScripts) { $false } else { Read-YesNo "  Delete init scripts when done?" $true }
+if (-not $NoMigration) {
+    $checklistOptions += "Create initial database migration"
+    $checklistDefaults += $true
+    $checklistMap += "migration"
+}
+
+if (-not $NoCommit) {
+    $checklistOptions += "Auto-commit changes to git"
+    $checklistDefaults += $true
+    $checklistMap += "commit"
+}
+
+if (-not $NoDocker) {
+    $checklistOptions += "Start docker compose after setup"
+    $checklistDefaults += $false
+    $checklistMap += "docker"
+}
+
+# Initialize from CLI flags
+$CreateMigration = -not $NoMigration
+$DoCommit = -not $NoCommit
+$StartDocker = $false
+
+# Only show checklist if there are options to configure
+if ($checklistOptions.Count -gt 0) {
+    $results = Read-Checklist -Options $checklistOptions -Defaults $checklistDefaults
+
+    for ($i = 0; $i -lt $checklistMap.Count; $i++) {
+        switch ($checklistMap[$i]) {
+            "migration" { $CreateMigration = $results[$i] }
+            "commit" { $DoCommit = $results[$i] }
+            "docker" { $StartDocker = $results[$i] }
+        }
+    }
+}
 
 # -----------------------------------------------------------------------------
 # Summary and Confirmation
@@ -272,12 +383,12 @@ $DeleteScripts = if ($KeepScripts) { $false } else { Read-YesNo "  Delete init s
 Write-Header "Summary"
 
 Write-Host ""
-Write-Host "  Project Configuration" -ForegroundColor White
+Write-Host "  Project" -ForegroundColor White
 Write-Host "  -------------------------------------"
-Write-Host "  Project Name:     " -NoNewline; Write-Host $Name -ForegroundColor Green
-Write-Host "  Docker Slug:      " -NoNewline; Write-Host $ProjectSlug -ForegroundColor Green
+Write-Host "  Name:             " -NoNewline; Write-Host $Name -ForegroundColor Green
+Write-Host "  Slug:             " -NoNewline; Write-Host $ProjectSlug -ForegroundColor Green
 Write-Host ""
-Write-Host "  Port Allocation" -ForegroundColor White
+Write-Host "  Ports" -ForegroundColor White
 Write-Host "  -------------------------------------"
 Write-Host "  Frontend:         " -NoNewline; Write-Host $FrontendPort -ForegroundColor Cyan
 Write-Host "  API:              " -NoNewline; Write-Host $ApiPort -ForegroundColor Cyan
@@ -285,7 +396,7 @@ Write-Host "  Database:         " -NoNewline; Write-Host $DbPort -ForegroundColo
 Write-Host "  Redis:            " -NoNewline; Write-Host $RedisPort -ForegroundColor Cyan
 Write-Host "  Seq:              " -NoNewline; Write-Host $SeqPort -ForegroundColor Cyan
 Write-Host ""
-Write-Host "  Actions" -ForegroundColor White
+Write-Host "  Options" -ForegroundColor White
 Write-Host "  -------------------------------------"
 Write-Host "  Create migration: " -NoNewline
 if ($CreateMigration) { Write-Host "Yes" -ForegroundColor Green } else { Write-Host "No" -ForegroundColor DarkGray }
@@ -293,8 +404,6 @@ Write-Host "  Git commits:      " -NoNewline
 if ($DoCommit) { Write-Host "Yes" -ForegroundColor Green } else { Write-Host "No" -ForegroundColor DarkGray }
 Write-Host "  Start docker:     " -NoNewline
 if ($StartDocker) { Write-Host "Yes" -ForegroundColor Green } else { Write-Host "No" -ForegroundColor DarkGray }
-Write-Host "  Delete scripts:   " -NoNewline
-if ($DeleteScripts) { Write-Host "Yes" -ForegroundColor Green } else { Write-Host "No" -ForegroundColor DarkGray }
 Write-Host ""
 
 $proceed = Read-YesNo "Proceed with initialization?" $true
@@ -509,7 +618,7 @@ if ($CreateMigration) {
     if (-not $migrationFailed) {
         Write-SubStep "Running ef migrations add..."
         $output = dotnet ef migrations add Initial --project "src/backend/$NewName.Infrastructure" --startup-project "src/backend/$NewName.WebApi" --output-dir Features/Postgres/Migrations --no-build 2>&1
-        
+
         if ($LASTEXITCODE -ne 0) {
             $migrationFailed = $true
             Write-ErrorMessage "Migration creation failed"
@@ -537,45 +646,40 @@ if ($CreateMigration) {
     }
 }
 
-# Step 5: Delete init scripts
-if ($DeleteScripts) {
-    Write-Step "Cleaning up init scripts..."
-    
-    $initPs1 = Join-Path $ScriptDir "init.ps1"
-    $initSh = Join-Path $ScriptDir "init.sh"
-    
-    $ErrorActionPreference = "Continue"
-    
-    # Stage both files for deletion in git BEFORE physically removing them
-    # This ensures both show up in the commit
-    if ($DoCommit) {
-        # Use git rm to stage deletions (files will be removed from index but we handle physical deletion separately)
-        if (Test-Path $initSh) {
-            $null = git rm -f "init.sh" 2>&1
-        }
-        # Stage init.ps1 for deletion but keep it on disk for now (script is still running)
-        $null = git rm --cached "init.ps1" 2>&1
-        
-        $null = git commit -m "chore: remove initialization scripts" 2>&1
-        Write-Success "Deletion committed to git"
+# Step 5: Delete init scripts (always — fire and forget)
+Write-Step "Cleaning up init scripts..."
+
+$initPs1 = Join-Path $ScriptDir "init.ps1"
+$initSh = Join-Path $ScriptDir "init.sh"
+
+$ErrorActionPreference = "Continue"
+
+# Stage both files for deletion in git BEFORE physically removing them
+if ($DoCommit) {
+    if (Test-Path $initSh) {
+        $null = git rm -f "init.sh" 2>&1
     }
-    else {
-        # No commit - just delete init.sh directly
-        if (Test-Path $initSh) {
-            Remove-Item $initSh -Force
-        }
-    }
-    
-    $ErrorActionPreference = "Stop"
-    
-    Write-Success "Init scripts will be removed"
-    
-    # Schedule self-deletion after script exits
-    # Use -EncodedCommand to avoid escaping issues with paths
-    $cleanupScript = "Start-Sleep -Seconds 2; Remove-Item -LiteralPath '$initPs1' -Force -ErrorAction SilentlyContinue"
-    $encodedCmd = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cleanupScript))
-    Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-EncodedCommand", $encodedCmd
+    # Stage init.ps1 for deletion but keep it on disk for now (script is still running)
+    $null = git rm --cached "init.ps1" 2>&1
+
+    $null = git commit -m "chore: remove initialization scripts" 2>&1
+    Write-Success "Deletion committed to git"
 }
+else {
+    # No commit - just delete init.sh directly
+    if (Test-Path $initSh) {
+        Remove-Item $initSh -Force
+    }
+}
+
+$ErrorActionPreference = "Stop"
+
+Write-Success "Init scripts removed"
+
+# Schedule self-deletion after script exits
+$cleanupScript = "Start-Sleep -Seconds 2; Remove-Item -LiteralPath '$initPs1' -Force -ErrorAction SilentlyContinue"
+$encodedCmd = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cleanupScript))
+Start-Process powershell -ArgumentList "-NoProfile", "-WindowStyle", "Hidden", "-EncodedCommand", $encodedCmd
 
 # Step 6: Start Docker
 if ($StartDocker) {
