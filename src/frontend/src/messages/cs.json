@@ -70,7 +70,6 @@
 	"auth_login_failed": "Přihlášení se nezdařilo",
 	"auth_login_error": "Došlo k chybě",
 	"auth_login_invalidCredentials": "Nesprávný e-mail nebo heslo",
-	"auth_login_apiOnline": "API je online",
 	"auth_login_apiOffline": "API je offline",
 	"auth_login_success": "Přihlášení úspěšné!",
 	"auth_login_noAccount": "Nemáte účet?",
@@ -91,7 +90,6 @@
 
 	"settings_title": "Nastavení",
 	"settings_description": "Správa předvoleb a konfigurace aplikace.",
-	"settings_wipDescription": "Pracujeme na komplexním nastavení, které vám umožní plně přizpůsobit aplikaci.",
 
 	"settings_changePassword_title": "Změna hesla",
 	"settings_changePassword_description": "Aktualizujte si heslo pro zabezpečení svého účtu.",
@@ -155,13 +153,6 @@
 	"dashboard_feature_api_title": "Typově bezpečný API klient",
 	"dashboard_feature_api_description": "Integrace OpenAPI s automaticky generovanými typy pro váš .NET backend.",
 
-	"dashboard_guide_title": "Jak začít",
-	"dashboard_guide_step1": "Funkce jsou seskupeny podle domény v `src/lib/components/`. Pro odstranění funkce smažte její složku, routu a klíče překladů.",
-	"dashboard_guide_step2": "Při změně backend API spusťte `npm run api:generate` pro přegenerování TypeScript typů.",
-	"dashboard_guide_step3": "Použijte `npx shadcn-svelte@next add <component>` pro přidání nových UI komponent ze shadcn.",
-	"dashboard_guide_step4": "Před commitem spusťte `npm run format && npm run lint && npm run check && npm run build`.",
-	"dashboard_guide_step5": "Podívejte se do `AGENTS.md` pro detailní konvence a vzory.",
-
 	"gettingStarted_badge": "Produkční šablona",
 	"gettingStarted_features_title": "Co je zahrnuto",
 	"gettingStarted_commands_title": "Rychlé příkazy",
@@ -208,8 +199,6 @@
 	"theme_dark": "Tmavý",
 	"theme_system": "Systémový",
 
-	"meta_admin_title": "Administrace",
-	"meta_admin_description": "Správa uživatelů, rolí a systémových nastavení.",
 	"meta_adminUsers_title": "Uživatelé",
 	"meta_adminUsers_description": "Správa uživatelských účtů.",
 	"meta_adminUserDetail_title": "Detail uživatele",
@@ -225,7 +214,6 @@
 	"admin_users_description": "Správa uživatelských účtů, rolí a přístupu.",
 	"admin_users_searchPlaceholder": "Hledat podle jména nebo e-mailu...",
 	"admin_users_noResults": "Žádní uživatelé nenalezeni.",
-	"admin_users_loadError": "Nepodařilo se načíst uživatele",
 	"admin_users_email": "E-mail",
 	"admin_users_name": "Jméno",
 	"admin_users_roles": "Role",
@@ -236,8 +224,6 @@
 	"admin_users_viewDetails": "Zobrazit detail",
 	"admin_users_totalUsers": "{count} uživatelů celkem",
 
-	"admin_userDetail_title": "Detail uživatele",
-	"admin_userDetail_description": "Zobrazení a správa detailů uživatelského účtu.",
 	"admin_userDetail_backToUsers": "Zpět na uživatele",
 	"admin_userDetail_accountInfo": "Informace o účtu",
 	"admin_userDetail_accountInfoDescription": "Detaily a stav uživatelského účtu.",
@@ -248,7 +234,6 @@
 	"admin_userDetail_lastName": "Příjmení",
 	"admin_userDetail_phone": "Telefonní číslo",
 	"admin_userDetail_emailConfirmed": "E-mail ověřen",
-	"admin_userDetail_lockoutEnabled": "Zamykání povoleno",
 	"admin_userDetail_accessFailedCount": "Neúspěšné pokusy o přihlášení",
 	"admin_userDetail_yes": "Ano",
 	"admin_userDetail_no": "Ne",
@@ -279,12 +264,10 @@
 	"admin_userDetail_deleteSuccess": "Uživatelský účet byl smazán",
 	"admin_userDetail_deleteError": "Nepodařilo se smazat uživatelský účet",
 	"admin_userDetail_cannotManage": "Nemáte dostatečná oprávnění ke správě tohoto uživatele.",
-	"admin_userDetail_loadError": "Nepodařilo se načíst detail uživatele",
 
 	"admin_roles_title": "Role",
 	"admin_roles_description": "Zobrazení rolí a počtů přiřazených uživatelů.",
 	"admin_roles_name": "Role",
 	"admin_roles_userCount": "Uživatelé",
-	"admin_roles_loadError": "Nepodařilo se načíst role",
 	"admin_roles_noResults": "Žádné role nenalezeny."
 }

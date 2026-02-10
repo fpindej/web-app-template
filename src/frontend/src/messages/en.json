@@ -70,7 +70,6 @@
 	"auth_login_failed": "Login failed",
 	"auth_login_error": "An error occurred",
 	"auth_login_invalidCredentials": "Invalid email or password",
-	"auth_login_apiOnline": "API is online",
 	"auth_login_apiOffline": "API is offline",
 	"auth_login_success": "Login successful!",
 	"auth_login_noAccount": "Don't have an account?",
@@ -91,7 +90,6 @@
 
 	"settings_title": "Settings",
 	"settings_description": "Manage your application preferences and configurations.",
-	"settings_wipDescription": "We are working on a comprehensive settings panel to give you full control over your experience.",
 
 	"settings_changePassword_title": "Change Password",
 	"settings_changePassword_description": "Update your password to keep your account secure.",
@@ -155,13 +153,6 @@
 	"dashboard_feature_api_title": "Type-Safe API Client",
 	"dashboard_feature_api_description": "OpenAPI integration with auto-generated types for your .NET backend.",
 
-	"dashboard_guide_title": "Getting Started",
-	"dashboard_guide_step1": "Features are grouped by domain in `src/lib/components/`. To remove a feature, delete its folder, route, and translation keys.",
-	"dashboard_guide_step2": "Run `npm run api:generate` when the backend API changes to regenerate TypeScript types.",
-	"dashboard_guide_step3": "Use `npx shadcn-svelte@next add <component>` to add new UI components from shadcn.",
-	"dashboard_guide_step4": "Before committing, run `npm run format && npm run lint && npm run check && npm run build`.",
-	"dashboard_guide_step5": "Check `AGENTS.md` for detailed coding conventions and patterns.",
-
 	"gettingStarted_badge": "Production-Ready Template",
 	"gettingStarted_features_title": "What's Included",
 	"gettingStarted_commands_title": "Quick Commands",
@@ -208,8 +199,6 @@
 	"theme_dark": "Dark",
 	"theme_system": "System",
 
-	"meta_admin_title": "Admin",
-	"meta_admin_description": "Manage users, roles, and system settings.",
 	"meta_adminUsers_title": "Users",
 	"meta_adminUsers_description": "Manage user accounts.",
 	"meta_adminUserDetail_title": "User Detail",
@@ -225,7 +214,6 @@
 	"admin_users_description": "Manage user accounts, roles, and access.",
 	"admin_users_searchPlaceholder": "Search by name or email...",
 	"admin_users_noResults": "No users found.",
-	"admin_users_loadError": "Failed to load users",
 	"admin_users_email": "Email",
 	"admin_users_name": "Name",
 	"admin_users_roles": "Roles",
@@ -236,8 +224,6 @@
 	"admin_users_viewDetails": "View details",
 	"admin_users_totalUsers": "{count} users total",
 
-	"admin_userDetail_title": "User Detail",
-	"admin_userDetail_description": "View and manage user account details.",
 	"admin_userDetail_backToUsers": "Back to users",
 	"admin_userDetail_accountInfo": "Account Information",
 	"admin_userDetail_accountInfoDescription": "User account details and status.",
@@ -248,7 +234,6 @@
 	"admin_userDetail_lastName": "Last Name",
 	"admin_userDetail_phone": "Phone Number",
 	"admin_userDetail_emailConfirmed": "Email Confirmed",
-	"admin_userDetail_lockoutEnabled": "Lockout Enabled",
 	"admin_userDetail_accessFailedCount": "Failed Login Attempts",
 	"admin_userDetail_yes": "Yes",
 	"admin_userDetail_no": "No",
@@ -279,12 +264,10 @@
 	"admin_userDetail_deleteSuccess": "User account deleted",
 	"admin_userDetail_deleteError": "Failed to delete user account",
 	"admin_userDetail_cannotManage": "You do not have sufficient privileges to manage this user.",
-	"admin_userDetail_loadError": "Failed to load user details",
 
 	"admin_roles_title": "Roles",
 	"admin_roles_description": "View roles and their assigned user counts.",
 	"admin_roles_name": "Role",
 	"admin_roles_userCount": "Users",
-	"admin_roles_loadError": "Failed to load roles",
 	"admin_roles_noResults": "No roles found."
 }
