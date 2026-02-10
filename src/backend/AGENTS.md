@@ -9,6 +9,7 @@ src/backend/
 ├── MyProject.Domain/              # Entities, value objects, Result pattern
 │   ├── Entities/
 │   │   └── BaseEntity.cs
+│   ├── PhoneNumberHelper.cs       # Phone normalization (source-generated regex)
 │   └── Result.cs
 │
 ├── MyProject.Application/         # Interfaces and DTOs (contracts only)
@@ -62,7 +63,7 @@ src/backend/
     │           └── {Operation}/
     │               ├── {Operation}Request.cs
     │               └── {Operation}RequestValidator.cs
-    ├── Shared/                    # ApiController, ErrorResponse, PaginatedRequest/Response
+    ├── Shared/                    # ApiController, ErrorResponse, PaginatedRequest/Response, ValidationConstants
     ├── Middlewares/                # ExceptionHandlingMiddleware
     ├── Extensions/                # CORS, rate limiting
     └── Options/                   # CorsOptions, RateLimitingOptions
@@ -507,12 +508,46 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
     public RegisterRequestValidator()
     {
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(255);
-        RuleFor(x => x.Password).NotEmpty().MinimumLength(6);
+
+        RuleFor(x => x.Password)
+            .NotEmpty()
+            .MinimumLength(6)
+            .MaximumLength(255)
+            .Matches("[a-z]").WithMessage("Password must contain at least one lowercase letter.")
+            .Matches("[A-Z]").WithMessage("Password must contain at least one uppercase letter.")
+            .Matches("[0-9]").WithMessage("Password must contain at least one digit.");
+
+        RuleFor(x => x.PhoneNumber)
+            .MaximumLength(20)
+            .Matches(ValidationConstants.PhoneNumberPattern)
+            .WithMessage("Phone number must be a valid format (e.g. +420123456789)")
+            .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
     }
 }
 ```
 
-Simple DTOs can also use data annotations (`[Required]`, `[MaxLength]`, `[EmailAddress]`, etc.) — both validation systems work together.
+### Validation Rules
+
+| Rule Type | Convention |
+|---|---|
+| **New passwords** | Mirror Identity policy: `MinimumLength(6)` + `Matches("[a-z]")` + `Matches("[A-Z]")` + `Matches("[0-9]")`. Identity requires digit, lowercase, uppercase but **not** non-alphanumeric. |
+| **Existing passwords** (login, delete account) | `NotEmpty()` + `MaximumLength(255)` only. Never enforce policy on passwords the user already created — policy may have changed since. |
+| **Optional fields** | Use `.When(x => !string.IsNullOrEmpty(x.Field))` to skip rules when the field is absent. |
+| **URL fields** | Validate with `Uri.TryCreate` **and** restrict to `Uri.UriSchemeHttp` / `Uri.UriSchemeHttps` — reject `file://`, `ftp://`, etc. |
+
+### Shared Validation Constants
+
+When the same pattern (e.g., phone number regex) appears in multiple validators, extract it to `WebApi/Shared/ValidationConstants.cs` instead of duplicating a `private const` in each validator:
+
+```csharp
+// WebApi/Shared/ValidationConstants.cs
+public static class ValidationConstants
+{
+    public const string PhoneNumberPattern = @"^(\+\d{1,3})? ?\d{6,14}$";
+}
+```
+
+Simple DTOs can also use data annotations (`[Required]`, `[MaxLength]`, `[EmailAddress]`, etc.) — both validation systems work together. Data annotations feed the OpenAPI spec; FluentValidation handles complex runtime rules.
 
 ## Error Handling
 
