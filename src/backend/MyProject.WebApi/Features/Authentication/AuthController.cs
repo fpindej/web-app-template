@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MyProject.Application.Cookies.Constants;
 using MyProject.Application.Features.Authentication;
 using MyProject.Domain;
 using MyProject.WebApi.Features.Authentication.Dtos.ChangePassword;
 using MyProject.WebApi.Features.Authentication.Dtos.Login;
 using MyProject.WebApi.Features.Authentication.Dtos.Register;
+using MyProject.WebApi.Options;
 using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Features.Authentication;
@@ -111,9 +113,12 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
     /// <returns>Created response with the new user's ID</returns>
     /// <response code="201">User successfully created</response>
     /// <response code="400">If the registration data is invalid</response>
+    /// <response code="429">If too many registration requests have been made</response>
     [HttpPost("register")]
+    [EnableRateLimiting(RateLimitingOptions.RegistrationLimitOptions.PolicyName)]
     [ProducesResponseType(typeof(RegisterResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
         var result = await authenticationService.Register(request.ToRegisterInput(), cancellationToken);

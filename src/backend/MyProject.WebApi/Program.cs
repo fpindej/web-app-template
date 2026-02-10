@@ -132,11 +132,11 @@ try
         app.UseHttpsRedirection();
     }
 
-    Log.Debug("Setting UseRateLimiter");
-    app.UseRateLimiter();
-
     Log.Debug("Setting UseRouting");
     app.UseRouting();
+
+    Log.Debug("Setting UseRateLimiter");
+    app.UseRateLimiter();
 
     Log.Debug("Setting UseAuthentication");
     app.UseAuthentication();
