@@ -41,5 +41,6 @@ internal class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(x => x.Token);
+        builder.HasIndex(x => x.UserId);
     }
 }
