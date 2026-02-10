@@ -207,12 +207,42 @@ All `/api/*` requests are proxied to the backend via `routes/api/[...path]/+serv
 
 ## Error Handling
 
+### Error Handling (Generic Errors)
+
+The backend returns a descriptive `message` on every error response. The frontend uses this message directly via `getErrorMessage()`:
+
+```typescript
+import { getErrorMessage, browserClient } from '$lib/api';
+import { toast } from '$lib/components/ui/sonner';
+import * as m from '$lib/paraglide/messages';
+
+const { response, error: apiError } = await browserClient.POST('/api/auth/register', { body });
+
+if (!response.ok) {
+	toast.error(getErrorMessage(apiError, m.auth_register_error()));
+}
+```
+
+#### `getErrorMessage()` Resolution Order
+
+1. **`message` field** → backend's descriptive error message (ErrorResponse shape)
+2. **`detail` field** → ProblemDetails detail
+3. **`title` field** → ProblemDetails title
+4. **Fallback string** → the caller-provided fallback
+
+The backend always returns specific, user-friendly English messages with every error (e.g., `"Username 'user@example.com' is already taken."`). The frontend displays these messages directly — no translation or mapping is needed.
+
 ### Validation Errors (Field-Level)
 
 ASP.NET Core returns `ValidationProblemDetails` with field-level errors. Handle them with the provided utilities:
 
 ```typescript
-import { isValidationProblemDetails, mapFieldErrors, browserClient } from '$lib/api';
+import {
+	isValidationProblemDetails,
+	mapFieldErrors,
+	getErrorMessage,
+	browserClient
+} from '$lib/api';
 import { createFieldShakes } from '$lib/state';
 import { toast } from '$lib/components/ui/sonner';
 import * as m from '$lib/paraglide/messages';
@@ -956,8 +986,9 @@ npm run build    # Production build
 5. **Route**: Create page in `routes/(app)/{feature}/`
 6. **Server load**: Add `+page.server.ts` for initial data
 7. **i18n**: Add keys to both `en.json` and `cs.json`
-8. **Navigation**: Update sidebar/header if adding a new page
-9. **Responsive**: Verify at 320px, 375px, 768px, 1024px
-10. **Accessibility**: Touch targets ≥40px, logical properties, `prefers-reduced-motion`
+8. **Error handling**: The backend returns descriptive messages with every error — no frontend translation keys needed. Use `getErrorMessage()` to display them.
+9. **Navigation**: Update sidebar/header if adding a new page
+10. **Responsive**: Verify at 320px, 375px, 768px, 1024px
+11. **Accessibility**: Touch targets ≥40px, logical properties, `prefers-reduced-motion`
 
 Commit atomically: types+aliases → components → route+server-load → i18n keys.

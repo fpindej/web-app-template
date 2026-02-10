@@ -259,10 +259,15 @@ Use `Result` / `Result<T>` for all operations that can fail expectedly. Never th
 return Result<Guid>.Success(entity.Id);
 return Result.Success();
 
-// Failure
-return Result<Guid>.Failure("Email already exists.");
-return Result.Failure("Invalid credentials.");
+// Failure — use ErrorMessages constants for static messages
+return Result<Guid>.Failure(ErrorMessages.Auth.LoginInvalidCredentials);
+return Result.Failure(ErrorMessages.User.NotFound);
+
+// Failure — use inline interpolation for dynamic messages
+return Result.Failure($"Role '{roleName}' does not exist.");
 ```
+
+Every `Result.Failure()` call **must** use an `ErrorMessages.*` constant when the message is static. For messages that include runtime values (usernames, role names, etc.), use inline string interpolation directly in the service.
 
 In controllers, map Result to HTTP responses:
 
@@ -337,7 +342,10 @@ internal class AuthenticationService(
         var identityResult = await userManager.CreateAsync(user, input.Password);
 
         if (!identityResult.Succeeded)
-            return Result<Guid>.Failure(identityResult.Errors.First().Description);
+        {
+            var error = string.Join(" ", identityResult.Errors.Select(e => e.Description));
+            return Result<Guid>.Failure(error);
+        }
 
         return Result<Guid>.Success(user.Id);
     }
@@ -510,7 +518,7 @@ Simple DTOs can also use data annotations (`[Required]`, `[MaxLength]`, `[EmailA
 
 Three-tier strategy:
 
-1. **Expected business failures** → Return `Result.Failure("message")` from services
+1. **Expected business failures** → Return `Result.Failure(ErrorMessages.X.Y)` from services
 2. **Not found** → Throw `KeyNotFoundException` → `ExceptionHandlingMiddleware` returns 404
 3. **Pagination errors** → Throw `PaginationException` → middleware returns 400
 4. **Unexpected errors** → Let them propagate → middleware returns 500 with `ErrorResponse`
@@ -519,7 +527,7 @@ Three-tier strategy:
 // ExceptionHandlingMiddleware catches and maps exceptions:
 // KeyNotFoundException     → 404 (logged as Warning)
 // PaginationException      → 400 (logged as Warning)
-// Everything else          → 500 (logged as Error, stack trace in Development only)
+// Everything else          → 500 (logged as Error, message: ErrorMessages.Server.InternalError)
 ```
 
 The `ErrorResponse` shape:
@@ -528,11 +536,57 @@ The `ErrorResponse` shape:
 public class ErrorResponse
 {
     public string? Message { get; init; }
-    public string? Details { get; init; } // Stack trace — Development only
+    public string? Details { get; init; }    // Stack trace — Development only
 }
 ```
 
 `ErrorResponse` is the **only** error body type across the entire API — both controllers and middleware return it. The middleware serializes with explicit `JsonNamingPolicy.CamelCase` to match ASP.NET's controller serialization. Never return raw strings, anonymous objects, or other shapes for errors.
+
+## Error Messages
+
+Every failure in the system carries a descriptive, user-facing English message. Messages are organized as constants in `ErrorMessages.cs` (Domain layer) for static strings, or constructed inline for dynamic messages.
+
+### `ErrorMessages` Static Class (Domain)
+
+Error messages are defined as `const string` fields in `ErrorMessages.cs`, organized into nested static classes by domain area:
+
+```csharp
+public static class ErrorMessages
+{
+    public static class Auth
+    {
+        public const string LoginInvalidCredentials = "Invalid username or password.";
+        public const string TokenExpired = "Refresh token has expired.";
+        // ...
+    }
+
+    public static class User { /* ... */ }
+    public static class Admin { /* ... */ }
+    public static class Pagination { /* ... */ }
+    public static class Server { /* ... */ }
+    public static class Entity { /* ... */ }
+}
+```
+
+### Rules
+
+- **Use `ErrorMessages.*` constants for static messages** — every `Result.Failure()` call with a fixed string must reference a constant, not a string literal.
+- **Use inline string interpolation for dynamic messages** — when the message includes runtime values (usernames, role names, entity IDs), construct the string in the service: `$"Role '{roleName}' does not exist."`
+- **Messages are user-facing** — write clear, specific English text. The message flows directly to the frontend and is displayed to the user.
+- **Add new constants to the appropriate nested class** — if no class fits, create a new one following the existing pattern.
+
+### Identity Errors
+
+ASP.NET Identity returns its own descriptive `.Description` strings (e.g., `"Username 'user@example.com' is already taken."`). These are already user-friendly — pass them through directly instead of mapping to custom messages:
+
+```csharp
+var identityResult = await userManager.CreateAsync(user, input.Password);
+if (!identityResult.Succeeded)
+{
+    var error = string.Join(" ", identityResult.Errors.Select(e => e.Description));
+    return Result<Guid>.Failure(error);
+}
+```
 
 ## Security
 
@@ -1162,19 +1216,20 @@ Before adding or modifying any endpoint, verify:
 
 1. **Domain**: Create entity in `Domain/Entities/` extending `BaseEntity`
 2. **Domain**: If the entity has enum properties, define them with explicit integer values in `Domain/Entities/` (or `Domain/Enums/` if shared)
-3. **Application**: Define `I{Feature}Service` in `Application/Features/{Feature}/`
-4. **Application**: Create Input/Output record DTOs in `Application/Features/{Feature}/Dtos/`
-5. **Application**: If the entity needs custom queries, define `I{Feature}Repository` in `Application/Features/{Feature}/Persistence/` extending `IBaseEntityRepository<T>`
-6. **Infrastructure**: Implement service in `Infrastructure/Features/{Feature}/Services/` (mark `internal`)
-7. **Infrastructure**: If custom repository was defined, implement in `Infrastructure/Features/{Feature}/Persistence/` extending `BaseEntityRepository<T>` (mark `internal`)
-8. **Infrastructure**: Add EF configuration in `Infrastructure/Features/{Feature}/Configurations/` (extend `BaseEntityConfiguration<T>`) — add `.HasComment()` on enum columns
-9. **Infrastructure**: Create DI extension in `Infrastructure/Features/{Feature}/Extensions/ServiceCollectionExtensions.cs`
-10. **Infrastructure**: Add `DbSet<Entity>` to `MyProjectDbContext`
-11. **WebApi**: Create controller in `WebApi/Features/{Feature}/` (extend `ApiController` or `ControllerBase`)
-12. **WebApi**: Create Request/Response DTOs in `WebApi/Features/{Feature}/Dtos/{Operation}/`
-13. **WebApi**: Create Mapper in `WebApi/Features/{Feature}/{Feature}Mapper.cs`
-14. **WebApi**: Add validators co-located with request DTOs
-15. **WebApi**: Wire DI call in `Program.cs`
-16. **Migration**: `dotnet ef migrations add ...`
+3. **Domain**: Add error messages to `ErrorMessages.cs` in a new or existing nested class — values are user-facing English strings
+4. **Application**: Define `I{Feature}Service` in `Application/Features/{Feature}/`
+5. **Application**: Create Input/Output record DTOs in `Application/Features/{Feature}/Dtos/`
+6. **Application**: If the entity needs custom queries, define `I{Feature}Repository` in `Application/Features/{Feature}/Persistence/` extending `IBaseEntityRepository<T>`
+7. **Infrastructure**: Implement service in `Infrastructure/Features/{Feature}/Services/` (mark `internal`) — use `Result.Failure(ErrorMessages.X.Y)` for static failures, inline interpolation for dynamic messages
+8. **Infrastructure**: If custom repository was defined, implement in `Infrastructure/Features/{Feature}/Persistence/` extending `BaseEntityRepository<T>` (mark `internal`)
+9. **Infrastructure**: Add EF configuration in `Infrastructure/Features/{Feature}/Configurations/` (extend `BaseEntityConfiguration<T>`) — add `.HasComment()` on enum columns
+10. **Infrastructure**: Create DI extension in `Infrastructure/Features/{Feature}/Extensions/ServiceCollectionExtensions.cs`
+11. **Infrastructure**: Add `DbSet<Entity>` to `MyProjectDbContext`
+12. **WebApi**: Create controller in `WebApi/Features/{Feature}/` (extend `ApiController` or `ControllerBase`) — pass `Message` from Result to ErrorResponse
+13. **WebApi**: Create Request/Response DTOs in `WebApi/Features/{Feature}/Dtos/{Operation}/`
+14. **WebApi**: Create Mapper in `WebApi/Features/{Feature}/{Feature}Mapper.cs`
+15. **WebApi**: Add validators co-located with request DTOs
+16. **WebApi**: Wire DI call in `Program.cs`
+17. **Migration**: `dotnet ef migrations add ...`
 
-Commit atomically: entity+config → service interface+DTOs+repository interface → service implementation+repository implementation+DI → controller+DTOs+mapper+validators → migration.
+Commit atomically: entity+config+error messages → service interface+DTOs+repository interface → service implementation+repository implementation+DI → controller+DTOs+mapper+validators → migration.

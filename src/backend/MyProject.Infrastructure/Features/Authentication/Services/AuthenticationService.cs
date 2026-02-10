@@ -37,18 +37,18 @@ internal class AuthenticationService(
 
         if (user is null)
         {
-            return Result<AuthenticationOutput>.Failure("Invalid username or password.");
+            return Result<AuthenticationOutput>.Failure(ErrorMessages.Auth.LoginInvalidCredentials);
         }
 
         var signInResult = await signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
         if (signInResult.IsLockedOut)
         {
-            return Result<AuthenticationOutput>.Failure("Account is temporarily locked due to multiple failed login attempts. Please try again later.");
+            return Result<AuthenticationOutput>.Failure(ErrorMessages.Auth.LoginAccountLocked);
         }
 
         if (!signInResult.Succeeded)
         {
-            return Result<AuthenticationOutput>.Failure("Invalid username or password.");
+            return Result<AuthenticationOutput>.Failure(ErrorMessages.Auth.LoginInvalidCredentials);
         }
 
         var accessToken = await tokenProvider.GenerateAccessToken(user);
@@ -114,8 +114,7 @@ internal class AuthenticationService(
 
         if (!roleResult.Succeeded)
         {
-            var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
-            return Result<Guid>.Failure(errors);
+            return Result<Guid>.Failure(ErrorMessages.Auth.RegisterRoleAssignFailed);
         }
 
         return Result<Guid>.Success(user.Id);
@@ -141,7 +140,7 @@ internal class AuthenticationService(
     {
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return Result<AuthenticationOutput>.Failure("Refresh token is missing.");
+            return Result<AuthenticationOutput>.Failure(ErrorMessages.Auth.TokenMissing);
         }
 
         var hashedToken = HashHelper.Sha256(refreshToken);
@@ -151,12 +150,12 @@ internal class AuthenticationService(
 
         if (storedToken is null)
         {
-            return Fail("Refresh token not found.");
+            return Fail(ErrorMessages.Auth.TokenNotFound);
         }
 
         if (storedToken.Invalidated)
         {
-            return Fail("Refresh token has been invalidated.");
+            return Fail(ErrorMessages.Auth.TokenInvalidated);
         }
 
         if (storedToken.Used)
@@ -164,14 +163,14 @@ internal class AuthenticationService(
             // Security alert: Token reuse! Revoke all tokens for this user.
             storedToken.Invalidated = true;
             await RevokeUserTokens(storedToken.UserId, cancellationToken);
-            return Fail("Invalid refresh token.");
+            return Fail(ErrorMessages.Auth.TokenReused);
         }
 
         if (storedToken.ExpiredAt < timeProvider.GetUtcNow().UtcDateTime)
         {
             storedToken.Invalidated = true;
             await dbContext.SaveChangesAsync(cancellationToken);
-            return Fail("Refresh token has expired.");
+            return Fail(ErrorMessages.Auth.TokenExpired);
         }
 
         // Mark current token as used
@@ -180,7 +179,7 @@ internal class AuthenticationService(
         var user = storedToken.User;
         if (user is null)
         {
-            return Result<AuthenticationOutput>.Failure("User not found.");
+            return Result<AuthenticationOutput>.Failure(ErrorMessages.Auth.TokenUserNotFound);
         }
 
         var newAccessToken = await tokenProvider.GenerateAccessToken(user);
@@ -239,21 +238,21 @@ internal class AuthenticationService(
 
         if (!userId.HasValue)
         {
-            return Result.Failure("User is not authenticated.");
+            return Result.Failure(ErrorMessages.Auth.NotAuthenticated);
         }
 
         var user = await userManager.FindByIdAsync(userId.Value.ToString());
 
         if (user is null)
         {
-            return Result.Failure("User not found.");
+            return Result.Failure(ErrorMessages.Auth.UserNotFound);
         }
 
         var passwordValid = await userManager.CheckPasswordAsync(user, input.CurrentPassword);
 
         if (!passwordValid)
         {
-            return Result.Failure("Current password is incorrect.");
+            return Result.Failure(ErrorMessages.Auth.PasswordIncorrect);
         }
 
         var changeResult = await userManager.ChangePasswordAsync(user, input.CurrentPassword, input.NewPassword);

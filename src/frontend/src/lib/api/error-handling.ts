@@ -2,7 +2,8 @@
  * API error handling utilities for ASP.NET Core backends.
  *
  * Provides type-safe parsing and mapping of validation errors
- * from ASP.NET Core's ProblemDetails format.
+ * from ASP.NET Core's ProblemDetails format, and user-friendly
+ * error message extraction from backend responses.
  *
  * @remarks Pattern documented in src/frontend/AGENTS.md — update both when changing.
  */
@@ -86,12 +87,25 @@ export function mapFieldErrors(
 /**
  * Extracts a user-friendly error message from an API error response.
  *
+ * Resolution order:
+ * 1. `message` field → backend message (ErrorResponse shape)
+ * 2. `detail` field → ProblemDetails detail
+ * 3. `title` field → ProblemDetails title
+ * 4. Fallback string
+ *
+ * The backend always returns specific, descriptive English messages.
+ *
  * @param error - The error object from the API response
  * @param fallback - Fallback message if no error message can be extracted
  * @returns A user-friendly error message
  */
 export function getErrorMessage(error: unknown, fallback: string): string {
 	if (typeof error === 'object' && error !== null) {
+		// 1. Try ErrorResponse shape (message field)
+		if ('message' in error && typeof error.message === 'string') {
+			return error.message;
+		}
+		// 2. Try ProblemDetails shape (detail/title)
 		if ('detail' in error && typeof error.detail === 'string') {
 			return error.detail;
 		}

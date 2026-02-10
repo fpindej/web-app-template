@@ -1,4 +1,5 @@
-﻿using MyProject.Infrastructure.Persistence.Exceptions;
+using MyProject.Domain;
+using MyProject.Infrastructure.Persistence.Exceptions;
 
 namespace MyProject.Infrastructure.Persistence.Extensions;
 
@@ -20,11 +21,11 @@ public static class PaginationExtensions
     /// <exception cref="PaginationException">Thrown when page number is less than or equal to 0, or when page size is less than or equal to 0</exception>
     public static IQueryable<T> Paginate<T>(this IQueryable<T> ts, int pageNumber, int pageSize)
     {
-        if (pageNumber <= 0) throw new PaginationException(nameof(pageNumber), "Page number must be positive.");
+        if (pageNumber <= 0) throw new PaginationException(nameof(pageNumber), ErrorMessages.Pagination.InvalidPage);
 
         pageSize = pageSize switch
         {
-            <= 0 => throw new PaginationException(nameof(pageSize), "Page size must be positive."),
+            <= 0 => throw new PaginationException(nameof(pageSize), ErrorMessages.Pagination.InvalidPageSize),
             > MaxPageSize => MaxPageSize,
             _ => pageSize
         };

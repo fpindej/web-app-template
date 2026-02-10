@@ -282,12 +282,32 @@ Unused GitHub default labels (`enhancement`, `good first issue`, `help wanted`, 
 
 | Layer | Strategy |
 |---|---|
-| **Backend services** | Return `Result` / `Result<T>` for expected failures |
+| **Backend services** | Return `Result` / `Result<T>` with descriptive `ErrorMessages.*` constant for expected failures |
 | **Backend exceptions** | `KeyNotFoundException` → 404, `PaginationException` → 400, unhandled → 500 |
-| **Backend middleware** | `ExceptionHandlingMiddleware` catches all, returns `ErrorResponse` JSON |
+| **Backend middleware** | `ExceptionHandlingMiddleware` catches all, returns `ErrorResponse` JSON with `message` |
 | **Frontend API errors** | `isValidationProblemDetails()` → field-level errors with shake animation |
-| **Frontend generic errors** | `getErrorMessage()` → toast notification |
+| **Frontend generic errors** | `getErrorMessage()` uses backend's `message` field directly |
 | **Frontend network errors** | `isFetchErrorWithCode('ECONNREFUSED')` → 503 "Backend unavailable" |
+
+### Error Message Flow
+
+The backend returns descriptive English messages directly. No error codes, no frontend translation of error codes — the message is the user-facing string:
+
+```
+Backend service
+  → Result.Failure(ErrorMessages.Auth.LoginInvalidCredentials)
+  → Controller returns ErrorResponse { message: "Invalid username or password." }
+
+Frontend getErrorMessage()
+  → uses the `message` field directly (backend messages are specific and user-friendly)
+```
+
+For dynamic messages (containing runtime values like usernames or role names), services use inline string interpolation instead of constants.
+
+**Adding a new error message end-to-end:**
+
+1. Add `const string` to `ErrorMessages.cs` in the appropriate nested class (Domain) — the value is the user-facing English message
+2. Use it in the service's `Result.Failure()` call (Infrastructure)
 
 ## Local Development
 

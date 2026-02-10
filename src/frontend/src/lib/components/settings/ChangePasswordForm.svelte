@@ -55,7 +55,7 @@
 			} else if (isValidationProblemDetails(apiError)) {
 				fieldErrors = mapFieldErrors(apiError.errors);
 				fieldShakes.triggerFields(Object.keys(fieldErrors));
-				toast.error(apiError.title || m.settings_changePassword_error());
+				toast.error(getErrorMessage(apiError, m.settings_changePassword_error()));
 			} else {
 				const description = getErrorMessage(apiError, '');
 				toast.error(m.settings_changePassword_error(), description ? { description } : undefined);

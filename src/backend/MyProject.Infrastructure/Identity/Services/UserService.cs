@@ -35,7 +35,7 @@ internal class UserService(
 
         if (!userId.HasValue)
         {
-            return Result<UserOutput>.Failure("User is not authenticated.");
+            return Result<UserOutput>.Failure(ErrorMessages.User.NotAuthenticated);
         }
 
         var cacheKey = CacheKeys.User(userId.Value);
@@ -50,7 +50,7 @@ internal class UserService(
 
         if (user is null)
         {
-            return Result<UserOutput>.Failure("User not found.");
+            return Result<UserOutput>.Failure(ErrorMessages.User.NotFound);
         }
 
         var roles = await userManager.GetRolesAsync(user);
@@ -90,14 +90,14 @@ internal class UserService(
 
         if (!userId.HasValue)
         {
-            return Result<UserOutput>.Failure("User is not authenticated.");
+            return Result<UserOutput>.Failure(ErrorMessages.User.NotAuthenticated);
         }
 
         var user = await userManager.FindByIdAsync(userId.Value.ToString());
 
         if (user is null)
         {
-            return Result<UserOutput>.Failure("User not found.");
+            return Result<UserOutput>.Failure(ErrorMessages.User.NotFound);
         }
 
         user.FirstName = input.FirstName;
@@ -140,21 +140,21 @@ internal class UserService(
 
         if (!userId.HasValue)
         {
-            return Result.Failure("User is not authenticated.");
+            return Result.Failure(ErrorMessages.User.NotAuthenticated);
         }
 
         var user = await userManager.FindByIdAsync(userId.Value.ToString());
 
         if (user is null)
         {
-            return Result.Failure("User not found.");
+            return Result.Failure(ErrorMessages.User.NotFound);
         }
 
         var passwordValid = await userManager.CheckPasswordAsync(user, input.Password);
 
         if (!passwordValid)
         {
-            return Result.Failure("Invalid password.");
+            return Result.Failure(ErrorMessages.User.DeleteInvalidPassword);
         }
 
         var lastAdminResult = await EnforceLastAdminProtectionForDeletionAsync(user, cancellationToken);

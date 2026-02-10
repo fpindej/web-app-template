@@ -62,11 +62,13 @@
 			} else if (isValidationProblemDetails(apiError)) {
 				fieldErrors = mapFieldErrors(apiError.errors);
 				fieldShakes.triggerFields(Object.keys(fieldErrors));
-				toast.error(apiError.title || m.profile_personalInfo_updateError());
+				toast.error(getErrorMessage(apiError, m.profile_personalInfo_updateError()));
 			} else {
-				toast.error(m.profile_personalInfo_updateError(), {
-					description: getErrorMessage(apiError, m.profile_personalInfo_updateError())
-				});
+				const description = getErrorMessage(apiError, '');
+				toast.error(
+					m.profile_personalInfo_updateError(),
+					description ? { description } : undefined
+				);
 			}
 		} catch {
 			toast.error(m.profile_personalInfo_updateError());

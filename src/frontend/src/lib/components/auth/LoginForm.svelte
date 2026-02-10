@@ -61,7 +61,7 @@
 			} else {
 				let errorMessage = '';
 				if (response.status === 401) {
-					errorMessage = m.auth_login_invalidCredentials();
+					errorMessage = getErrorMessage(apiError, m.auth_login_invalidCredentials());
 				} else {
 					errorMessage = getErrorMessage(apiError, m.auth_login_error());
 				}

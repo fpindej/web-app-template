@@ -1,4 +1,4 @@
-import { createApiClient } from '$lib/api';
+import { createApiClient, getErrorMessage } from '$lib/api';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -9,7 +9,11 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 	const pageSize = Number(url.searchParams.get('pageSize') ?? '10');
 	const search = url.searchParams.get('search') ?? '';
 
-	const { data, response } = await client.GET('/api/v1/admin/users', {
+	const {
+		data,
+		response,
+		error: apiError
+	} = await client.GET('/api/v1/admin/users', {
 		params: {
 			query: {
 				pageNumber,
@@ -20,7 +24,7 @@ export const load: PageServerLoad = async ({ fetch, url }) => {
 	});
 
 	if (!response.ok) {
-		throw error(response.status, 'Failed to load users');
+		throw error(response.status, getErrorMessage(apiError, 'Failed to load users'));
 	}
 
 	return {

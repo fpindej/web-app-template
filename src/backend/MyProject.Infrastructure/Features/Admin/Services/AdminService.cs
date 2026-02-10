@@ -101,7 +101,7 @@ internal class AdminService(
 
         if (AppRoles.GetRoleRank(input.Role) >= callerRank)
         {
-            return Result.Failure("Cannot assign a role at or above your own rank.");
+            return Result.Failure(ErrorMessages.Admin.RoleAssignAboveRank);
         }
 
         if (await userManager.IsInRoleAsync(user, input.Role))
@@ -142,7 +142,7 @@ internal class AdminService(
 
         if (callerUserId == userId)
         {
-            return Result.Failure("Cannot remove a role from your own account.");
+            return Result.Failure(ErrorMessages.Admin.RoleSelfRemove);
         }
 
         var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
@@ -156,7 +156,7 @@ internal class AdminService(
 
         if (AppRoles.GetRoleRank(role) >= callerRank)
         {
-            return Result.Failure("Cannot remove a role at or above your own rank.");
+            return Result.Failure(ErrorMessages.Admin.RoleRemoveAboveRank);
         }
 
         if (!await userManager.IsInRoleAsync(user, role))
@@ -199,7 +199,7 @@ internal class AdminService(
 
         if (callerUserId == userId)
         {
-            return Result.Failure("Cannot lock your own account.");
+            return Result.Failure(ErrorMessages.Admin.LockSelfAction);
         }
 
         var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
@@ -274,7 +274,7 @@ internal class AdminService(
 
         if (callerUserId == userId)
         {
-            return Result.Failure("Cannot delete your own account.");
+            return Result.Failure(ErrorMessages.Admin.DeleteSelfAction);
         }
 
         var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
@@ -343,7 +343,7 @@ internal class AdminService(
 
         if (callerRank <= targetRank)
         {
-            return Result.Failure("You do not have sufficient privileges to manage this user.");
+            return Result.Failure(ErrorMessages.Admin.HierarchyInsufficient);
         }
 
         return Result.Success();

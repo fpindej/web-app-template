@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using MyProject.Domain;
 using MyProject.Infrastructure.Persistence.Exceptions;
 using MyProject.WebApi.Shared;
 
@@ -45,7 +46,7 @@ public class ExceptionHandlingMiddleware(
         {
             logger.LogError(e, "An unhandled exception occurred.");
             await HandleExceptionAsync(context, e, HttpStatusCode.InternalServerError,
-                customMessage: "An internal error occurred.");
+                customMessage: ErrorMessages.Server.InternalError);
         }
     }
 
