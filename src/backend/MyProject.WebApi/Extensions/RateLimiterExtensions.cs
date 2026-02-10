@@ -1,12 +1,13 @@
 using System.Globalization;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using MyProject.WebApi.Options;
 using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Extensions;
 
 /// <summary>
-/// Extension methods for registering global rate limiting with fixed-window partitioning.
+/// Extension methods for registering rate limiting with global and per-endpoint fixed-window policies.
 /// </summary>
 internal static class RateLimiterExtensions
 {
@@ -64,8 +65,25 @@ internal static class RateLimiterExtensions
                     await context.HttpContext.Response.WriteAsJsonAsync(response, token);
                 }
             };
+
+            AddRegistrationPolicy(opt, rateLimitOptions.Registration);
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Adds a fixed-window rate limit policy for the registration endpoint, partitioned by IP address.
+    /// </summary>
+    private static void AddRegistrationPolicy(RateLimiterOptions options,
+        RateLimitingOptions.RegistrationLimitOptions registrationOptions)
+    {
+        options.AddFixedWindowLimiter(RateLimitingOptions.RegistrationLimitOptions.PolicyName, opt =>
+        {
+            opt.PermitLimit = registrationOptions.PermitLimit;
+            opt.Window = registrationOptions.Window;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            opt.QueueLimit = 0;
+        });
     }
 }
