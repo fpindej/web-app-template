@@ -38,6 +38,7 @@ public static class ErrorMessages
         public const string NotAuthenticated = "User is not authenticated.";
         public const string NotFound = "User not found.";
         public const string DeleteInvalidPassword = "Invalid password.";
+        public const string PhoneNumberTaken = "This phone number is already in use.";
     }
 
     /// <summary>

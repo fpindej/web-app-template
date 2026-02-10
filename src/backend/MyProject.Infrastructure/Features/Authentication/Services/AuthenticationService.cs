@@ -93,13 +93,20 @@ internal class AuthenticationService(
     /// <inheritdoc />
     public async Task<Result<Guid>> Register(RegisterInput input, CancellationToken cancellationToken = default)
     {
+        var normalizedPhone = PhoneNumberHelper.Normalize(input.PhoneNumber);
+
+        if (normalizedPhone is not null && await IsPhoneNumberTakenAsync(normalizedPhone, excludeUserId: null))
+        {
+            return Result<Guid>.Failure(ErrorMessages.User.PhoneNumberTaken);
+        }
+
         var user = new ApplicationUser
         {
             UserName = input.Email,
             Email = input.Email,
             FirstName = input.FirstName,
             LastName = input.LastName,
-            PhoneNumber = input.PhoneNumber
+            PhoneNumber = normalizedPhone
         };
 
         var result = await userManager.CreateAsync(user, input.Password);
@@ -286,5 +293,17 @@ internal class AuthenticationService(
         {
             await userManager.UpdateSecurityStampAsync(user);
         }
+    }
+
+    /// <summary>
+    /// Checks whether any existing user already has the given normalized phone number.
+    /// </summary>
+    private async Task<bool> IsPhoneNumberTakenAsync(string normalizedPhone, Guid? excludeUserId)
+    {
+        return await userManager.Users
+            .AnyAsync(u =>
+                u.PhoneNumber != null
+                && u.PhoneNumber == normalizedPhone
+                && (!excludeUserId.HasValue || u.Id != excludeUserId.Value));
     }
 }

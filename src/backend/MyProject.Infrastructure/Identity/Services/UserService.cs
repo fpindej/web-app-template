@@ -100,9 +100,16 @@ internal class UserService(
             return Result<UserOutput>.Failure(ErrorMessages.User.NotFound);
         }
 
+        var normalizedPhone = PhoneNumberHelper.Normalize(input.PhoneNumber);
+
+        if (normalizedPhone is not null && await IsPhoneNumberTakenAsync(normalizedPhone, excludeUserId: userId.Value))
+        {
+            return Result<UserOutput>.Failure(ErrorMessages.User.PhoneNumberTaken);
+        }
+
         user.FirstName = input.FirstName;
         user.LastName = input.LastName;
-        user.PhoneNumber = input.PhoneNumber;
+        user.PhoneNumber = normalizedPhone;
         user.Bio = input.Bio;
         user.AvatarUrl = input.AvatarUrl;
 
@@ -233,5 +240,17 @@ internal class UserService(
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             throw new InvalidOperationException($"Failed to delete user account: {errors}");
         }
+    }
+
+    /// <summary>
+    /// Checks whether any existing user already has the given normalized phone number.
+    /// </summary>
+    private async Task<bool> IsPhoneNumberTakenAsync(string normalizedPhone, Guid excludeUserId)
+    {
+        return await userManager.Users
+            .AnyAsync(u =>
+                u.PhoneNumber != null
+                && u.PhoneNumber == normalizedPhone
+                && u.Id != excludeUserId);
     }
 }
