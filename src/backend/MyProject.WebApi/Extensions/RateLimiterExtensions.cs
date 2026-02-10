@@ -78,12 +78,19 @@ internal static class RateLimiterExtensions
     private static void AddRegistrationPolicy(RateLimiterOptions options,
         RateLimitingOptions.RegistrationLimitOptions registrationOptions)
     {
-        options.AddFixedWindowLimiter(RateLimitingOptions.RegistrationLimitOptions.PolicyName, opt =>
-        {
-            opt.PermitLimit = registrationOptions.PermitLimit;
-            opt.Window = registrationOptions.Window;
-            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-            opt.QueueLimit = 0;
-        });
+        options.AddPolicy(RateLimitingOptions.RegistrationLimitOptions.PolicyName,
+            context =>
+            {
+                var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+
+                return RateLimitPartition.GetFixedWindowLimiter(ipAddress, _ =>
+                    new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = registrationOptions.PermitLimit,
+                        Window = registrationOptions.Window,
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit = 0
+                    });
+            });
     }
 }
