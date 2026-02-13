@@ -1,12 +1,14 @@
 using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using MyProject.Infrastructure.Features.Admin.Extensions;
 using MyProject.Infrastructure.Persistence.Extensions;
 using MyProject.Infrastructure.Caching.Extensions;
 using MyProject.Infrastructure.Cookies.Extensions;
 using MyProject.Infrastructure.Identity.Extensions;
+using MyProject.WebApi.Authorization;
 using MyProject.WebApi.Extensions;
 using MyProject.WebApi.Features.OpenApi.Extensions;
 using MyProject.WebApi.Middlewares;
@@ -50,6 +52,10 @@ try
 
         Log.Debug("Adding admin services");
         builder.Services.AddAdminServices();
+
+        Log.Debug("Adding permission-based authorization");
+        builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
     }
     catch (Exception ex)
     {
