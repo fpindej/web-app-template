@@ -1316,24 +1316,6 @@ Before adding or modifying any endpoint, verify:
 
 No test infrastructure is currently set up — no unit test or integration test projects exist in the solution. When tests are added, this section will document the testing frameworks, patterns, and conventions.
 
-## Adding a New Feature — Checklist
+## Adding a New Feature
 
-1. **Domain**: Create entity in `Domain/Entities/` extending `BaseEntity`
-2. **Domain**: If the entity has enum properties, define them with explicit integer values in `Domain/Entities/` (or `Domain/Enums/` if shared)
-3. **Domain**: Add error messages to `ErrorMessages.cs` in a new or existing nested class — values are user-facing English strings
-4. **Application**: Define `I{Feature}Service` in `Application/Features/{Feature}/`
-5. **Application**: Create Input/Output record DTOs in `Application/Features/{Feature}/Dtos/`
-6. **Application**: If the entity needs custom queries, define `I{Feature}Repository` in `Application/Features/{Feature}/Persistence/` extending `IBaseEntityRepository<T>`
-7. **Infrastructure**: Implement service in `Infrastructure/Features/{Feature}/Services/` (mark `internal`) — use `Result.Failure(ErrorMessages.X.Y)` for static failures, inline interpolation for dynamic messages
-8. **Infrastructure**: If custom repository was defined, implement in `Infrastructure/Features/{Feature}/Persistence/` extending `BaseEntityRepository<T>` (mark `internal`)
-9. **Infrastructure**: Add EF configuration in `Infrastructure/Features/{Feature}/Configurations/` (extend `BaseEntityConfiguration<T>`) — add `.HasComment()` on enum columns
-10. **Infrastructure**: Create DI extension in `Infrastructure/Features/{Feature}/Extensions/ServiceCollectionExtensions.cs`
-11. **Infrastructure**: Add `DbSet<Entity>` to `MyProjectDbContext`
-12. **WebApi**: Create controller in `WebApi/Features/{Feature}/` (extend `ApiController` or `ControllerBase`) — pass `Message` from Result to ErrorResponse
-13. **WebApi**: Create Request/Response DTOs in `WebApi/Features/{Feature}/Dtos/{Operation}/`
-14. **WebApi**: Create Mapper in `WebApi/Features/{Feature}/{Feature}Mapper.cs`
-15. **WebApi**: Add validators co-located with request DTOs
-16. **WebApi**: Wire DI call in `Program.cs`
-17. **Migration**: `dotnet ef migrations add ...`
-
-Commit atomically: entity+config+error messages → service interface+DTOs+repository interface → service implementation+repository implementation+DI → controller+DTOs+mapper+validators → migration.
+For step-by-step procedures (add entity, add endpoint, add feature), see [`SKILLS.md`](../../SKILLS.md). This file documents **conventions and patterns** — SKILLS.md documents **workflows and checklists**.

@@ -1039,18 +1039,6 @@ npm run build    # Production build
 
 No test infrastructure is currently set up — no vitest, playwright, or other test frameworks are configured. When tests are added, this section will document the testing frameworks, patterns, and conventions.
 
-## Adding a New Feature — Checklist
+## Adding a New Feature
 
-1. **Types**: Run `npm run api:generate` if backend has new endpoints
-2. **Type alias**: Add to `$lib/types/index.ts` if the schema is commonly used
-3. **Components**: Create in `$lib/components/{feature}/` with barrel `index.ts`
-4. **State**: If needed, create `$lib/state/{feature}.svelte.ts`
-5. **Route**: Create page in `routes/(app)/{feature}/`
-6. **Server load**: Add `+page.server.ts` for initial data
-7. **i18n**: Add keys to both `en.json` and `cs.json`
-8. **Error handling**: The backend returns descriptive messages with every error — no frontend translation keys needed. Use `getErrorMessage()` to display them.
-9. **Navigation**: Update sidebar/header if adding a new page
-10. **Responsive**: Verify at 320px, 375px, 768px, 1024px
-11. **Accessibility**: Touch targets ≥40px, logical properties, `prefers-reduced-motion`
-
-Commit atomically: types+aliases → components → route+server-load → i18n keys.
+For step-by-step procedures (add page, add component, add feature), see [`SKILLS.md`](../../SKILLS.md). This file documents **conventions and patterns** — SKILLS.md documents **workflows and checklists**.

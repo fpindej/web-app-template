@@ -1,70 +1,18 @@
 Create a pull request for the current branch.
 
-## Steps
+## Execution
 
-### 1. Assess Current State
+Follow the conventions in **AGENTS.md → "Pull Requests"** section.
 
-Run these in parallel:
-- `git status` — check for uncommitted changes
-- `git diff` — check for unstaged changes
-- `git log master..HEAD --oneline` — see all commits on this branch
-- `git diff master...HEAD --stat` — see all files changed vs master
+1. Check for uncommitted changes (`git status`). If any, ask whether to commit first.
+2. Review ALL commits on the branch: `git log master..HEAD --oneline`
+3. Push if needed: `git push -u origin $(git branch --show-current)`
+4. Create PR with `gh pr create`:
+   - **Title**: Conventional Commit format, under 70 chars
+   - **Base**: `master`
+   - **Labels**: Apply all relevant (`backend`, `frontend`, `feature`, `bug`, etc.)
+   - **Body**: Summary, changes, breaking changes (if any), test plan, `Closes #N`
 
-If there are uncommitted changes, ask the user whether to commit them first.
-
-### 2. Ensure Branch is Pushed
-
-```bash
-git push -u origin $(git branch --show-current)
-```
-
-### 3. Analyze Changes
-
-Review ALL commits on the branch (not just the latest) to understand the full scope:
-- What features/fixes are included?
-- Which layers are affected (backend, frontend, both)?
-- Are there breaking changes?
-
-### 4. Draft PR
-
-```bash
-gh pr create --title "type(scope): description" --body "$(cat <<'EOF'
-## Summary
-- Bullet point 1
-- Bullet point 2
-
-## Changes
-- List of significant changes
-
-## Breaking Changes
-<!-- Remove this section if none -->
-- Description of any breaking changes and migration steps
-
-## Test Plan
-- [ ] Step 1 to verify
-- [ ] Step 2 to verify
-
-Closes #N
-EOF
-)" --label "label1,label2"
-```
-
-### PR Conventions
-
-- **Title**: Conventional Commit format, under 70 chars
-- **Base**: `master` (unless instructed otherwise)
-- **Labels**: Apply all relevant labels (backend, frontend, feature, bug, etc.)
-- **Linked issues**: Use `Closes #N` in the body
-
-### Merge Strategy
-
-This project uses **squash and merge** only:
-```bash
-gh pr merge <number> --squash \
-  --subject "type(scope): description" \
-  --body "Summary of changes. Closes #N"
-```
-
-## Output
+**Merge strategy** for this project is squash-and-merge only (see AGENTS.md).
 
 Report the PR URL to the user.
