@@ -32,6 +32,10 @@ internal class UserContext(IHttpContextAccessor httpContextAccessor) : IUserCont
     public string? UserName => GetClaimValue(ClaimTypes.Name, x => x);
 
     /// <inheritdoc />
+    public Guid AuthenticatedUserId =>
+        UserId ?? throw new InvalidOperationException("No authenticated user. This property should only be accessed on authenticated endpoints.");
+
+    /// <inheritdoc />
     public bool IsAuthenticated => UserId.HasValue;
 
     /// <inheritdoc />

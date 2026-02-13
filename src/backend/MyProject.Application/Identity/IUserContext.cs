@@ -21,6 +21,14 @@ public interface IUserContext
     string? UserName { get; }
 
     /// <summary>
+    /// Gets the current user's unique identifier.
+    /// Throws <see cref="InvalidOperationException"/> if the request is not authenticated.
+    /// Use this on endpoints that are guaranteed to be authenticated (e.g. behind <c>[Authorize]</c>
+    /// or <c>[RequirePermission]</c>).
+    /// </summary>
+    Guid AuthenticatedUserId { get; }
+
+    /// <summary>
     /// Gets a value indicating whether the current request is authenticated.
     /// </summary>
     bool IsAuthenticated { get; }

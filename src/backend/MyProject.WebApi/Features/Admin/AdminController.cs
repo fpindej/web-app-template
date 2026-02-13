@@ -97,7 +97,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
         [FromBody] AssignRoleRequest request,
         CancellationToken cancellationToken)
     {
-        var callerUserId = userContext.UserId!.Value;
+        var callerUserId = userContext.AuthenticatedUserId;
         var result = await adminService.AssignRoleAsync(callerUserId, id, request.ToInput(), cancellationToken);
 
         if (!result.IsSuccess)
@@ -129,7 +129,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RemoveRole(Guid id, string role, CancellationToken cancellationToken)
     {
-        var callerUserId = userContext.UserId!.Value;
+        var callerUserId = userContext.AuthenticatedUserId;
         var result = await adminService.RemoveRoleAsync(callerUserId, id, role, cancellationToken);
 
         if (!result.IsSuccess)
@@ -160,7 +160,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> LockUser(Guid id, CancellationToken cancellationToken)
     {
-        var callerUserId = userContext.UserId!.Value;
+        var callerUserId = userContext.AuthenticatedUserId;
         var result = await adminService.LockUserAsync(callerUserId, id, cancellationToken);
 
         if (!result.IsSuccess)
@@ -190,7 +190,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UnlockUser(Guid id, CancellationToken cancellationToken)
     {
-        var callerUserId = userContext.UserId!.Value;
+        var callerUserId = userContext.AuthenticatedUserId;
         var result = await adminService.UnlockUserAsync(callerUserId, id, cancellationToken);
 
         if (!result.IsSuccess)
@@ -221,7 +221,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteUser(Guid id, CancellationToken cancellationToken)
     {
-        var callerUserId = userContext.UserId!.Value;
+        var callerUserId = userContext.AuthenticatedUserId;
         var result = await adminService.DeleteUserAsync(callerUserId, id, cancellationToken);
 
         if (!result.IsSuccess)
