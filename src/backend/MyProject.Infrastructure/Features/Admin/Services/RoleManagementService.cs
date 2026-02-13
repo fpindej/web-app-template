@@ -224,8 +224,9 @@ internal class RoleManagementService(
     }
 
     /// <summary>
-    /// Rotates security stamps and invalidates refresh tokens for all users in a role,
-    /// forcing them to re-authenticate and receive updated permission claims.
+    /// Rotates security stamps for all users in a role, invalidating their current access tokens.
+    /// Refresh tokens are intentionally preserved so the frontend can silently re-authenticate
+    /// and obtain a new JWT with updated permission claims — avoiding a disruptive sign-out.
     /// </summary>
     private async Task RotateSecurityStampsForRoleAsync(Guid roleId,
         CancellationToken cancellationToken)
@@ -236,13 +237,6 @@ internal class RoleManagementService(
             .ToListAsync(cancellationToken);
 
         if (userIds.Count == 0) return;
-
-        // Bulk-invalidate all active refresh tokens for affected users
-        await dbContext.RefreshTokens
-            .Where(rt => userIds.Contains(rt.UserId) && !rt.Invalidated)
-            .ExecuteUpdateAsync(
-                s => s.SetProperty(rt => rt.Invalidated, true),
-                cancellationToken);
 
         // Load all affected users in a single query
         var users = await dbContext.Users
