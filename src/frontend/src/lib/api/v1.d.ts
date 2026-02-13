@@ -950,7 +950,319 @@ export interface paths {
 						'application/json': components['schemas']['ProblemDetails'];
 					};
 				};
-				/** @description If the user does not have the Admin or SuperAdmin role */
+				/** @description If the user does not have the required permission */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		put?: never;
+		/** Creates a new custom role. */
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['CreateRoleRequest'];
+				};
+			};
+			responses: {
+				/** @description Role created successfully */
+				201: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				/** @description If the role name is taken or validation fails */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/admin/roles/{id}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Gets detailed information about a single role, including its permissions and user count. */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['RoleDetailResponse'];
+					};
+				};
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		/** Updates an existing role's name and/or description. */
+		put: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['UpdateRoleRequest'];
+				};
+			};
+			responses: {
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		post?: never;
+		/** Deletes a custom role. */
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/admin/roles/{id}/permissions': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		/** Replaces all permissions on a role. */
+		put: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['SetPermissionsRequest'];
+				};
+			};
+			responses: {
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ErrorResponse'];
+					};
+				};
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+			};
+		};
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/admin/permissions': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		/** Returns all available permissions grouped by category. */
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['PermissionGroupResponse'][];
+					};
+				};
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
 				403: {
 					headers: {
 						[name: string]: unknown;
@@ -982,6 +1294,10 @@ export interface components {
 			id?: string;
 			/** @description The name of the role. */
 			name?: string;
+			/** @description An optional description of the role's purpose. */
+			description?: null | string;
+			/** @description Whether this is a system-defined role that cannot be deleted or renamed. */
+			isSystem?: boolean;
 			/**
 			 * Format: int32
 			 * @description The number of users assigned to this role.
@@ -1184,6 +1500,55 @@ export interface components {
 			avatarUrl?: null | string;
 			/** @description The roles assigned to the user. */
 			roles?: string[];
+			/** @description The atomic permissions granted to the user through their roles. */
+			permissions?: string[];
+		};
+		/** @description Detailed role response including permissions and user count. */
+		RoleDetailResponse: {
+			/**
+			 * Format: uuid
+			 * @description The unique identifier of the role.
+			 */
+			id?: string;
+			/** @description The name of the role. */
+			name?: string;
+			/** @description An optional description of the role's purpose. */
+			description?: null | string;
+			/** @description Whether this is a system-defined role that cannot be deleted or renamed. */
+			isSystem?: boolean;
+			/** @description The permission claim values assigned to this role. */
+			permissions?: string[];
+			/**
+			 * Format: int32
+			 * @description The number of users assigned to this role.
+			 */
+			userCount?: number;
+		};
+		/** @description A group of permissions belonging to the same category. */
+		PermissionGroupResponse: {
+			/** @description The category name (e.g. "Users", "Roles"). */
+			category?: string;
+			/** @description The permission values in this category. */
+			permissions?: string[];
+		};
+		/** @description Request to create a new custom role. */
+		CreateRoleRequest: {
+			/** @description The name of the new role. */
+			name: string;
+			/** @description An optional description of the role's purpose. */
+			description?: null | string;
+		};
+		/** @description Request to update an existing role's name and/or description. */
+		UpdateRoleRequest: {
+			/** @description The new role name, or null to keep the current name. */
+			name?: null | string;
+			/** @description The new description, or null to keep the current description. */
+			description?: null | string;
+		};
+		/** @description Request to replace all permissions on a role. */
+		SetPermissionsRequest: {
+			/** @description The full set of permission values to assign to the role. */
+			permissions: string[];
 		};
 	};
 	responses: never;
