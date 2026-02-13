@@ -1,8 +1,8 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.Features.Admin;
 using MyProject.Application.Identity.Constants;
+using MyProject.Domain;
 using MyProject.WebApi.Authorization;
 using MyProject.WebApi.Features.Admin.Dtos;
 using MyProject.WebApi.Features.Admin.Dtos.AssignRole;
@@ -63,9 +63,14 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AdminUserResponse>> GetUser(Guid id, CancellationToken cancellationToken)
     {
-        var output = await adminService.GetUserByIdAsync(id, cancellationToken);
+        var result = await adminService.GetUserByIdAsync(id, cancellationToken);
 
-        return Ok(output.ToResponse());
+        if (!result.IsSuccess)
+        {
+            return NotFound(new ErrorResponse { Message = result.Error });
+        }
+
+        return Ok(result.Value!.ToResponse());
     }
 
     /// <summary>
@@ -97,7 +102,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return NoContent();
@@ -129,7 +134,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return NoContent();
@@ -160,7 +165,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return NoContent();
@@ -190,7 +195,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return NoContent();
@@ -221,7 +226,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return NoContent();
@@ -253,22 +258,22 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <param name="id">The role ID</param>
     /// <returns>The role details with permissions</returns>
     /// <response code="200">Returns the role details</response>
-    /// <response code="400">If the role was not found</response>
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
+    /// <response code="404">If the role was not found</response>
     [HttpGet("roles/{id:guid}")]
     [RequirePermission(AppPermissions.Roles.View)]
     [ProducesResponseType(typeof(RoleDetailResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<RoleDetailResponse>> GetRole(Guid id, CancellationToken cancellationToken)
     {
         var result = await roleManagementService.GetRoleDetailAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return Ok(result.Value!.ToResponse());
@@ -297,7 +302,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return CreatedAtAction(nameof(GetRole), new { id = result.Value }, null);
@@ -313,12 +318,14 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="400">If the update is invalid (system role rename, name taken, etc.)</response>
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
+    /// <response code="404">If the role was not found</response>
     [HttpPut("roles/{id:guid}")]
     [RequirePermission(AppPermissions.Roles.Manage)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UpdateRole(
         Guid id,
         [FromBody] UpdateRoleRequest request,
@@ -328,7 +335,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return NoContent();
@@ -343,19 +350,21 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="400">If the role is a system role or has users assigned</response>
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
+    /// <response code="404">If the role was not found</response>
     [HttpDelete("roles/{id:guid}")]
     [RequirePermission(AppPermissions.Roles.Manage)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteRole(Guid id, CancellationToken cancellationToken)
     {
         var result = await roleManagementService.DeleteRoleAsync(id, cancellationToken);
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return NoContent();
@@ -372,12 +381,14 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="400">If the permissions are invalid or SuperAdmin is targeted</response>
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
+    /// <response code="404">If the role was not found</response>
     [HttpPut("roles/{id:guid}/permissions")]
     [RequirePermission(AppPermissions.Roles.Manage)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> SetRolePermissions(
         Guid id,
         [FromBody] SetPermissionsRequest request,
@@ -387,7 +398,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
 
         if (!result.IsSuccess)
         {
-            return BadRequest(new ErrorResponse { Message = result.Error });
+            return ToErrorResult(result.Error);
         }
 
         return NoContent();
@@ -411,13 +422,31 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
         return Ok(permissions.Select(p => p.ToResponse()).ToList());
     }
 
+    /// <summary>
+    /// Returns <see cref="NotFoundObjectResult"/> for not-found errors, <see cref="BadRequestObjectResult"/> otherwise.
+    /// </summary>
+    private ActionResult ToErrorResult(string? error)
+    {
+        if (error is ErrorMessages.Admin.UserNotFound or ErrorMessages.Roles.RoleNotFound)
+        {
+            return NotFound(new ErrorResponse { Message = error });
+        }
+
+        return BadRequest(new ErrorResponse { Message = error });
+    }
+
+    /// <summary>
+    /// Extracts the current user ID from the JWT claims.
+    /// This should never fail on an authenticated request — a missing claim indicates a corrupt token,
+    /// which is a programmer error (not a user error), hence <see cref="InvalidOperationException"/>.
+    /// </summary>
     private Guid GetCurrentUserId()
     {
         var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (!Guid.TryParse(claim, out var userId))
         {
-            throw new UnauthorizedAccessException("Unable to determine the current user identity.");
+            throw new InvalidOperationException("Unable to determine the current user identity from JWT claims.");
         }
 
         return userId;

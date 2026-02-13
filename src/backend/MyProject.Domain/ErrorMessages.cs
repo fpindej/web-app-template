@@ -46,6 +46,7 @@ public static class ErrorMessages
     /// </summary>
     public static class Admin
     {
+        public const string UserNotFound = "User not found.";
         public const string HierarchyInsufficient = "You do not have sufficient privileges to manage this user.";
         public const string RoleAssignAboveRank = "Cannot assign a role at or above your own rank.";
         public const string RoleRemoveAboveRank = "Cannot remove a role at or above your own rank.";

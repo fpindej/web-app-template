@@ -61,17 +61,18 @@ internal class AdminService(
     }
 
     /// <inheritdoc />
-    public async Task<AdminUserOutput> GetUserByIdAsync(Guid userId,
+    public async Task<Result<AdminUserOutput>> GetUserByIdAsync(Guid userId,
         CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
 
         if (user is null)
         {
-            throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
+            return Result<AdminUserOutput>.Failure(ErrorMessages.Admin.UserNotFound);
         }
 
-        return await MapUserToOutputAsync(user, cancellationToken);
+        var output = await MapUserToOutputAsync(user, cancellationToken);
+        return Result<AdminUserOutput>.Success(output);
     }
 
     /// <inheritdoc />
@@ -88,7 +89,7 @@ internal class AdminService(
 
         if (user is null)
         {
-            throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
+            return Result.Failure(ErrorMessages.Admin.UserNotFound);
         }
 
         var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
@@ -141,7 +142,7 @@ internal class AdminService(
 
         if (user is null)
         {
-            throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
+            return Result.Failure(ErrorMessages.Admin.UserNotFound);
         }
 
         if (callerUserId == userId)
@@ -198,7 +199,7 @@ internal class AdminService(
 
         if (user is null)
         {
-            throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
+            return Result.Failure(ErrorMessages.Admin.UserNotFound);
         }
 
         if (callerUserId == userId)
@@ -238,7 +239,7 @@ internal class AdminService(
 
         if (user is null)
         {
-            throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
+            return Result.Failure(ErrorMessages.Admin.UserNotFound);
         }
 
         var hierarchyResult = await EnforceHierarchyAsync(callerUserId, user);
@@ -273,7 +274,7 @@ internal class AdminService(
 
         if (user is null)
         {
-            throw new KeyNotFoundException($"User with ID '{userId}' was not found.");
+            return Result.Failure(ErrorMessages.Admin.UserNotFound);
         }
 
         if (callerUserId == userId)
