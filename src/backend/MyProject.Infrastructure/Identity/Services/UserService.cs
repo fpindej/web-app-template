@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MyProject.Application.Caching;
@@ -54,6 +55,7 @@ internal class UserService(
         }
 
         var roles = await userManager.GetRolesAsync(user);
+        var permissions = await GetPermissionsForRolesAsync(roles);
 
         var output = new UserOutput(
             Id: user.Id,
@@ -63,9 +65,10 @@ internal class UserService(
             PhoneNumber: user.PhoneNumber,
             Bio: user.Bio,
             AvatarUrl: user.AvatarUrl,
-            Roles: roles);
+            Roles: roles,
+            Permissions: permissions);
 
-        // NOTE: UserOutput (including roles) is cached to improve performance.
+        // NOTE: UserOutput (including roles and permissions) is cached to improve performance.
         // Role or permission changes may take up to this duration to be reflected.
         await cacheService.SetAsync(cacheKey, output, UserCacheOptions);
 
@@ -126,6 +129,7 @@ internal class UserService(
         await cacheService.RemoveAsync(cacheKey);
 
         var roles = await userManager.GetRolesAsync(user);
+        var permissions = await GetPermissionsForRolesAsync(roles);
 
         var output = new UserOutput(
             Id: user.Id,
@@ -135,7 +139,8 @@ internal class UserService(
             PhoneNumber: user.PhoneNumber,
             Bio: user.Bio,
             AvatarUrl: user.AvatarUrl,
-            Roles: roles);
+            Roles: roles,
+            Permissions: permissions);
 
         return Result<UserOutput>.Success(output);
     }
@@ -241,6 +246,34 @@ internal class UserService(
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
             throw new InvalidOperationException($"Failed to delete user account: {errors}");
         }
+    }
+
+    /// <summary>
+    /// Collects deduplicated permission values for the given roles.
+    /// SuperAdmin receives all permissions implicitly.
+    /// </summary>
+    private async Task<IReadOnlyList<string>> GetPermissionsForRolesAsync(IList<string> roleNames)
+    {
+        if (roleNames.Contains(AppRoles.SuperAdmin))
+        {
+            return AppPermissions.All;
+        }
+
+        var permissions = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var roleName in roleNames)
+        {
+            var role = await roleManager.FindByNameAsync(roleName);
+            if (role is null) continue;
+
+            var roleClaims = await roleManager.GetClaimsAsync(role);
+            foreach (var claim in roleClaims.Where(c => c.Type == AppPermissions.ClaimType))
+            {
+                permissions.Add(claim.Value);
+            }
+        }
+
+        return permissions.ToList();
     }
 
     /// <summary>

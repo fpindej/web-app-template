@@ -51,4 +51,9 @@ public class UserResponse
     /// The roles assigned to the user.
     /// </summary>
     public IEnumerable<string> Roles { [UsedImplicitly] get; init; } = [];
+
+    /// <summary>
+    /// The atomic permissions granted to the user through their roles.
+    /// </summary>
+    public IReadOnlyList<string> Permissions { [UsedImplicitly] get; init; } = [];
 }

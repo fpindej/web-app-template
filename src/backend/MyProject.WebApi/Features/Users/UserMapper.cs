@@ -21,6 +21,7 @@ internal static class UserMapper
         PhoneNumber = user.PhoneNumber,
         Bio = user.Bio,
         AvatarUrl = user.AvatarUrl,
-        Roles = user.Roles
+        Roles = user.Roles,
+        Permissions = user.Permissions
     };
 }

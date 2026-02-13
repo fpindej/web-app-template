@@ -11,6 +11,7 @@ namespace MyProject.Application.Features.Authentication.Dtos;
 /// <param name="Bio">The user's biography text, or <c>null</c> if not set.</param>
 /// <param name="AvatarUrl">The user's avatar URL, or <c>null</c> if not set.</param>
 /// <param name="Roles">The roles assigned to the user.</param>
+/// <param name="Permissions">The atomic permissions granted to the user through their roles.</param>
 public record UserOutput(
     Guid Id,
     string UserName,
@@ -19,7 +20,8 @@ public record UserOutput(
     string? PhoneNumber,
     string? Bio,
     string? AvatarUrl,
-    IEnumerable<string> Roles
+    IEnumerable<string> Roles,
+    IReadOnlyList<string> Permissions
 )
 {
     /// <summary>

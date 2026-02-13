@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MyProject.Application.Identity.Constants;
 using MyProject.Infrastructure.Cryptography;
 using MyProject.Infrastructure.Features.Authentication.Models;
 using MyProject.Infrastructure.Features.Authentication.Options;
@@ -16,6 +17,7 @@ namespace MyProject.Infrastructure.Features.Authentication.Services;
 /// </summary>
 internal class JwtTokenProvider(
     UserManager<ApplicationUser> userManager,
+    RoleManager<ApplicationRole> roleManager,
     IOptions<AuthenticationOptions> authenticationOptions,
     TimeProvider timeProvider) : ITokenProvider
 {
@@ -44,6 +46,9 @@ internal class JwtTokenProvider(
         var userRoles = await userManager.GetRolesAsync(user);
         claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
 
+        var permissions = await GetPermissionsForRolesAsync(userRoles);
+        claims.AddRange(permissions.Select(p => new Claim(AppPermissions.ClaimType, p)));
+
         var token = new JwtSecurityToken(
             _jwtOptions.Issuer,
             _jwtOptions.Audience,
@@ -68,5 +73,27 @@ internal class JwtTokenProvider(
         rng.GetBytes(randomBytes);
 
         return randomBytes;
+    }
+
+    /// <summary>
+    /// Collects deduplicated permission claim values from all of the user's roles.
+    /// </summary>
+    private async Task<HashSet<string>> GetPermissionsForRolesAsync(IList<string> roleNames)
+    {
+        var permissions = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var roleName in roleNames)
+        {
+            var role = await roleManager.FindByNameAsync(roleName);
+            if (role is null) continue;
+
+            var roleClaims = await roleManager.GetClaimsAsync(role);
+            foreach (var claim in roleClaims.Where(c => c.Type == AppPermissions.ClaimType))
+            {
+                permissions.Add(claim.Value);
+            }
+        }
+
+        return permissions;
     }
 }
