@@ -1,8 +1,14 @@
 import { createApiClient, getErrorMessage } from '$lib/api';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
+import { hasPermission, Permissions } from '$lib/utils';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch, url, params }) => {
+export const load: PageServerLoad = async ({ fetch, url, params, parent }) => {
+	const { user } = await parent();
+	if (!hasPermission(user, Permissions.Users.View)) {
+		throw redirect(303, '/');
+	}
+
 	const client = createApiClient(fetch, url.origin);
 
 	const [userResult, rolesResult] = await Promise.all([

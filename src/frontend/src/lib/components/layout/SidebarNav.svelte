@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { cn, hasAnyPermission, Permissions } from '$lib/utils';
+	import { cn, hasAnyPermission, hasPermission, Permissions } from '$lib/utils';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import {
 		LayoutDashboard,
@@ -24,7 +24,7 @@
 
 	let { collapsed = false, onNavigate, user }: Props = $props();
 
-	type NavItem = { title: () => string; href: string; icon: Component<IconProps> };
+	type NavItem = { title: () => string; href: string; icon: Component<IconProps>; permission?: string };
 
 	let items: NavItem[] = [
 		{
@@ -48,16 +48,20 @@
 		{
 			title: m.nav_adminUsers,
 			href: resolve('/admin/users'),
-			icon: Users
+			icon: Users,
+			permission: Permissions.Users.View
 		},
 		{
 			title: m.nav_adminRoles,
 			href: resolve('/admin/roles'),
-			icon: Shield
+			icon: Shield,
+			permission: Permissions.Roles.View
 		}
 	];
 
-	let isAdmin = $derived(hasAnyPermission(user, [Permissions.Users.View, Permissions.Roles.View]));
+	let visibleAdminItems = $derived(
+		adminItems.filter((item) => hasPermission(user, item.permission!))
+	);
 
 	function isActive(href: string, pathname: string) {
 		if (href === resolve('/')) {
@@ -124,14 +128,14 @@
 		{@render navItem(item)}
 	{/each}
 
-	{#if isAdmin}
+	{#if visibleAdminItems.length > 0}
 		<div class="my-2 h-px w-full bg-border"></div>
 		{#if !collapsed}
 			<span class="mb-1 px-3 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
 				{m.nav_admin()}
 			</span>
 		{/if}
-		{#each adminItems as item (item.href)}
+		{#each visibleAdminItems as item (item.href)}
 			{@render navItem(item)}
 		{/each}
 	{/if}
