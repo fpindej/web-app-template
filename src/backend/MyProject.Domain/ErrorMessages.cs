@@ -55,6 +55,20 @@ public static class ErrorMessages
     }
 
     /// <summary>
+    /// Role management error messages.
+    /// </summary>
+    public static class Roles
+    {
+        public const string SystemRoleCannotBeDeleted = "System roles cannot be deleted.";
+        public const string SystemRoleCannotBeRenamed = "System roles cannot be renamed.";
+        public const string RoleNotFound = "Role not found.";
+        public const string RoleNameTaken = "A role with this name already exists.";
+        public const string RoleHasUsers = "Cannot delete a role that has users assigned to it.";
+        public const string InvalidPermission = "One or more permission values are invalid.";
+        public const string SuperAdminPermissionsFixed = "SuperAdmin permissions cannot be modified.";
+    }
+
+    /// <summary>
     /// Pagination error messages.
     /// </summary>
     public static class Pagination
