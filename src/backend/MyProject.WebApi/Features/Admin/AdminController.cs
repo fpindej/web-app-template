@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using MyProject.Application.Features.Admin;
+using MyProject.Application.Identity;
 using MyProject.Application.Identity.Constants;
 using MyProject.Domain;
 using MyProject.WebApi.Authorization;
@@ -19,7 +19,7 @@ namespace MyProject.WebApi.Features.Admin;
 /// Individual actions are protected by permission-based authorization via <see cref="RequirePermissionAttribute"/>.
 /// Role hierarchy and self-action protection are enforced at the service layer.
 /// </summary>
-public class AdminController(IAdminService adminService, IRoleManagementService roleManagementService) : ApiController
+public class AdminController(IAdminService adminService, IRoleManagementService roleManagementService, IUserContext userContext) : ApiController
 {
     /// <summary>
     /// Gets a paginated list of all users, optionally filtered by a search term.
@@ -97,7 +97,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
         [FromBody] AssignRoleRequest request,
         CancellationToken cancellationToken)
     {
-        var callerUserId = GetCurrentUserId();
+        var callerUserId = userContext.UserId!.Value;
         var result = await adminService.AssignRoleAsync(callerUserId, id, request.ToInput(), cancellationToken);
 
         if (!result.IsSuccess)
@@ -129,7 +129,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RemoveRole(Guid id, string role, CancellationToken cancellationToken)
     {
-        var callerUserId = GetCurrentUserId();
+        var callerUserId = userContext.UserId!.Value;
         var result = await adminService.RemoveRoleAsync(callerUserId, id, role, cancellationToken);
 
         if (!result.IsSuccess)
@@ -160,7 +160,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> LockUser(Guid id, CancellationToken cancellationToken)
     {
-        var callerUserId = GetCurrentUserId();
+        var callerUserId = userContext.UserId!.Value;
         var result = await adminService.LockUserAsync(callerUserId, id, cancellationToken);
 
         if (!result.IsSuccess)
@@ -190,7 +190,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UnlockUser(Guid id, CancellationToken cancellationToken)
     {
-        var callerUserId = GetCurrentUserId();
+        var callerUserId = userContext.UserId!.Value;
         var result = await adminService.UnlockUserAsync(callerUserId, id, cancellationToken);
 
         if (!result.IsSuccess)
@@ -221,7 +221,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteUser(Guid id, CancellationToken cancellationToken)
     {
-        var callerUserId = GetCurrentUserId();
+        var callerUserId = userContext.UserId!.Value;
         var result = await adminService.DeleteUserAsync(callerUserId, id, cancellationToken);
 
         if (!result.IsSuccess)
@@ -435,20 +435,4 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
         return BadRequest(new ErrorResponse { Message = error });
     }
 
-    /// <summary>
-    /// Extracts the current user ID from the JWT claims.
-    /// This should never fail on an authenticated request — a missing claim indicates a corrupt token,
-    /// which is a programmer error (not a user error), hence <see cref="InvalidOperationException"/>.
-    /// </summary>
-    private Guid GetCurrentUserId()
-    {
-        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(claim, out var userId))
-        {
-            throw new InvalidOperationException("Unable to determine the current user identity from JWT claims.");
-        }
-
-        return userId;
-    }
 }
