@@ -910,7 +910,7 @@ The `Permissions` object mirrors the backend `AppPermissions` constants:
 
 Authorization guards are layered:
 
-1. **Admin layout** — broad gate: allows access if user has *any* admin permission:
+1. **Admin layout** — broad gate: allows access if user has _any_ admin permission:
 
    ```typescript
    // routes/(app)/admin/+layout.server.ts
@@ -932,7 +932,7 @@ Authorization guards are layered:
    ```typescript
    // SidebarNav.svelte
    let visibleAdminItems = $derived(
-       adminItems.filter((item) => hasPermission(user, item.permission))
+   	adminItems.filter((item) => hasPermission(user, item.permission))
    );
    ```
 
