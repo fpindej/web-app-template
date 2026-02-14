@@ -28,7 +28,7 @@ COPY . .
 
 # Build the application
 WORKDIR "/src/MyProject.WebApi"
-RUN dotnet build "MyProject.WebApi.csproj" -c Release -o /app/build
+RUN dotnet build "MyProject.WebApi.csproj" -c Release
 
 # Publish stage
 FROM build AS publish
