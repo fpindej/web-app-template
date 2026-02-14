@@ -19,6 +19,7 @@ internal static class WebApplicationBuilderExtensions
         {
             opt.AddDocumentTransformer<ProjectDocumentTransformer>();
             opt.AddDocumentTransformer<CleanupDocumentTransformer>();
+            opt.AddOperationTransformer<BearerSecurityOperationTransformer>();
             opt.AddOperationTransformer<CamelCaseQueryParameterTransformer>();
             opt.AddSchemaTransformer<EnumSchemaTransformer>();
             opt.AddSchemaTransformer<NumericSchemaTransformer>();
