@@ -250,7 +250,7 @@ services.AddScoped<IRecurringJobDefinition>(sp => sp.GetRequiredService<MyCleanu
 
 That's it — `UseJobScheduling()` discovers all `IRecurringJobDefinition` implementations and registers them with Hangfire automatically.
 
-**Admin UI:** The job will appear in the admin panel at `/admin/jobs` (requires `jobs.view` permission). Users with `jobs.manage` can trigger, pause, resume, and delete jobs.
+**Admin UI:** The job will appear in the admin panel at `/admin/jobs` (requires `jobs.view` permission). Users with `jobs.manage` can trigger, pause, resume, delete, and restore jobs. Pause state is persisted to the database (`hangfire.pausedjobs`) and survives restarts. The "Restore Jobs" button re-registers all job definitions without an app restart.
 
 **Configuration:** Job scheduling can be toggled via `appsettings.json`:
 ```json

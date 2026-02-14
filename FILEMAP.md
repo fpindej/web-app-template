@@ -131,10 +131,12 @@ src/backend/MyProject.Infrastructure/Features/Jobs/
   IRecurringJobDefinition.cs                          Interface for recurring jobs
   RecurringJobs/{JobName}Job.cs                       Recurring job implementations
   Examples/ExampleFireAndForgetJob.cs                 Example one-time job (removable)
-  Services/JobManagementService.cs                    Admin API service
+  Models/PausedJob.cs                                 Persisted pause state entity
+  Configurations/PausedJobConfiguration.cs            EF config → hangfire.pausedjobs
+  Services/JobManagementService.cs                    Admin API service (DB-backed pause)
   Options/JobSchedulingOptions.cs                     Configuration (Enabled, WorkerCount)
   Extensions/ServiceCollectionExtensions.cs           DI registration
-  Extensions/ApplicationBuilderExtensions.cs          Middleware + job registration
+  Extensions/ApplicationBuilderExtensions.cs          Middleware + job registration + pause restore
 src/backend/MyProject.Application/Features/Jobs/
   IJobManagementService.cs                            Admin API interface
   Dtos/RecurringJobOutput.cs, ...                     Job DTOs
