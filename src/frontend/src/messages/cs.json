@@ -308,6 +308,10 @@
 
 	"admin_jobs_title": "Naplánované úlohy",
 	"admin_jobs_description": "Správa úloh na pozadí a zobrazení historie spuštění.",
+	"admin_jobs_restore": "Obnovit úlohy",
+	"admin_jobs_restoreConfirm": "Znovu zaregistrovat všechny definice úloh? Tím se obnoví úlohy smazané z dashboardu.",
+	"admin_jobs_restoreSuccess": "Úlohy byly úspěšně obnoveny.",
+	"admin_jobs_restoreError": "Nepodařilo se obnovit úlohy.",
 	"admin_jobs_noJobs": "Žádné naplánované úlohy nenalezeny.",
 	"admin_jobs_col_name": "Název",
 	"admin_jobs_col_schedule": "Plán",

@@ -1,11 +1,14 @@
 using System.Diagnostics;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MyProject.Infrastructure.Features.Jobs.Options;
+using MyProject.Infrastructure.Features.Jobs.Services;
+using MyProject.Infrastructure.Persistence;
 
 namespace MyProject.Infrastructure.Features.Jobs.Extensions;
 
@@ -58,6 +61,7 @@ public static class ApplicationBuilderExtensions
         }
 
         RegisterRecurringJobs(app.ApplicationServices, logger);
+        RestorePauseStateAsync(app.ApplicationServices, logger).GetAwaiter().GetResult();
 
         return app;
     }
@@ -85,6 +89,39 @@ public static class ApplicationBuilderExtensions
         }
 
         logger.LogInformation("Registered {Count} recurring job(s)", jobDefinitions.Count);
+    }
+
+    /// <summary>
+    /// Loads persisted pause state from the database and overrides paused jobs with a never-firing cron.
+    /// Called once at startup after <see cref="RegisterRecurringJobs"/> to restore pause state.
+    /// </summary>
+    private static async Task RestorePauseStateAsync(IServiceProvider serviceProvider, ILogger logger)
+    {
+        using var scope = serviceProvider.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<MyProjectDbContext>();
+
+        var pausedJobs = await dbContext.PausedJobs.ToListAsync();
+
+        if (pausedJobs.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var pausedJob in pausedJobs)
+        {
+            JobManagementService.PausedJobCrons[pausedJob.JobId] = pausedJob.OriginalCron;
+
+            RecurringJob.AddOrUpdate(
+                pausedJob.JobId,
+                () => ExecuteJobAsync(pausedJob.JobId),
+                JobManagementService.NeverCron);
+
+            logger.LogInformation(
+                "Restored pause state for job '{JobId}' (original cron: '{OriginalCron}')",
+                pausedJob.JobId, pausedJob.OriginalCron);
+        }
+
+        logger.LogInformation("Restored {Count} paused job state(s) from database", pausedJobs.Count);
     }
 
     /// <summary>

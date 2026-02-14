@@ -53,4 +53,11 @@ public interface IJobManagementService
     /// <param name="jobId">The recurring job identifier.</param>
     /// <returns>Success or failure with an error message.</returns>
     Task<Result> ResumeJobAsync(string jobId);
+
+    /// <summary>
+    /// Re-registers all recurring job definitions, restoring any jobs deleted from the dashboard.
+    /// Paused jobs are re-registered with a disabled schedule to preserve their pause state.
+    /// </summary>
+    /// <returns>Success or failure with an error message.</returns>
+    Task<Result> RestoreJobsAsync();
 }

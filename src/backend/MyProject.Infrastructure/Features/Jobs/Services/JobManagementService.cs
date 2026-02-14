@@ -1,11 +1,14 @@
 using System.Collections.Concurrent;
 using Hangfire;
 using Hangfire.Storage;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyProject.Application.Features.Jobs;
 using MyProject.Application.Features.Jobs.Dtos;
 using MyProject.Domain;
 using MyProject.Infrastructure.Features.Jobs.Extensions;
+using MyProject.Infrastructure.Features.Jobs.Models;
+using MyProject.Infrastructure.Persistence;
 
 namespace MyProject.Infrastructure.Features.Jobs.Services;
 
@@ -13,12 +16,19 @@ namespace MyProject.Infrastructure.Features.Jobs.Services;
 /// Provides Hangfire recurring job management operations for the admin API.
 /// Uses the Hangfire monitoring API and <see cref="RecurringJob"/> static API
 /// to query, trigger, pause, and remove recurring jobs.
+/// <para>
+/// Pause state is persisted to the database and cached in a static dictionary
+/// so it survives application restarts.
+/// </para>
 /// </summary>
 internal sealed class JobManagementService(
-    ILogger<JobManagementService> logger) : IJobManagementService
+    ILogger<JobManagementService> logger,
+    MyProjectDbContext dbContext,
+    IEnumerable<IRecurringJobDefinition> jobDefinitions,
+    TimeProvider timeProvider) : IJobManagementService
 {
     /// <summary>
-    /// Stores the original cron expression for paused jobs so they can be resumed.
+    /// In-memory cache of paused job cron expressions, backed by the <c>jobs.PausedJobs</c> table.
     /// Thread-safe since Hangfire may run on multiple workers.
     /// </summary>
     internal static readonly ConcurrentDictionary<string, string> PausedJobCrons = new();
@@ -27,7 +37,7 @@ internal sealed class JobManagementService(
     /// Cron expression that effectively pauses a job by scheduling it far in the future.
     /// Hangfire does not have a native pause — setting cron to "0 0 31 2 *" (Feb 31) ensures it never fires.
     /// </summary>
-    private const string NeverCron = "0 0 31 2 *";
+    internal const string NeverCron = "0 0 31 2 *";
 
     /// <inheritdoc />
     public Task<IReadOnlyList<RecurringJobOutput>> GetRecurringJobsAsync()
@@ -114,22 +124,30 @@ internal sealed class JobManagementService(
     }
 
     /// <inheritdoc />
-    public Task<Result> RemoveJobAsync(string jobId)
+    public async Task<Result> RemoveJobAsync(string jobId)
     {
         if (!JobExists(jobId))
         {
             logger.LogWarning("Attempted to remove non-existent job '{JobId}'", jobId);
-            return Task.FromResult(Result.Failure(ErrorMessages.Jobs.NotFound));
+            return Result.Failure(ErrorMessages.Jobs.NotFound);
         }
 
         RecurringJob.RemoveIfExists(jobId);
+
+        var pausedJob = await dbContext.PausedJobs.FirstOrDefaultAsync(p => p.JobId == jobId);
+        if (pausedJob is not null)
+        {
+            dbContext.PausedJobs.Remove(pausedJob);
+            await dbContext.SaveChangesAsync();
+        }
+
         PausedJobCrons.TryRemove(jobId, out _);
         logger.LogWarning("Removed recurring job '{JobId}'", jobId);
-        return Task.FromResult(Result.Success());
+        return Result.Success();
     }
 
     /// <inheritdoc />
-    public Task<Result> PauseJobAsync(string jobId)
+    public async Task<Result> PauseJobAsync(string jobId)
     {
         using var connection = JobStorage.Current.GetConnection();
         var recurringJobs = connection.GetRecurringJobs();
@@ -138,43 +156,93 @@ internal sealed class JobManagementService(
         if (job is null)
         {
             logger.LogWarning("Attempted to pause non-existent job '{JobId}'", jobId);
-            return Task.FromResult(Result.Failure(ErrorMessages.Jobs.NotFound));
+            return Result.Failure(ErrorMessages.Jobs.NotFound);
         }
 
         if (PausedJobCrons.ContainsKey(jobId))
         {
             logger.LogDebug("Job '{JobId}' is already paused", jobId);
-            return Task.FromResult(Result.Success());
+            return Result.Success();
         }
+
+        dbContext.PausedJobs.Add(new PausedJob
+        {
+            Id = Guid.NewGuid(),
+            JobId = jobId,
+            OriginalCron = job.Cron,
+            PausedAt = timeProvider.GetUtcNow().UtcDateTime
+        });
+        await dbContext.SaveChangesAsync();
 
         PausedJobCrons[jobId] = job.Cron;
         RecurringJob.AddOrUpdate(jobId, () => NoOp(), NeverCron);
         logger.LogInformation("Paused job '{JobId}' (original cron: '{OriginalCron}')", jobId, job.Cron);
-        return Task.FromResult(Result.Success());
+        return Result.Success();
     }
 
     /// <inheritdoc />
-    public Task<Result> ResumeJobAsync(string jobId)
+    public async Task<Result> ResumeJobAsync(string jobId)
     {
         if (!JobExists(jobId))
         {
             logger.LogWarning("Attempted to resume non-existent job '{JobId}'", jobId);
-            return Task.FromResult(Result.Failure(ErrorMessages.Jobs.NotFound));
+            return Result.Failure(ErrorMessages.Jobs.NotFound);
         }
 
         if (!PausedJobCrons.TryRemove(jobId, out var originalCron))
         {
             logger.LogDebug("Job '{JobId}' is not paused — nothing to resume", jobId);
-            return Task.FromResult(Result.Success());
+            return Result.Success();
+        }
+
+        var pausedJob = await dbContext.PausedJobs.FirstOrDefaultAsync(p => p.JobId == jobId);
+        if (pausedJob is not null)
+        {
+            dbContext.PausedJobs.Remove(pausedJob);
+            await dbContext.SaveChangesAsync();
         }
 
         RecurringJob.AddOrUpdate(jobId, () => ApplicationBuilderExtensions.ExecuteJobAsync(jobId), originalCron);
         logger.LogInformation("Resumed job '{JobId}' (restored cron: '{RestoredCron}')", jobId, originalCron);
-        return Task.FromResult(Result.Success());
+        return Result.Success();
+    }
+
+    /// <inheritdoc />
+    public Task<Result> RestoreJobsAsync()
+    {
+        try
+        {
+            var definitions = jobDefinitions.ToList();
+
+            foreach (var definition in definitions)
+            {
+                var isPaused = PausedJobCrons.ContainsKey(definition.JobId);
+                var cron = isPaused ? NeverCron : definition.CronExpression;
+
+                RecurringJob.AddOrUpdate(
+                    definition.JobId,
+                    () => ApplicationBuilderExtensions.ExecuteJobAsync(definition.JobId),
+                    cron);
+
+                logger.LogInformation(
+                    "Restored job '{JobId}' with cron '{Cron}'{PauseNote}",
+                    definition.JobId,
+                    definition.CronExpression,
+                    isPaused ? " (paused)" : "");
+            }
+
+            logger.LogInformation("Restored {Count} recurring job(s)", definitions.Count);
+            return Task.FromResult(Result.Success());
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to restore jobs");
+            return Task.FromResult(Result.Failure(ErrorMessages.Jobs.RestoreFailed));
+        }
     }
 
     /// <summary>
-    /// Placeholder method used when pausing/resuming to preserve the Hangfire job entry.
+    /// Placeholder method used when pausing to preserve the Hangfire job entry.
     /// The actual job method is re-registered on resume via <c>UseJobScheduling()</c> restart or manual resume.
     /// </summary>
     public static void NoOp() { }

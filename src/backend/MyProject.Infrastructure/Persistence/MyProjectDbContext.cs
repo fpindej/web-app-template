@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MyProject.Infrastructure.Features.Authentication.Models;
+using MyProject.Infrastructure.Features.Jobs.Models;
 using MyProject.Infrastructure.Persistence.Extensions;
 
 namespace MyProject.Infrastructure.Persistence;
@@ -16,6 +17,11 @@ internal class MyProjectDbContext(DbContextOptions<MyProjectDbContext> options)
     /// Gets or sets the refresh tokens table for JWT token rotation.
     /// </summary>
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+
+    /// <summary>
+    /// Gets or sets the paused jobs table for persisting pause state across restarts.
+    /// </summary>
+    public DbSet<PausedJob> PausedJobs { get; set; }
 
     /// <summary>
     /// Configures the model by applying all <see cref="IEntityTypeConfiguration{TEntity}"/> from this assembly,

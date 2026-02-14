@@ -308,6 +308,10 @@
 
 	"admin_jobs_title": "Scheduled Jobs",
 	"admin_jobs_description": "Manage background jobs and view execution history.",
+	"admin_jobs_restore": "Restore Jobs",
+	"admin_jobs_restoreConfirm": "Re-register all job definitions? This restores any jobs that were deleted from the dashboard.",
+	"admin_jobs_restoreSuccess": "Jobs restored successfully.",
+	"admin_jobs_restoreError": "Failed to restore jobs.",
 	"admin_jobs_noJobs": "No scheduled jobs found.",
 	"admin_jobs_col_name": "Name",
 	"admin_jobs_col_schedule": "Schedule",

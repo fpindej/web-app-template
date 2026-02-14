@@ -62,6 +62,33 @@ public class JobsController(IJobManagementService jobManagementService) : ApiCon
     }
 
     /// <summary>
+    /// Re-registers all recurring job definitions, restoring any jobs deleted from the dashboard.
+    /// Paused jobs are re-registered with a disabled schedule to preserve their pause state.
+    /// </summary>
+    /// <returns>No content on success</returns>
+    /// <response code="204">Jobs restored successfully</response>
+    /// <response code="400">If the restore operation failed</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="403">If the user does not have the required permission</response>
+    [HttpPost("jobs/restore")]
+    [RequirePermission(AppPermissions.Jobs.Manage)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> RestoreJobs()
+    {
+        var result = await jobManagementService.RestoreJobsAsync();
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new ErrorResponse { Message = result.Error });
+        }
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// Manually triggers an immediate execution of a recurring job.
     /// </summary>
     /// <param name="jobId">The recurring job identifier</param>
