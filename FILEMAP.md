@@ -52,7 +52,8 @@ Quick-reference for "when you change X, also update Y" and "where does X live?"
 | **`v1.d.ts`** (regenerated) | Type aliases in `$lib/types/index.ts`, any component using changed schemas |
 | **`$lib/types/index.ts`** (add/rename alias) | All imports of the changed type |
 | **`$lib/api/client.ts`** | Every component using `browserClient` or `createApiClient` |
-| **`$lib/api/error-handling.ts`** | Components that call `getErrorMessage`, `mapFieldErrors`, `isValidationProblemDetails` |
+| **`$lib/api/error-handling.ts`** | Components that call `getErrorMessage`, `mapFieldErrors`, `isValidationProblemDetails`, `isRateLimited`, `getRetryAfterSeconds` |
+| **`$lib/state/cooldown.svelte.ts`** | Components that call `createCooldown` for rate limit button disable |
 | **`$lib/config/server.ts`** | Server load functions that import `SERVER_CONFIG` |
 | **`$lib/config/i18n.ts`** | `LanguageSelector`, root layout |
 | **`hooks.server.ts`** | All server responses (security headers, locale) |

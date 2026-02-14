@@ -3,9 +3,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { JobTable } from '$lib/components/admin';
-	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited, getRetryAfterSeconds } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
+	import { createCooldown } from '$lib/state';
 	import { hasPermission, Permissions } from '$lib/utils';
 	import { RefreshCw, Loader2 } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages';
@@ -16,6 +17,7 @@
 	let canManageJobs = $derived(hasPermission(data.user, Permissions.Jobs.Manage));
 	let isRestoring = $state(false);
 	let restoreDialogOpen = $state(false);
+	const cooldown = createCooldown();
 
 	async function restoreJobs() {
 		isRestoring = true;
@@ -27,7 +29,13 @@
 			toast.success(m.admin_jobs_restoreSuccess());
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			const retryAfter = getRetryAfterSeconds(response);
+			if (retryAfter) cooldown.start(retryAfter);
+			toast.error(m.error_rateLimited(), {
+				description: retryAfter
+					? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+					: m.error_rateLimitedDescription()
+			});
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobs_restoreError()));
 		}
@@ -64,7 +72,7 @@
 						<Button variant="outline" onclick={() => (restoreDialogOpen = false)}>
 							{m.common_cancel()}
 						</Button>
-						<Button disabled={isRestoring} onclick={restoreJobs}>
+						<Button disabled={isRestoring || cooldown.active} onclick={restoreJobs}>
 							{#if isRestoring}
 								<Loader2 class="me-2 h-4 w-4 animate-spin" />
 							{/if}

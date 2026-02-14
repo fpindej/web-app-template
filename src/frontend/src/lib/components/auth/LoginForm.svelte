@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited, getRetryAfterSeconds } from '$lib/api';
 	import { cn } from '$lib/utils';
-	import { createShake } from '$lib/state';
+	import { createShake, createCooldown } from '$lib/state';
 	import { onMount } from 'svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -27,6 +27,7 @@
 	let isSuccess = $state(false);
 	let isRedirecting = $state(false);
 	const shake = createShake();
+	const cooldown = createCooldown();
 	let isRegisterOpen = $state(false);
 
 	const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -61,7 +62,13 @@
 				await invalidateAll();
 				await goto(resolve('/'));
 			} else if (isRateLimited(response)) {
-				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+				const retryAfter = getRetryAfterSeconds(response);
+				if (retryAfter) cooldown.start(retryAfter);
+				toast.error(m.error_rateLimited(), {
+					description: retryAfter
+						? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+						: m.error_rateLimitedDescription()
+				});
 				shake.trigger();
 			} else {
 				let errorMessage = '';
@@ -150,7 +157,7 @@
 							</div>
 						</div>
 
-						<Button type="submit" class="w-full" disabled={!isApiOnline}>
+						<Button type="submit" class="w-full" disabled={!isApiOnline || cooldown.active}>
 							{isApiOnline ? m.auth_login_submit() : m.auth_login_apiOffline()}
 						</Button>
 					</form>

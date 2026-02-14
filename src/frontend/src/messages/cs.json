@@ -179,6 +179,7 @@
 	"error_429_description": "Odesíláte příliš mnoho požadavků. Počkejte chvíli a zkuste to znovu.",
 	"error_rateLimited": "Příliš mnoho požadavků",
 	"error_rateLimitedDescription": "Počkejte chvíli a zkuste to znovu.",
+	"error_rateLimitedDescriptionWithRetry": "Počkejte {seconds} sekund a zkuste to znovu.",
 
 	"error_403_title": "Tudy neprojdeš!",
 	"error_403_description": "Nemáte oprávnění k prohlížení této stránky. Ale snaha se cení.",

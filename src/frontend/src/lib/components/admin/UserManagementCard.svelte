@@ -5,7 +5,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Separator } from '$lib/components/ui/separator';
-	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited, getRetryAfterSeconds } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -19,6 +19,7 @@
 		hasPermission,
 		Permissions
 	} from '$lib/utils';
+	import { createCooldown } from '$lib/state';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -33,6 +34,9 @@
 	let isAssigningRole = $state(false);
 	let isRemovingRole = $state<string | null>(null);
 	let selectedRole = $state('');
+
+	// --- Cooldown state ---
+	const cooldown = createCooldown();
 
 	// --- Account actions state ---
 	let deleteDialogOpen = $state(false);
@@ -59,6 +63,16 @@
 		).filter((role) => !targetRoles.includes(role))
 	);
 
+	function handleRateLimited(response: Response) {
+		const retryAfter = getRetryAfterSeconds(response);
+		if (retryAfter) cooldown.start(retryAfter);
+		toast.error(m.error_rateLimited(), {
+			description: retryAfter
+				? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+				: m.error_rateLimitedDescription()
+		});
+	}
+
 	function canRemoveRole(role: string): boolean {
 		return canAssignRoles && getRoleRank(role) < callerRank;
 	}
@@ -78,7 +92,7 @@
 			selectedRole = '';
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_roleAssignError()));
 		}
@@ -98,7 +112,7 @@
 			toast.success(m.admin_userDetail_roleRemoved());
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_roleRemoveError()));
 		}
@@ -116,7 +130,7 @@
 			toast.success(m.admin_userDetail_lockSuccess());
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_lockError()));
 		}
@@ -133,7 +147,7 @@
 			toast.success(m.admin_userDetail_unlockSuccess());
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_unlockError()));
 		}
@@ -151,7 +165,7 @@
 			toast.success(m.admin_userDetail_deleteSuccess());
 			await goto(resolve('/admin/users'));
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_deleteError()));
 		}
@@ -217,7 +231,7 @@
 				<Button
 					size="sm"
 					class="min-h-10 shrink-0"
-					disabled={!selectedRole || isAssigningRole}
+					disabled={!selectedRole || isAssigningRole || cooldown.active}
 					onclick={assignRole}
 				>
 					{#if isAssigningRole}
@@ -240,7 +254,7 @@
 						variant="outline"
 						size="sm"
 						class="min-h-10"
-						disabled={isUnlocking}
+						disabled={isUnlocking || cooldown.active}
 						onclick={unlockUser}
 					>
 						{#if isUnlocking}
@@ -255,7 +269,7 @@
 						variant="outline"
 						size="sm"
 						class="min-h-10"
-						disabled={isLocking}
+						disabled={isLocking || cooldown.active}
 						onclick={lockUser}
 					>
 						{#if isLocking}
@@ -287,7 +301,11 @@
 							<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>
 								{m.common_cancel()}
 							</Button>
-							<Button variant="destructive" disabled={isDeleting} onclick={deleteUser}>
+							<Button
+								variant="destructive"
+								disabled={isDeleting || cooldown.active}
+								onclick={deleteUser}
+							>
 								{#if isDeleting}
 									<Loader2 class="me-2 h-4 w-4 animate-spin" />
 								{/if}

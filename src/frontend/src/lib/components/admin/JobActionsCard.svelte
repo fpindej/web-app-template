@@ -2,10 +2,11 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited, getRetryAfterSeconds } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { createCooldown } from '$lib/state';
 	import { Play, Pause, RotateCcw, Trash2, Loader2 } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages';
 
@@ -22,6 +23,17 @@
 	let isDeleting = $state(false);
 	let triggerDialogOpen = $state(false);
 	let deleteDialogOpen = $state(false);
+	const cooldown = createCooldown();
+
+	function handleRateLimited(response: Response) {
+		const retryAfter = getRetryAfterSeconds(response);
+		if (retryAfter) cooldown.start(retryAfter);
+		toast.error(m.error_rateLimited(), {
+			description: retryAfter
+				? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+				: m.error_rateLimitedDescription()
+		});
+	}
 
 	async function triggerJob() {
 		isTriggering = true;
@@ -35,7 +47,7 @@
 			toast.success(m.admin_jobDetail_triggerSuccess());
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobDetail_triggerError()));
 		}
@@ -52,7 +64,7 @@
 			toast.success(m.admin_jobDetail_pauseSuccess());
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobDetail_pauseError()));
 		}
@@ -69,7 +81,7 @@
 			toast.success(m.admin_jobDetail_resumeSuccess());
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobDetail_resumeError()));
 		}
@@ -87,7 +99,7 @@
 			toast.success(m.admin_jobDetail_deleteSuccess());
 			await goto(resolve('/admin/jobs'));
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobDetail_deleteError()));
 		}
@@ -119,7 +131,7 @@
 					<Button variant="outline" onclick={() => (triggerDialogOpen = false)}>
 						{m.common_cancel()}
 					</Button>
-					<Button disabled={isTriggering} onclick={triggerJob}>
+					<Button disabled={isTriggering || cooldown.active} onclick={triggerJob}>
 						{#if isTriggering}
 							<Loader2 class="me-2 h-4 w-4 animate-spin" />
 						{/if}
@@ -131,7 +143,12 @@
 
 		<!-- Pause / Resume -->
 		{#if isPaused}
-			<Button variant="outline" size="sm" disabled={isResuming} onclick={resumeJob}>
+			<Button
+				variant="outline"
+				size="sm"
+				disabled={isResuming || cooldown.active}
+				onclick={resumeJob}
+			>
 				{#if isResuming}
 					<Loader2 class="me-2 h-4 w-4 animate-spin" />
 				{:else}
@@ -140,7 +157,12 @@
 				{m.admin_jobDetail_resume()}
 			</Button>
 		{:else}
-			<Button variant="outline" size="sm" disabled={isPausing} onclick={pauseJob}>
+			<Button
+				variant="outline"
+				size="sm"
+				disabled={isPausing || cooldown.active}
+				onclick={pauseJob}
+			>
 				{#if isPausing}
 					<Loader2 class="me-2 h-4 w-4 animate-spin" />
 				{:else}
@@ -169,7 +191,11 @@
 					<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>
 						{m.common_cancel()}
 					</Button>
-					<Button variant="destructive" disabled={isDeleting} onclick={deleteJob}>
+					<Button
+						variant="destructive"
+						disabled={isDeleting || cooldown.active}
+						onclick={deleteJob}
+					>
 						{#if isDeleting}
 							<Loader2 class="me-2 h-4 w-4 animate-spin" />
 						{/if}

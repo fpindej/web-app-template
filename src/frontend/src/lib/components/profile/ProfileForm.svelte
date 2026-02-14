@@ -15,9 +15,10 @@
 		isValidationProblemDetails,
 		mapFieldErrors,
 		getErrorMessage,
-		isRateLimited
+		isRateLimited,
+		getRetryAfterSeconds
 	} from '$lib/api';
-	import { createFieldShakes } from '$lib/state';
+	import { createFieldShakes, createCooldown } from '$lib/state';
 
 	interface Props {
 		user: User | null | undefined;
@@ -37,6 +38,7 @@
 
 	// Field-level shake animation for error feedback
 	const fieldShakes = createFieldShakes();
+	const cooldown = createCooldown();
 
 	// Sync form state when user prop changes (e.g., after invalidateAll)
 	$effect(() => {
@@ -65,7 +67,13 @@
 				toast.success(m.profile_personalInfo_updateSuccess());
 				await invalidateAll();
 			} else if (isRateLimited(response)) {
-				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+				const retryAfter = getRetryAfterSeconds(response);
+				if (retryAfter) cooldown.start(retryAfter);
+				toast.error(m.error_rateLimited(), {
+					description: retryAfter
+						? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+						: m.error_rateLimitedDescription()
+				});
 			} else if (isValidationProblemDetails(apiError)) {
 				fieldErrors = mapFieldErrors(apiError.errors);
 				fieldShakes.triggerFields(Object.keys(fieldErrors));
@@ -167,7 +175,7 @@
 				</div>
 
 				<div class="flex justify-end">
-					<Button type="submit" disabled={isLoading}>
+					<Button type="submit" disabled={isLoading || cooldown.active}>
 						{isLoading ? m.profile_personalInfo_saving() : m.profile_personalInfo_saveChanges()}
 					</Button>
 				</div>

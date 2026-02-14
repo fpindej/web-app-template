@@ -5,10 +5,10 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import * as m from '$lib/paraglide/messages';
-	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited, getRetryAfterSeconds } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
-	import { createFieldShakes } from '$lib/state';
+	import { createFieldShakes, createCooldown } from '$lib/state';
 
 	interface Props {
 		open: boolean;
@@ -23,6 +23,7 @@
 	let avatarUrlError = $state('');
 	let isLoading = $state(false);
 	const fieldShakes = createFieldShakes();
+	const cooldown = createCooldown();
 
 	// Sync avatarUrl when dialog opens or currentAvatarUrl changes
 	$effect(() => {
@@ -86,7 +87,13 @@
 				open = false;
 				await invalidateAll();
 			} else if (isRateLimited(response)) {
-				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+				const retryAfter = getRetryAfterSeconds(response);
+				if (retryAfter) cooldown.start(retryAfter);
+				toast.error(m.error_rateLimited(), {
+					description: retryAfter
+						? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+						: m.error_rateLimitedDescription()
+				});
 			} else {
 				const errorMessage = getErrorMessage(apiError, '');
 				toast.error(
@@ -152,7 +159,11 @@
 		<Dialog.Footer class="flex-col gap-2 sm:flex-row sm:justify-between">
 			<div>
 				{#if currentAvatarUrl}
-					<Button variant="destructive" onclick={handleRemove} disabled={isLoading}>
+					<Button
+						variant="destructive"
+						onclick={handleRemove}
+						disabled={isLoading || cooldown.active}
+					>
 						{m.profile_avatar_remove()}
 					</Button>
 				{/if}
@@ -165,7 +176,7 @@
 						</Button>
 					{/snippet}
 				</Dialog.Close>
-				<Button onclick={handleSubmit} disabled={isLoading || !!avatarUrlError}>
+				<Button onclick={handleSubmit} disabled={isLoading || !!avatarUrlError || cooldown.active}>
 					{m.profile_avatar_save()}
 				</Button>
 			</div>

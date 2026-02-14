@@ -12,6 +12,12 @@ namespace MyProject.WebApi.Extensions;
 internal static class RateLimiterExtensions
 {
     /// <summary>
+    /// Guard flag to emit the anonymous-fallback warning at most once per application lifetime.
+    /// A null <c>RemoteIpAddress</c> typically means the <c>ForwardedHeaders</c> middleware is misconfigured
+    /// when running behind a reverse proxy.
+    /// </summary>
+    private static volatile bool _anonymousFallbackWarned;
+    /// <summary>
     /// Registers rate limiting services with a global fixed-window limiter and per-endpoint policies.
     /// </summary>
     /// <param name="services">The service collection.</param>
@@ -50,8 +56,13 @@ internal static class RateLimiterExtensions
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
         {
             var partitionKey = context.User.Identity?.Name
-                               ?? context.Connection.RemoteIpAddress?.ToString()
-                               ?? "anonymous";
+                               ?? context.Connection.RemoteIpAddress?.ToString();
+
+            if (partitionKey is null)
+            {
+                WarnAnonymousFallback(context);
+                partitionKey = "anonymous";
+            }
 
             return RateLimitPartition.GetFixedWindowLimiter(partitionKey,
                 _ => CreateFixedWindowOptions(globalOptions));
@@ -99,7 +110,13 @@ internal static class RateLimiterExtensions
     {
         options.AddPolicy(policyName, context =>
         {
-            var partitionKey = context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+            var partitionKey = context.Connection.RemoteIpAddress?.ToString();
+
+            if (partitionKey is null)
+            {
+                WarnAnonymousFallback(context);
+                partitionKey = "anonymous";
+            }
 
             return RateLimitPartition.GetFixedWindowLimiter(partitionKey,
                 _ => CreateFixedWindowOptions(policyOptions));
@@ -117,8 +134,13 @@ internal static class RateLimiterExtensions
         options.AddPolicy(policyName, context =>
         {
             var partitionKey = context.User.Identity?.Name
-                               ?? context.Connection.RemoteIpAddress?.ToString()
-                               ?? "anonymous";
+                               ?? context.Connection.RemoteIpAddress?.ToString();
+
+            if (partitionKey is null)
+            {
+                WarnAnonymousFallback(context);
+                partitionKey = "anonymous";
+            }
 
             return RateLimitPartition.GetFixedWindowLimiter(partitionKey,
                 _ => CreateFixedWindowOptions(policyOptions));
@@ -138,5 +160,28 @@ internal static class RateLimiterExtensions
             QueueProcessingOrder = policyOptions.QueueProcessingOrder,
             QueueLimit = policyOptions.QueueLimit
         };
+    }
+
+    /// <summary>
+    /// Emits a one-time warning when <c>RemoteIpAddress</c> is null.
+    /// All rate-limited requests then share a single "anonymous" bucket, which is
+    /// almost always a sign of misconfigured <c>ForwardedHeaders</c> middleware
+    /// when running behind a reverse proxy.
+    /// </summary>
+    private static void WarnAnonymousFallback(HttpContext context)
+    {
+        if (_anonymousFallbackWarned)
+        {
+            return;
+        }
+
+        _anonymousFallbackWarned = true;
+
+        var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
+            .CreateLogger(typeof(RateLimiterExtensions));
+
+        logger.LogWarning(
+            "RemoteIpAddress is null — all unauthenticated requests share a single rate-limit bucket. " +
+            "If running behind a reverse proxy, verify the ForwardedHeaders middleware is configured correctly");
     }
 }

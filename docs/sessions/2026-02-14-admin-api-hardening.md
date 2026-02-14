@@ -116,6 +116,23 @@ Added consistent rate-limit awareness across the entire frontend:
 
 **Approach**: Per-component `isRateLimited` check + toast, not a global interceptor. This avoids coupling the API client to UI concerns, prevents double-toast issues, and works naturally with the existing explicit error handling pattern in each component.
 
+## Review Fixes
+
+Post-review hardening pass addressing suggestions from PR #151 and #152 reviews:
+
+| File | Change | Reason |
+|------|--------|--------|
+| `RoleNameRouteConstraint.cs` | Removed space from regex `[A-Za-z0-9 _-]` → `[A-Za-z0-9_-]` | Role names should not contain spaces — aligns constraint with all validators |
+| `CreateRoleRequestValidator.cs` | Same regex + error message fix | Consistency with route constraint |
+| `UpdateRoleRequestValidator.cs` | Same regex + error message fix | Consistency with route constraint |
+| `RateLimiterExtensions.cs` | One-time warning log when `RemoteIpAddress` is null | Anonymous fallback shares a single bucket — indicates `ForwardedHeaders` misconfiguration |
+| `RateLimitingOptions.cs` | `GlobalLimitOptions` default 100 → 120 | Align constructor default with `appsettings.json` production value |
+| `error-handling.ts` | Added `getRetryAfterSeconds(response)` utility | Extract `Retry-After` header for toast and cooldown |
+| `$lib/state/cooldown.svelte.ts` | New `createCooldown()` rune utility | Reactive countdown timer that disables buttons during rate limit cooldown |
+| `$lib/state/index.ts` | Export `createCooldown` | Barrel re-export |
+| `en.json` / `cs.json` | Added `error_rateLimitedDescriptionWithRetry` parameterized key | Toast shows "Please wait {seconds} seconds and try again" |
+| 11 component files | Import + use `getRetryAfterSeconds`, `createCooldown`; disable buttons during cooldown | Retry-After–aware toast messages and temporary submit disable after 429 |
+
 ## Follow-Up Items
 
 - [ ] Consider adding rate limiting to the `POST /auth/logout` endpoint (low priority since it requires authentication and is idempotent)

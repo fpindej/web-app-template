@@ -9,12 +9,13 @@
 		getErrorMessage,
 		isValidationProblemDetails,
 		mapFieldErrors,
-		isRateLimited
+		isRateLimited,
+		getRetryAfterSeconds
 	} from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { createFieldShakes } from '$lib/state';
+	import { createFieldShakes, createCooldown } from '$lib/state';
 
 	interface Props {
 		open: boolean;
@@ -27,6 +28,7 @@
 	let fieldErrors = $state<Record<string, string>>({});
 	let generalError = $state('');
 	const fieldShakes = createFieldShakes();
+	const cooldown = createCooldown();
 
 	$effect(() => {
 		if (open) {
@@ -54,7 +56,13 @@
 			}
 
 			if (isRateLimited(response)) {
-				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+				const retryAfter = getRetryAfterSeconds(response);
+				if (retryAfter) cooldown.start(retryAfter);
+				toast.error(m.error_rateLimited(), {
+					description: retryAfter
+						? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+						: m.error_rateLimitedDescription()
+				});
 			} else if (isValidationProblemDetails(apiError)) {
 				fieldErrors = mapFieldErrors(apiError.errors);
 				fieldShakes.triggerFields(Object.keys(fieldErrors));
@@ -119,7 +127,11 @@
 						</Button>
 					{/snippet}
 				</Dialog.Close>
-				<Button type="submit" variant="destructive" disabled={isLoading || !password}>
+				<Button
+					type="submit"
+					variant="destructive"
+					disabled={isLoading || !password || cooldown.active}
+				>
 					{m.settings_deleteAccount_confirm()}
 				</Button>
 			</Dialog.Footer>

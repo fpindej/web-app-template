@@ -9,12 +9,13 @@
 		isValidationProblemDetails,
 		mapFieldErrors,
 		getErrorMessage,
-		isRateLimited
+		isRateLimited,
+		getRetryAfterSeconds
 	} from '$lib/api';
 	import * as m from '$lib/paraglide/messages';
 	import { toast } from '$lib/components/ui/sonner';
 	import { Loader2 } from '@lucide/svelte';
-	import { createFieldShakes } from '$lib/state';
+	import { createFieldShakes, createCooldown } from '$lib/state';
 
 	interface Props {
 		open?: boolean;
@@ -33,6 +34,7 @@
 	let error = $state<string | null>(null);
 	let fieldErrors = $state<Record<string, string>>({});
 	const fieldShakes = createFieldShakes();
+	const cooldown = createCooldown();
 
 	function resetForm() {
 		email = '';
@@ -81,7 +83,13 @@
 				open = false;
 				onSuccess?.(registeredEmail);
 			} else if (isRateLimited(response)) {
-				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+				const retryAfter = getRetryAfterSeconds(response);
+				if (retryAfter) cooldown.start(retryAfter);
+				toast.error(m.error_rateLimited(), {
+					description: retryAfter
+						? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+						: m.error_rateLimitedDescription()
+				});
 			} else if (apiError) {
 				// Extract validation errors from the errors object if present
 				if (isValidationProblemDetails(apiError)) {
@@ -213,7 +221,7 @@
 				{/if}
 			</div>
 			<Dialog.Footer>
-				<Button type="submit" disabled={isLoading} class="w-full">
+				<Button type="submit" disabled={isLoading || cooldown.active} class="w-full">
 					{#if isLoading}
 						<Loader2 class="me-2 h-4 w-4 animate-spin" />
 					{/if}

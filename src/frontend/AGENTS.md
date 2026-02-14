@@ -287,6 +287,34 @@ async function handleSubmit() {
 
 `mapFieldErrors` converts ASP.NET Core's PascalCase field names to camelCase (e.g., `PhoneNumber` → `phoneNumber`). The default mapping is in `error-handling.ts`; extend it for new fields via the `customFieldMap` parameter.
 
+### Rate Limit Errors (429)
+
+All components that make API calls must handle 429 responses. Use `isRateLimited` + `getRetryAfterSeconds` + `createCooldown`:
+
+```typescript
+import { isRateLimited, getRetryAfterSeconds } from '$lib/api';
+import { createCooldown } from '$lib/state';
+
+const cooldown = createCooldown();
+
+// In your handler, after the API call:
+if (isRateLimited(response)) {
+	const retryAfter = getRetryAfterSeconds(response);
+	if (retryAfter) cooldown.start(retryAfter);
+	toast.error(m.error_rateLimited(), {
+		description: retryAfter
+			? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+			: m.error_rateLimitedDescription()
+	});
+	return;
+}
+
+// In the template — disable buttons during cooldown:
+// <Button disabled={isLoading || cooldown.active}>Submit</Button>
+```
+
+Components with multiple action handlers (e.g., `UserManagementCard`, `JobActionsCard`) should extract a local `handleRateLimited(response)` helper and share a single `cooldown` instance across all handlers.
+
 ### Network Errors
 
 The API proxy handles network errors:

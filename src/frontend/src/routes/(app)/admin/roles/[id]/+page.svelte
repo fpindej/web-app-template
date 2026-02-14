@@ -6,10 +6,11 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { RolePermissionEditor } from '$lib/components/admin';
 	import { ArrowLeft, Loader2, Save, Trash2 } from '@lucide/svelte';
-	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited, getRetryAfterSeconds } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { createCooldown } from '$lib/state';
 	import { hasPermission, Permissions } from '$lib/utils';
 	import * as m from '$lib/paraglide/messages';
 	import type { PageData } from './$types';
@@ -31,6 +32,17 @@
 	let isSavingPermissions = $state(false);
 	let deleteDialogOpen = $state(false);
 	let isDeleting = $state(false);
+	const cooldown = createCooldown();
+
+	function handleRateLimited(response: Response) {
+		const retryAfter = getRetryAfterSeconds(response);
+		if (retryAfter) cooldown.start(retryAfter);
+		toast.error(m.error_rateLimited(), {
+			description: retryAfter
+				? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+				: m.error_rateLimitedDescription()
+		});
+	}
 
 	async function saveRole() {
 		isSaving = true;
@@ -47,7 +59,7 @@
 			toast.success(m.admin_roles_updateSuccess());
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_roles_updateError()));
 		}
@@ -65,7 +77,7 @@
 			toast.success(m.admin_roles_permissionsSaved());
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_roles_permissionsSaveError()));
 		}
@@ -83,7 +95,7 @@
 			toast.success(m.admin_roles_deleteSuccess());
 			await goto(resolve('/admin/roles'));
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			handleRateLimited(response);
 		} else {
 			toast.error(getErrorMessage(error, m.admin_roles_deleteError()));
 		}
@@ -144,7 +156,7 @@
 				/>
 			</div>
 			{#if canManageRoles}
-				<Button size="sm" disabled={isSaving} onclick={saveRole}>
+				<Button size="sm" disabled={isSaving || cooldown.active} onclick={saveRole}>
 					{#if isSaving}
 						<Loader2 class="me-2 h-4 w-4 animate-spin" />
 					{:else}
@@ -170,7 +182,11 @@
 				onchange={(perms) => (selectedPermissions = perms)}
 			/>
 			{#if canEditPermissions}
-				<Button size="sm" disabled={isSavingPermissions} onclick={savePermissions}>
+				<Button
+					size="sm"
+					disabled={isSavingPermissions || cooldown.active}
+					onclick={savePermissions}
+				>
 					{#if isSavingPermissions}
 						<Loader2 class="me-2 h-4 w-4 animate-spin" />
 					{:else}
@@ -209,7 +225,11 @@
 							<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>
 								{m.common_cancel()}
 							</Button>
-							<Button variant="destructive" disabled={isDeleting} onclick={deleteRole}>
+							<Button
+								variant="destructive"
+								disabled={isDeleting || cooldown.active}
+								onclick={deleteRole}
+							>
 								{#if isDeleting}
 									<Loader2 class="me-2 h-4 w-4 animate-spin" />
 								{/if}

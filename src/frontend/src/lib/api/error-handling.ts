@@ -167,3 +167,19 @@ export function getFetchErrorCode(error: unknown): string | undefined {
 export function isRateLimited(response: Response): boolean {
 	return response.status === 429;
 }
+
+/**
+ * Extracts the integer seconds from the `Retry-After` response header.
+ *
+ * The backend always sends `Retry-After` as an integer (delta-seconds).
+ * Returns `null` when the header is absent or not a valid integer.
+ *
+ * @param response - The HTTP response (typically a 429)
+ * @returns Retry delay in seconds, or null
+ */
+export function getRetryAfterSeconds(response: Response): number | null {
+	const header = response.headers.get('Retry-After');
+	if (!header) return null;
+	const seconds = parseInt(header, 10);
+	return Number.isNaN(seconds) || seconds < 0 ? null : seconds;
+}

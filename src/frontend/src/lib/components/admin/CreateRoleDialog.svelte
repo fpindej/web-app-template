@@ -3,9 +3,10 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Loader2 } from '@lucide/svelte';
-	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited, getRetryAfterSeconds } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
+	import { createCooldown } from '$lib/state';
 	import * as m from '$lib/paraglide/messages';
 
 	interface Props {
@@ -17,6 +18,7 @@
 	let name = $state('');
 	let description = $state('');
 	let isCreating = $state(false);
+	const cooldown = createCooldown();
 
 	async function createRole() {
 		if (!name.trim()) return;
@@ -35,7 +37,13 @@
 			open = false;
 			await invalidateAll();
 		} else if (isRateLimited(response)) {
-			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+			const retryAfter = getRetryAfterSeconds(response);
+			if (retryAfter) cooldown.start(retryAfter);
+			toast.error(m.error_rateLimited(), {
+				description: retryAfter
+					? m.error_rateLimitedDescriptionWithRetry({ seconds: retryAfter })
+					: m.error_rateLimitedDescription()
+			});
 		} else {
 			toast.error(getErrorMessage(error, m.admin_roles_createError()));
 		}
@@ -76,7 +84,7 @@
 			<Button variant="outline" onclick={() => (open = false)}>
 				{m.common_cancel()}
 			</Button>
-			<Button disabled={!name.trim() || isCreating} onclick={createRole}>
+			<Button disabled={!name.trim() || isCreating || cooldown.active} onclick={createRole}>
 				{#if isCreating}
 					<Loader2 class="me-2 h-4 w-4 animate-spin" />
 				{/if}

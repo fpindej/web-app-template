@@ -107,11 +107,11 @@ public sealed class RateLimitingOptions
     {
         /// <summary>
         /// Initializes default values for the global rate limiter.
-        /// Defaults to 100 requests per 1 minute with no queuing.
+        /// Defaults to 120 requests per 1 minute with no queuing.
         /// </summary>
         public GlobalLimitOptions()
         {
-            PermitLimit = 100;
+            PermitLimit = 120;
             Window = TimeSpan.FromMinutes(1);
             QueueLimit = 0;
         }
