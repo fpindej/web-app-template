@@ -12,7 +12,7 @@ internal class PausedJobConfiguration : IEntityTypeConfiguration<PausedJob>
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<PausedJob> builder)
     {
-        builder.ToTable("PausedJobs", "hangfire");
+        builder.ToTable("pausedjobs", "hangfire");
 
         builder.HasKey(x => x.Id);
 
