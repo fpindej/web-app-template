@@ -4,6 +4,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using MyProject.Infrastructure.Features.Admin.Extensions;
+using MyProject.Infrastructure.Features.Jobs.Extensions;
 using MyProject.Infrastructure.Persistence.Extensions;
 using MyProject.Infrastructure.Caching.Extensions;
 using MyProject.Infrastructure.Cookies.Extensions;
@@ -52,6 +53,9 @@ try
 
         Log.Debug("Adding admin services");
         builder.Services.AddAdminServices();
+
+        Log.Debug("Adding job scheduling");
+        builder.Services.AddJobScheduling(builder.Configuration);
 
         Log.Debug("Adding permission-based authorization");
         builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
@@ -149,6 +153,9 @@ try
 
     Log.Debug("Setting UseAuthorization");
     app.UseAuthorization();
+
+    Log.Debug("Setting up job scheduling");
+    app.UseJobScheduling();
 
     Log.Debug("Setting \"security\" measure => Redirect to YouTube video to confuse enemies");
     app.Use(async (context, next) =>
