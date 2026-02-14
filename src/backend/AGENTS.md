@@ -704,6 +704,41 @@ The frontend applies the same headers to page responses via the `handle` hook in
 
 The middleware pipeline configures `X-Forwarded-For` and `X-Forwarded-Proto` header processing for reverse proxy scenarios (Docker, nginx, load balancers). In production, `Request.Scheme` is manually overridden to `https`. Without this, rate limiting, logging, and CORS checks use the proxy's IP/scheme instead of the client's.
 
+#### Trust model
+
+The app creates `ForwardedHeadersOptions` with only the `ForwardedHeaders` flags set — it does **not** clear `KnownProxies` or `KnownNetworks`. This means ASP.NET Core's defaults apply: only loopback addresses (`127.0.0.1` and `::1`) are trusted. Forwarded headers arriving from any other source IP are silently ignored, so containers on the same Docker network **cannot** spoof `X-Forwarded-For` to bypass rate limiting.
+
+#### Deploying behind a reverse proxy
+
+When the app sits behind a non-loopback reverse proxy (nginx, Caddy, Traefik, cloud load balancer), you must tell the middleware which proxy IPs to trust — otherwise `X-Forwarded-For` is ignored and `RemoteIpAddress` stays as the proxy's IP. The rate limiter will then log the one-time warning about all requests sharing a single anonymous bucket.
+
+Configure trusted proxies via environment variables (ASP.NET Core's `__` separator maps to `:` in hierarchical config):
+
+```env
+# Trust a single proxy IP
+ForwardedHeaders__KnownProxies__0=10.0.0.5
+
+# Trust a CIDR block (e.g., an entire subnet)
+ForwardedHeaders__KnownNetworks__0=10.0.0.0/16
+
+# Multiple entries
+ForwardedHeaders__KnownProxies__0=10.0.0.5
+ForwardedHeaders__KnownProxies__1=10.0.0.6
+```
+
+Alternatively, bind the same keys in `appsettings.Production.json`:
+
+```jsonc
+{
+  "ForwardedHeaders": {
+    "KnownProxies": ["10.0.0.5"],
+    "KnownNetworks": ["10.0.0.0/16"]
+  }
+}
+```
+
+> **Principle**: keep the trust surface as narrow as possible — list only the specific proxy IPs or the smallest CIDR block that covers them. Never use `ClearAllPrefixValues()` or trust `0.0.0.0/0`.
+
 ## Authorization — Roles & Permissions
 
 ### Role Hierarchy
