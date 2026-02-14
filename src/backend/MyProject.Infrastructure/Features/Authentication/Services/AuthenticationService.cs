@@ -202,7 +202,7 @@ internal class AuthenticationService(
             Token = HashHelper.Sha256(newRefreshTokenString),
             UserId = user.Id,
             CreatedAt = utcNow.UtcDateTime,
-            ExpiredAt = utcNow.UtcDateTime.AddDays(_jwtOptions.RefreshToken.ExpiresInDays),
+            ExpiredAt = storedToken.ExpiredAt,
             Used = false,
             Invalidated = false
         };
@@ -220,7 +220,7 @@ internal class AuthenticationService(
             cookieService.SetSecureCookie(
                 key: CookieNames.RefreshToken,
                 value: newRefreshTokenString,
-                expires: utcNow.AddDays(_jwtOptions.RefreshToken.ExpiresInDays));
+                expires: new DateTimeOffset(storedToken.ExpiredAt, TimeSpan.Zero));
         }
 
         var output = new AuthenticationOutput(
