@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MyProject.Infrastructure.Features.Jobs.Options;
 
 namespace MyProject.Infrastructure.Features.Jobs.Extensions;
 
@@ -31,10 +33,18 @@ public static class ApplicationBuilderExtensions
     /// <returns>The application builder for chaining.</returns>
     public static IApplicationBuilder UseJobScheduling(this IApplicationBuilder app)
     {
-        _rootServiceProvider = app.ApplicationServices;
-
         var logger = app.ApplicationServices.GetRequiredService<ILoggerFactory>()
             .CreateLogger(typeof(ApplicationBuilderExtensions));
+
+        var options = app.ApplicationServices.GetRequiredService<IOptions<JobSchedulingOptions>>().Value;
+
+        if (!options.Enabled)
+        {
+            logger.LogInformation("Job scheduling is disabled via configuration");
+            return app;
+        }
+
+        _rootServiceProvider = app.ApplicationServices;
 
         var env = app.ApplicationServices.GetRequiredService<IHostEnvironment>();
 

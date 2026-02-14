@@ -252,6 +252,15 @@ That's it — `UseJobScheduling()` discovers all `IRecurringJobDefinition` imple
 
 **Admin UI:** The job will appear in the admin panel at `/admin/jobs` (requires `jobs.view` permission). Users with `jobs.manage` can trigger, pause, resume, and delete jobs.
 
+**Configuration:** Job scheduling can be toggled via `appsettings.json`:
+```json
+"JobScheduling": {
+  "Enabled": true,
+  "WorkerCount": 4
+}
+```
+Set `Enabled` to `false` to disable Hangfire entirely (e.g. read-only replicas, specific deployment nodes).
+
 **Dev dashboard:** In development, the built-in Hangfire dashboard is available at `http://localhost:8080/hangfire`.
 
 ---

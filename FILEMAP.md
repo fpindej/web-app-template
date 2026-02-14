@@ -131,6 +131,7 @@ src/backend/MyProject.Infrastructure/Features/Jobs/
   IRecurringJobDefinition.cs                          Interface for recurring jobs
   RecurringJobs/{JobName}Job.cs                       Job implementations
   Services/JobManagementService.cs                    Admin API service
+  Options/JobSchedulingOptions.cs                     Configuration (Enabled, WorkerCount)
   Extensions/ServiceCollectionExtensions.cs           DI registration
   Extensions/ApplicationBuilderExtensions.cs          Middleware + job registration
 src/backend/MyProject.Application/Features/Jobs/

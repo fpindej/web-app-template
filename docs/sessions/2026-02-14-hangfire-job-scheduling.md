@@ -20,8 +20,10 @@ Introduced Hangfire with PostgreSQL persistence as the standardized background j
 | `ExpiredRefreshTokenCleanupJob.cs` | Created first recurring job | Closes #56 — cleanup expired refresh tokens hourly |
 | `IJobManagementService.cs` + DTOs | Created Application layer interface and DTOs | Clean Architecture — controller depends on abstraction |
 | `JobManagementService.cs` | Created Hangfire monitoring/management service | Implements admin operations (list, detail, trigger, pause, resume, delete) |
-| `ServiceCollectionExtensions.cs` (Jobs) | Created DI registration for Hangfire + services | Follows existing extension method pattern |
-| `ApplicationBuilderExtensions.cs` (Jobs) | Created middleware + job registration | Hangfire dashboard (dev) + auto-discovers `IRecurringJobDefinition` |
+| `JobSchedulingOptions.cs` | Created options class with `Enabled` and `WorkerCount` | Configurable via `appsettings.json` (`JobScheduling` section) |
+| `ServiceCollectionExtensions.cs` (Jobs) | Created DI registration for Hangfire + services | Follows existing extension method pattern; skips Hangfire when disabled |
+| `ApplicationBuilderExtensions.cs` (Jobs) | Created middleware + job registration | Hangfire dashboard (dev) + auto-discovers `IRecurringJobDefinition`; skips when disabled |
+| `appsettings.json` | Added `JobScheduling` section | `Enabled: true`, `WorkerCount: 4` defaults |
 | `JobsController.cs` | Created admin API endpoints at `api/v1/admin/jobs` | 6 endpoints: list, detail, trigger, delete, pause, resume |
 | `JobsMapper.cs` + response DTOs | Created WebApi layer mapping | Follows existing mapper pattern |
 | `Program.cs` | Wired up `AddJobScheduling()` and `UseJobScheduling()` | Entry point for Hangfire |
