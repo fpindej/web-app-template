@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MyProject.Application.Features.Jobs;
 using MyProject.Infrastructure.Features.Jobs.Options;
+using MyProject.Infrastructure.Features.Jobs.Examples;
 using MyProject.Infrastructure.Features.Jobs.RecurringJobs;
 using MyProject.Infrastructure.Features.Jobs.Services;
 
@@ -65,6 +66,10 @@ public static class ServiceCollectionExtensions
             services.AddScoped<ExpiredRefreshTokenCleanupJob>();
             services.AddScoped<IRecurringJobDefinition>(sp =>
                 sp.GetRequiredService<ExpiredRefreshTokenCleanupJob>());
+
+            // Register fire-and-forget job classes — Hangfire resolves them from DI when executed.
+            // Example: backgroundJobClient.Enqueue<ExampleFireAndForgetJob>(job => job.ExecuteAsync("hello"));
+            services.AddScoped<ExampleFireAndForgetJob>();
 
             services.AddScoped<IJobManagementService, JobManagementService>();
 

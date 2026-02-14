@@ -263,6 +263,57 @@ Set `Enabled` to `false` to disable Hangfire entirely (e.g. read-only replicas, 
 
 **Dev dashboard:** In development, the built-in Hangfire dashboard is available at `http://localhost:8080/hangfire`.
 
+### Fire a One-Time Background Job
+
+For ad-hoc work that should run once in the background (send email, call external API, process file), use Hangfire's `IBackgroundJobClient` directly. No custom interface needed — any DI-registered service with a public method works.
+
+**1. Create the job class** (or use any existing service) in `src/backend/MyProject.Infrastructure/Features/Jobs/`:
+
+```csharp
+using Microsoft.Extensions.Logging;
+
+namespace MyProject.Infrastructure.Features.Jobs;
+
+internal sealed class WelcomeEmailJob(
+    IEmailService emailService,
+    ILogger<WelcomeEmailJob> logger)
+{
+    public async Task ExecuteAsync(string userId, string email)
+    {
+        await emailService.SendWelcomeAsync(email);
+        logger.LogInformation("Sent welcome email to user '{UserId}'", userId);
+    }
+}
+```
+
+Key conventions:
+- All parameters must be **JSON-serializable** (strings, numbers, DTOs) — Hangfire persists them to the database
+- Never pass `IServiceProvider`, `HttpContext`, `DbContext`, or other non-serializable objects as arguments
+- Hangfire creates a fresh DI scope per execution, so scoped services (like `DbContext`) are safe to inject via constructor
+
+**2. Register in DI** — add to `ServiceCollectionExtensions.cs`:
+
+```csharp
+services.AddScoped<WelcomeEmailJob>();
+```
+
+**3. Enqueue from any service or controller** — inject `IBackgroundJobClient`:
+
+```csharp
+// Fire-and-forget (runs immediately in background)
+backgroundJobClient.Enqueue<WelcomeEmailJob>(
+    job => job.ExecuteAsync(user.Id, user.Email));
+
+// Delayed (runs after a time span)
+backgroundJobClient.Schedule<WelcomeEmailJob>(
+    job => job.ExecuteAsync(user.Id, user.Email),
+    TimeSpan.FromMinutes(30));
+```
+
+**4. Verify:** `dotnet build src/backend/MyProject.slnx`
+
+See `ExampleFireAndForgetJob.cs` in the codebase for a working reference. The Hangfire dashboard and admin UI at `/admin/jobs` show one-time job executions alongside recurring jobs.
+
 ---
 
 ## Frontend Skills

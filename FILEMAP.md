@@ -129,7 +129,8 @@ src/frontend/src/
 ```
 src/backend/MyProject.Infrastructure/Features/Jobs/
   IRecurringJobDefinition.cs                          Interface for recurring jobs
-  RecurringJobs/{JobName}Job.cs                       Job implementations
+  RecurringJobs/{JobName}Job.cs                       Recurring job implementations
+  Examples/ExampleFireAndForgetJob.cs                 Example one-time job (removable)
   Services/JobManagementService.cs                    Admin API service
   Options/JobSchedulingOptions.cs                     Configuration (Enabled, WorkerCount)
   Extensions/ServiceCollectionExtensions.cs           DI registration

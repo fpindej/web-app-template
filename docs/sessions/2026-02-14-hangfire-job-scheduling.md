@@ -34,7 +34,8 @@ Introduced Hangfire with PostgreSQL persistence as the standardized background j
 | Job components (4 files) | `JobTable`, `JobInfoCard`, `JobActionsCard`, `JobExecutionHistory` | Reusable admin UI components |
 | Job pages (4 files) | List page + detail page with server loaders | `/admin/jobs` and `/admin/jobs/[jobId]` |
 | `admin/index.ts` | Exported new job components | Barrel export pattern |
-| `SKILLS.md` | Added "Add a Background Job" recipe | Step-by-step guide for template users |
+| `ExampleFireAndForgetJob.cs` | Example one-time background job (removable) | Demonstrates `IBackgroundJobClient` pattern for template users |
+| `SKILLS.md` | Added "Add a Background Job" and "Fire a One-Time Background Job" recipes | Step-by-step guides for template users |
 | `FILEMAP.md` | Added job scheduling patterns + impact rules | Change tracking for job-related files |
 
 ## Decisions & Reasoning
@@ -62,6 +63,12 @@ Introduced Hangfire with PostgreSQL persistence as the standardized background j
 - **Choice**: Set cron to "0 0 31 2 *" (Feb 31, never fires) on pause, restore original on resume
 - **Alternatives considered**: Hangfire Pro pause API (paid), deleting and re-creating jobs
 - **Reasoning**: Hangfire free tier has no native pause/resume. The "never cron" approach keeps the job entry visible in the dashboard while preventing execution. Original cron is stored in a `ConcurrentDictionary` — simple and thread-safe for the single-server template use case.
+
+### Fire-and-Forget: No Custom Interface
+
+- **Choice**: Use Hangfire's built-in `IBackgroundJobClient` directly for one-time jobs
+- **Alternatives considered**: Custom `IFireAndForgetJobDefinition` interface mirroring `IRecurringJobDefinition`
+- **Reasoning**: Fire-and-forget jobs are ad-hoc — they're enqueued on demand, not registered at startup. A custom interface would add ceremony without value. `IBackgroundJobClient` is already injectable, testable, and handles DI scoping. An example class (`ExampleFireAndForgetJob`) demonstrates the pattern.
 
 ### DI Scope per Execution
 
