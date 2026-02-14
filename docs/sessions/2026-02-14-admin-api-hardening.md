@@ -86,6 +86,12 @@ flowchart TD
     ADM -->|Reject| R429
 ```
 
+### ProducesResponseType: per-action, never class-level
+
+- **Choice**: All `[ProducesResponseType]` attributes go on individual actions, never on the controller or base class — even when multiple actions share a status code
+- **Alternatives considered**: Class-level `[ProducesResponseType(429)]` on `ApiController` since the global rate limiter applies to all endpoints
+- **Reasoning**: Class-level placement silently applies to every action, including ones that don't need it. This creates noise in the OpenAPI spec and misleading generated TypeScript types. Per-action placement keeps each endpoint's OAS entry self-contained and precise — you can read a single action and know exactly what it can return. Concrete example: 429 only goes on endpoints with `[EnableRateLimiting]`, not on the base class just because the global limiter exists. Same logic applies to 401, 403, 404, etc.
+
 ## Follow-Up Items
 
 - [ ] Consider adding rate limiting to the `POST /auth/logout` endpoint (low priority since it requires authentication and is idempotent)

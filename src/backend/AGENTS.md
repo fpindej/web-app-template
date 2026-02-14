@@ -540,6 +540,7 @@ public class AuthController(IAuthenticationService authenticationService) : Cont
 Rules:
 - Always include `/// <summary>` XML docs — these generate OpenAPI descriptions consumed by the frontend
 - Always include `[ProducesResponseType]` for all possible status codes — with `typeof(ErrorResponse)` on error codes that return a body (400, 401, etc.)
+- **`[ProducesResponseType]` goes on the action, never on the controller or base class.** Each action explicitly declares its complete response contract so the OAS entry is self-contained and precise. Even when multiple actions share a status code (e.g., 401 on all authorized endpoints, 429 on all rate-limited endpoints), repeat the attribute per-action — class-level placement silently applies to actions that don't need it, creating noise in the spec and misleading generated types. Example: only add 429 to endpoints with `[EnableRateLimiting]`, not to the base class just because the global limiter exists.
 - Always accept `CancellationToken` as the last parameter on async endpoints
 - **Never add `/// <param name="cancellationToken">`** — ASP.NET excludes `CancellationToken` from OAS parameters, but the `<param>` text leaks into `requestBody.description`. CS1573 is suppressed project-wide.
 - Only add `/// <param>` tags for parameters that should appear in the OAS (request body, route/query params)
@@ -1418,6 +1419,7 @@ Before adding or modifying any endpoint, verify:
 - [ ] Data annotations (`[MaxLength]`, `[Range]`, etc.) on request DTOs for spec constraints
 - [ ] `[Description("...")]` on base-class query parameter properties (e.g. `PaginatedRequest`) — XML `<summary>` doesn't flow to inherited OAS parameters
 - [ ] `CancellationToken` as the last parameter on all async endpoints, passed through to service calls — **no** `<param>` XML doc for it
+- [ ] All `[ProducesResponseType]` attributes are on the action, not on the controller or base class — each action declares only the status codes it can actually produce (e.g., 429 only with `[EnableRateLimiting]`, 404 only on lookup endpoints)
 - [ ] Route uses lowercase (`[Route("api/[controller]")]` + `LowercaseUrls = true`)
 - [ ] Enums serialize as strings with all members listed (handled by `JsonStringEnumConverter` + `EnumSchemaTransformer` — verify in Scalar)
 - [ ] No `#pragma warning disable` — CS1573 (partial param docs) is suppressed project-wide because omitting `CancellationToken` param tags is intentional
