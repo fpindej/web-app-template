@@ -86,6 +86,7 @@ Quick-reference for "when you change X, also update Y" and "where does X live?"
 | **Rate limiting config** | Frontend may need retry/backoff logic |
 | **`appsettings.json`** structure | Options class, `.env.example`, `docker-compose.local.yml` |
 | **Security headers** (backend or frontend) | Verify both sides are consistent |
+| **CI workflows** (`.github/workflows/`) | Verify `dorny/paths-filter` patterns match project structure |
 
 ---
 

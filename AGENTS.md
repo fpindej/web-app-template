@@ -415,7 +415,16 @@ No config changes needed. Defaults work out of the box.
 
 ### CI/CD & Hooks
 
-No GitHub Actions workflows or pre-commit hooks are configured. Pre-commit checks (build, format, lint, type check) are manual steps documented in `CLAUDE.md`. There is no automated enforcement — developers and agents are responsible for running checks before every commit.
+GitHub Actions workflows enforce quality gates on every PR and push to `master`:
+
+| Workflow | File | Purpose |
+|---|---|---|
+| **CI** | `.github/workflows/ci.yml` | Build + lint + type-check, gated by `dorny/paths-filter` so backend-only PRs skip frontend and vice versa. Single `ci-passed` gate job for branch protection. |
+| **Docker** | `.github/workflows/docker.yml` | Validates Docker images build successfully (no push). Triggered only when Dockerfiles or dependency manifests change. Uses GHA layer cache. |
+
+**Dependabot** (`.github/dependabot.yml`) opens weekly PRs for NuGet, npm, and GitHub Actions updates. Minor+patch versions are grouped to reduce noise.
+
+Pre-commit checks (build, format, lint, type check) remain manual steps documented in `CLAUDE.md` — CI enforces them server-side as a safety net.
 
 ### Docker
 

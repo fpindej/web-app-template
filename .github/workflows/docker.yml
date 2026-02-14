@@ -1,0 +1,85 @@
+name: Docker
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/backend/**/Dockerfile'
+      - 'src/backend/**/*.csproj'
+      - 'src/backend/Directory.Packages.props'
+      - 'src/frontend/Dockerfile'
+      - 'src/frontend/package*.json'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/backend/**/Dockerfile'
+      - 'src/backend/**/*.csproj'
+      - 'src/backend/Directory.Packages.props'
+      - 'src/frontend/Dockerfile'
+      - 'src/frontend/package*.json'
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    permissions:
+      pull-requests: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'src/backend/**/Dockerfile'
+              - 'src/backend/**/*.csproj'
+              - 'src/backend/Directory.Packages.props'
+            frontend:
+              - 'src/frontend/Dockerfile'
+              - 'src/frontend/package*.json'
+
+  backend-docker:
+    name: Backend Docker build
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: src/backend
+          file: src/backend/MyProject.WebApi/Dockerfile
+          push: false
+          cache-from: type=gha,scope=backend-docker
+          cache-to: type=gha,scope=backend-docker,mode=max
+
+  frontend-docker:
+    name: Frontend Docker build
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: src/frontend
+          file: src/frontend/Dockerfile
+          push: false
+          cache-from: type=gha,scope=frontend-docker
+          cache-to: type=gha,scope=frontend-docker,mode=max
