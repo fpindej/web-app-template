@@ -109,17 +109,12 @@ public sealed class RateLimitingOptions
 
     /// <summary>
     /// Configuration options for the registration endpoint fixed-window rate limiter.
+    /// Defaults to 5 requests per 1 minute with no queuing.
     /// </summary>
     public sealed class RegistrationLimitOptions : FixedWindowPolicyOptions
     {
         /// <summary>
-        /// The policy name used to reference this limiter in <c>[EnableRateLimiting]</c> attributes.
-        /// </summary>
-        public const string PolicyName = "registration";
-
-        /// <summary>
         /// Initializes default values for the registration rate limiter.
-        /// Defaults to 5 requests per 1 minute with no queuing.
         /// </summary>
         public RegistrationLimitOptions()
         {
@@ -132,17 +127,12 @@ public sealed class RateLimitingOptions
     /// <summary>
     /// Configuration options for the authentication fixed-window rate limiter.
     /// Applied to login and token refresh endpoints, partitioned by IP address.
+    /// Defaults to 10 requests per 1 minute with no queuing.
     /// </summary>
     public sealed class AuthLimitOptions : FixedWindowPolicyOptions
     {
         /// <summary>
-        /// The policy name used to reference this limiter in <c>[EnableRateLimiting]</c> attributes.
-        /// </summary>
-        public const string PolicyName = "auth";
-
-        /// <summary>
         /// Initializes default values for the authentication rate limiter.
-        /// Defaults to 10 requests per 1 minute with no queuing.
         /// </summary>
         public AuthLimitOptions()
         {
@@ -155,17 +145,12 @@ public sealed class RateLimitingOptions
     /// <summary>
     /// Configuration options for the sensitive operations fixed-window rate limiter.
     /// Applied to password changes and account deletions, partitioned by authenticated user.
+    /// Defaults to 5 requests per 5 minutes with no queuing.
     /// </summary>
     public sealed class SensitiveLimitOptions : FixedWindowPolicyOptions
     {
         /// <summary>
-        /// The policy name used to reference this limiter in <c>[EnableRateLimiting]</c> attributes.
-        /// </summary>
-        public const string PolicyName = "sensitive";
-
-        /// <summary>
         /// Initializes default values for the sensitive operations rate limiter.
-        /// Defaults to 5 requests per 5 minutes with no queuing.
         /// </summary>
         public SensitiveLimitOptions()
         {
@@ -178,17 +163,12 @@ public sealed class RateLimitingOptions
     /// <summary>
     /// Configuration options for the admin mutations fixed-window rate limiter.
     /// Applied to state-changing admin and job management endpoints, partitioned by authenticated user.
+    /// Defaults to 30 requests per 1 minute with no queuing.
     /// </summary>
     public sealed class AdminMutationsLimitOptions : FixedWindowPolicyOptions
     {
         /// <summary>
-        /// The policy name used to reference this limiter in <c>[EnableRateLimiting]</c> attributes.
-        /// </summary>
-        public const string PolicyName = "admin-mutations";
-
-        /// <summary>
         /// Initializes default values for the admin mutations rate limiter.
-        /// Defaults to 30 requests per 1 minute with no queuing.
         /// </summary>
         public AdminMutationsLimitOptions()
         {

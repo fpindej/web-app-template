@@ -31,10 +31,11 @@ internal static class RateLimiterExtensions
 
             ConfigureGlobalLimiter(opt, rateLimitOptions.Global);
             ConfigureOnRejected(opt);
-            AddRegistrationPolicy(opt, rateLimitOptions.Registration);
-            AddAuthPolicy(opt, rateLimitOptions.Auth);
-            AddSensitivePolicy(opt, rateLimitOptions.Sensitive);
-            AddAdminMutationsPolicy(opt, rateLimitOptions.AdminMutations);
+
+            AddIpPolicy(opt, RateLimitPolicies.Registration, rateLimitOptions.Registration);
+            AddIpPolicy(opt, RateLimitPolicies.Auth, rateLimitOptions.Auth);
+            AddUserPolicy(opt, RateLimitPolicies.Sensitive, rateLimitOptions.Sensitive);
+            AddUserPolicy(opt, RateLimitPolicies.AdminMutations, rateLimitOptions.AdminMutations);
         });
 
         return services;
@@ -48,10 +49,11 @@ internal static class RateLimiterExtensions
     {
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
         {
-            var userIdentifier = context.User.Identity?.Name ??
-                                 context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+            var partitionKey = context.User.Identity?.Name
+                               ?? context.Connection.RemoteIpAddress?.ToString()
+                               ?? "anonymous";
 
-            return RateLimitPartition.GetFixedWindowLimiter(userIdentifier,
+            return RateLimitPartition.GetFixedWindowLimiter(partitionKey,
                 _ => CreateFixedWindowOptions(globalOptions));
         });
     }
@@ -84,70 +86,35 @@ internal static class RateLimiterExtensions
     }
 
     /// <summary>
-    /// Adds a fixed-window rate limit policy for the registration endpoint, partitioned by IP address.
+    /// Adds a fixed-window rate limit policy partitioned by client IP address.
+    /// Suitable for unauthenticated endpoints (login, registration, token refresh).
     /// </summary>
-    private static void AddRegistrationPolicy(RateLimiterOptions options,
-        RateLimitingOptions.RegistrationLimitOptions registrationOptions)
+    private static void AddIpPolicy(RateLimiterOptions options, string policyName,
+        RateLimitingOptions.FixedWindowPolicyOptions policyOptions)
     {
-        options.AddPolicy(RateLimitingOptions.RegistrationLimitOptions.PolicyName,
-            context =>
-            {
-                var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+        options.AddPolicy(policyName, context =>
+        {
+            var partitionKey = context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
 
-                return RateLimitPartition.GetFixedWindowLimiter(ipAddress,
-                    _ => CreateFixedWindowOptions(registrationOptions));
-            });
+            return RateLimitPartition.GetFixedWindowLimiter(partitionKey,
+                _ => CreateFixedWindowOptions(policyOptions));
+        });
     }
 
     /// <summary>
-    /// Adds a fixed-window rate limit policy for login and token refresh endpoints,
-    /// partitioned by IP address to prevent brute-force attacks.
+    /// Adds a fixed-window rate limit policy partitioned by authenticated user identity.
+    /// Suitable for authenticated endpoints (admin mutations, sensitive operations).
     /// </summary>
-    private static void AddAuthPolicy(RateLimiterOptions options,
-        RateLimitingOptions.AuthLimitOptions authOptions)
+    private static void AddUserPolicy(RateLimiterOptions options, string policyName,
+        RateLimitingOptions.FixedWindowPolicyOptions policyOptions)
     {
-        options.AddPolicy(RateLimitingOptions.AuthLimitOptions.PolicyName,
-            context =>
-            {
-                var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "anonymous";
+        options.AddPolicy(policyName, context =>
+        {
+            var partitionKey = context.User.Identity?.Name ?? "anonymous";
 
-                return RateLimitPartition.GetFixedWindowLimiter(ipAddress,
-                    _ => CreateFixedWindowOptions(authOptions));
-            });
-    }
-
-    /// <summary>
-    /// Adds a fixed-window rate limit policy for sensitive authenticated operations
-    /// like password changes and account deletion, partitioned by authenticated user identity.
-    /// </summary>
-    private static void AddSensitivePolicy(RateLimiterOptions options,
-        RateLimitingOptions.SensitiveLimitOptions sensitiveOptions)
-    {
-        options.AddPolicy(RateLimitingOptions.SensitiveLimitOptions.PolicyName,
-            context =>
-            {
-                var userIdentifier = context.User.Identity?.Name ?? "anonymous";
-
-                return RateLimitPartition.GetFixedWindowLimiter(userIdentifier,
-                    _ => CreateFixedWindowOptions(sensitiveOptions));
-            });
-    }
-
-    /// <summary>
-    /// Adds a fixed-window rate limit policy for state-changing admin and job management endpoints,
-    /// partitioned by authenticated user identity.
-    /// </summary>
-    private static void AddAdminMutationsPolicy(RateLimiterOptions options,
-        RateLimitingOptions.AdminMutationsLimitOptions adminMutationsOptions)
-    {
-        options.AddPolicy(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName,
-            context =>
-            {
-                var userIdentifier = context.User.Identity?.Name ?? "anonymous";
-
-                return RateLimitPartition.GetFixedWindowLimiter(userIdentifier,
-                    _ => CreateFixedWindowOptions(adminMutationsOptions));
-            });
+            return RateLimitPartition.GetFixedWindowLimiter(partitionKey,
+                _ => CreateFixedWindowOptions(policyOptions));
+        });
     }
 
     /// <summary>
