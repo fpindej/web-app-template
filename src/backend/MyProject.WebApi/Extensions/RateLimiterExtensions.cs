@@ -68,20 +68,25 @@ internal static class RateLimiterExtensions
             context.HttpContext.Response.StatusCode = 429;
             context.HttpContext.Response.ContentType = "application/json";
 
+            var retryAfterSeconds = 60;
+
             if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
             {
-                context.HttpContext.Response.Headers.RetryAfter = retryAfter.TotalSeconds.ToString(CultureInfo.InvariantCulture);
+                retryAfterSeconds = (int)Math.Ceiling(retryAfter.TotalSeconds);
                 var timeProvider = context.HttpContext.RequestServices.GetRequiredService<TimeProvider>();
-                context.HttpContext.Response.Headers["X-RateLimit-Reset"] = timeProvider.GetUtcNow().Add(retryAfter).ToUnixTimeSeconds().ToString();
-
-                var response = new ErrorResponse
-                {
-                    Message = "Rate limit exceeded",
-                    Details = $"Too many requests. Please try again in {retryAfter.TotalSeconds:F0} seconds."
-                };
-
-                await context.HttpContext.Response.WriteAsJsonAsync(response, token);
+                context.HttpContext.Response.Headers["X-RateLimit-Reset"] =
+                    timeProvider.GetUtcNow().Add(retryAfter).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture);
             }
+
+            context.HttpContext.Response.Headers.RetryAfter = retryAfterSeconds.ToString(CultureInfo.InvariantCulture);
+
+            var response = new ErrorResponse
+            {
+                Message = "Rate limit exceeded",
+                Details = $"Too many requests. Please try again in {retryAfterSeconds} seconds."
+            };
+
+            await context.HttpContext.Response.WriteAsJsonAsync(response, token);
         };
     }
 
@@ -102,7 +107,8 @@ internal static class RateLimiterExtensions
     }
 
     /// <summary>
-    /// Adds a fixed-window rate limit policy partitioned by authenticated user identity.
+    /// Adds a fixed-window rate limit policy partitioned by authenticated user identity,
+    /// falling back to client IP address when the user is not authenticated.
     /// Suitable for authenticated endpoints (admin mutations, sensitive operations).
     /// </summary>
     private static void AddUserPolicy(RateLimiterOptions options, string policyName,
@@ -110,7 +116,9 @@ internal static class RateLimiterExtensions
     {
         options.AddPolicy(policyName, context =>
         {
-            var partitionKey = context.User.Identity?.Name ?? "anonymous";
+            var partitionKey = context.User.Identity?.Name
+                               ?? context.Connection.RemoteIpAddress?.ToString()
+                               ?? "anonymous";
 
             return RateLimitPartition.GetFixedWindowLimiter(partitionKey,
                 _ => CreateFixedWindowOptions(policyOptions));

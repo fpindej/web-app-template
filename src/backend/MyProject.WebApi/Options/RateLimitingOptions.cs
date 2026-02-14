@@ -60,7 +60,7 @@ public sealed class RateLimitingOptions
     /// Base configuration for a fixed-window rate limit policy.
     /// Provides shared properties for permit limit, time window, queue behavior, and processing order.
     /// </summary>
-    public abstract class FixedWindowPolicyOptions
+    public abstract class FixedWindowPolicyOptions : IValidatableObject
     {
         /// <summary>
         /// Gets or sets the maximum number of requests permitted within the time window.
@@ -72,6 +72,7 @@ public sealed class RateLimitingOptions
         /// <summary>
         /// Gets or sets the time window duration for the rate limiter.
         /// Requests exceeding <see cref="PermitLimit"/> within this window are rejected or queued.
+        /// Must be greater than zero.
         /// </summary>
         public TimeSpan Window { get; [UsedImplicitly] init; }
 
@@ -87,6 +88,15 @@ public sealed class RateLimitingOptions
         /// Defaults to <see cref="QueueProcessingOrder.OldestFirst"/>.
         /// </summary>
         public QueueProcessingOrder QueueProcessingOrder { get; [UsedImplicitly] init; } = QueueProcessingOrder.OldestFirst;
+
+        /// <inheritdoc />
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Window <= TimeSpan.Zero)
+            {
+                yield return new ValidationResult("Window must be greater than zero.", [nameof(Window)]);
+            }
+        }
     }
 
     /// <summary>

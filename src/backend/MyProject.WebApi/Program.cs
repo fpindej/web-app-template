@@ -151,11 +151,11 @@ try
     Log.Debug("Setting UseRouting");
     app.UseRouting();
 
-    Log.Debug("Setting UseRateLimiter");
-    app.UseRateLimiter();
-
     Log.Debug("Setting UseAuthentication");
     app.UseAuthentication();
+
+    Log.Debug("Setting UseRateLimiter");
+    app.UseRateLimiter();
 
     Log.Debug("Setting UseAuthorization");
     app.UseAuthorization();

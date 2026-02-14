@@ -94,6 +94,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> AssignRole(
         Guid id,
         [FromBody] AssignRoleRequest request,
@@ -130,6 +131,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> RemoveRole(Guid id, string role, CancellationToken cancellationToken)
     {
         var callerUserId = userContext.AuthenticatedUserId;
@@ -162,6 +164,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> LockUser(Guid id, CancellationToken cancellationToken)
     {
         var callerUserId = userContext.AuthenticatedUserId;
@@ -193,6 +196,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> UnlockUser(Guid id, CancellationToken cancellationToken)
     {
         var callerUserId = userContext.AuthenticatedUserId;
@@ -225,6 +229,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> DeleteUser(Guid id, CancellationToken cancellationToken)
     {
         var callerUserId = userContext.AuthenticatedUserId;
@@ -301,6 +306,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> CreateRole(
         [FromBody] CreateRoleRequest request,
         CancellationToken cancellationToken)
@@ -334,6 +340,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> UpdateRole(
         Guid id,
         [FromBody] UpdateRoleRequest request,
@@ -367,6 +374,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> DeleteRole(Guid id, CancellationToken cancellationToken)
     {
         var result = await roleManagementService.DeleteRoleAsync(id, cancellationToken);
@@ -399,6 +407,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> SetRolePermissions(
         Guid id,
         [FromBody] SetPermissionsRequest request,
