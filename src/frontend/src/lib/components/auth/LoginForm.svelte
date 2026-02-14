@@ -138,13 +138,13 @@
 								class="bg-background/50"
 								aria-invalid={shake.active}
 							/>
-						</div>
 
-						<div class="flex items-center gap-2">
-							<Checkbox id="rememberMe" bind:checked={rememberMe} />
-							<Label for="rememberMe" class="text-sm font-normal">
-								{m.auth_login_rememberMe()}
-							</Label>
+							<div class="flex items-center gap-2">
+								<Checkbox id="rememberMe" bind:checked={rememberMe} />
+								<Label for="rememberMe" class="text-sm font-normal">
+									{m.auth_login_rememberMe()}
+								</Label>
+							</div>
 						</div>
 
 						<Button type="submit" class="w-full" disabled={!isApiOnline}>
