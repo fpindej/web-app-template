@@ -109,7 +109,7 @@
 				</Dialog.Header>
 				<Dialog.Footer class="flex-col-reverse sm:flex-row">
 					<Button variant="outline" onclick={() => (triggerDialogOpen = false)}>
-						{m.admin_userDetail_deleteCancel()}
+						{m.common_cancel()}
 					</Button>
 					<Button disabled={isTriggering} onclick={triggerJob}>
 						{#if isTriggering}
@@ -159,13 +159,13 @@
 				</Dialog.Header>
 				<Dialog.Footer class="flex-col-reverse sm:flex-row">
 					<Button variant="outline" onclick={() => (deleteDialogOpen = false)}>
-						{m.admin_userDetail_deleteCancel()}
+						{m.common_cancel()}
 					</Button>
 					<Button variant="destructive" disabled={isDeleting} onclick={deleteJob}>
 						{#if isDeleting}
 							<Loader2 class="me-2 h-4 w-4 animate-spin" />
 						{/if}
-						{m.admin_userDetail_deleteConfirm()}
+						{m.common_delete()}
 					</Button>
 				</Dialog.Footer>
 			</Dialog.Content>

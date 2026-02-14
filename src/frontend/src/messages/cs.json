@@ -32,6 +32,8 @@
 	"common_language": "Jazyk",
 	"common_theme": "Motiv",
 	"common_close": "Zavřít",
+	"common_cancel": "Zrušit",
+	"common_delete": "Smazat",
 	"common_toggleNavMenu": "Přepnout navigační menu",
 
 	"shortcuts_title": "Klávesové zkratky",

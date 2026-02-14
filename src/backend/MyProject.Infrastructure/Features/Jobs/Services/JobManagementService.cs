@@ -28,7 +28,7 @@ internal sealed class JobManagementService(
     TimeProvider timeProvider) : IJobManagementService
 {
     /// <summary>
-    /// In-memory cache of paused job cron expressions, backed by the <c>jobs.PausedJobs</c> table.
+    /// In-memory cache of paused job cron expressions, backed by the <c>hangfire.pausedjobs</c> table.
     /// Thread-safe since Hangfire may run on multiple workers.
     /// </summary>
     internal static readonly ConcurrentDictionary<string, string> PausedJobCrons = new();
@@ -175,7 +175,7 @@ internal sealed class JobManagementService(
         await dbContext.SaveChangesAsync();
 
         PausedJobCrons[jobId] = job.Cron;
-        RecurringJob.AddOrUpdate(jobId, () => NoOp(), NeverCron);
+        RecurringJob.AddOrUpdate(jobId, () => ApplicationBuilderExtensions.ExecuteJobAsync(jobId), NeverCron);
         logger.LogInformation("Paused job '{JobId}' (original cron: '{OriginalCron}')", jobId, job.Cron);
         return Result.Success();
     }
@@ -189,7 +189,7 @@ internal sealed class JobManagementService(
             return Result.Failure(ErrorMessages.Jobs.NotFound);
         }
 
-        if (!PausedJobCrons.TryRemove(jobId, out var originalCron))
+        if (!PausedJobCrons.TryGetValue(jobId, out var originalCron))
         {
             logger.LogDebug("Job '{JobId}' is not paused — nothing to resume", jobId);
             return Result.Success();
@@ -202,6 +202,7 @@ internal sealed class JobManagementService(
             await dbContext.SaveChangesAsync();
         }
 
+        PausedJobCrons.TryRemove(jobId, out _);
         RecurringJob.AddOrUpdate(jobId, () => ApplicationBuilderExtensions.ExecuteJobAsync(jobId), originalCron);
         logger.LogInformation("Resumed job '{JobId}' (restored cron: '{RestoredCron}')", jobId, originalCron);
         return Result.Success();
@@ -240,12 +241,6 @@ internal sealed class JobManagementService(
             return Task.FromResult(Result.Failure(ErrorMessages.Jobs.RestoreFailed));
         }
     }
-
-    /// <summary>
-    /// Placeholder method used when pausing to preserve the Hangfire job entry.
-    /// The actual job method is re-registered on resume via <c>UseJobScheduling()</c> restart or manual resume.
-    /// </summary>
-    public static void NoOp() { }
 
     private static bool JobExists(string jobId)
     {

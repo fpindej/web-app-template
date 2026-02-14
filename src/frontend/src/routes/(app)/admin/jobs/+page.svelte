@@ -60,7 +60,7 @@
 					</Dialog.Header>
 					<Dialog.Footer class="flex-col-reverse sm:flex-row">
 						<Button variant="outline" onclick={() => (restoreDialogOpen = false)}>
-							{m.admin_userDetail_deleteCancel()}
+							{m.common_cancel()}
 						</Button>
 						<Button disabled={isRestoring} onclick={restoreJobs}>
 							{#if isRestoring}

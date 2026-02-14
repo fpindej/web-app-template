@@ -72,7 +72,7 @@
 		</div>
 		<Dialog.Footer class="flex-col-reverse sm:flex-row">
 			<Button variant="outline" onclick={() => (open = false)}>
-				{m.admin_userDetail_deleteCancel()}
+				{m.common_cancel()}
 			</Button>
 			<Button disabled={!name.trim() || isCreating} onclick={createRole}>
 				{#if isCreating}

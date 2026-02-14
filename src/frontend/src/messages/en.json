@@ -32,6 +32,8 @@
 	"common_language": "Language",
 	"common_theme": "Theme",
 	"common_close": "Close",
+	"common_cancel": "Cancel",
+	"common_delete": "Delete",
 	"common_toggleNavMenu": "Toggle navigation menu",
 
 	"shortcuts_title": "Keyboard Shortcuts",
