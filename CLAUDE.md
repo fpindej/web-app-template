@@ -21,6 +21,7 @@ Backend: `WebApi → Application ← Infrastructure → Domain` (Clean Architect
 - Typed DTOs only — `ErrorResponse` for errors, never anonymous objects or raw strings
 - `internal` on all Infrastructure service implementations
 - `/// <summary>` XML docs on all public and internal API surface
+- `System.Text.Json` only — never `Newtonsoft.Json` (present solely as a Hangfire transitive dependency)
 - NuGet versions in `Directory.Packages.props` only — never in `.csproj` files
 
 ### Frontend

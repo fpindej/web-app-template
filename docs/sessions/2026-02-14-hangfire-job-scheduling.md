@@ -151,3 +151,4 @@ flowchart TD
 - [ ] Consider adding more recurring jobs as the application grows (e.g., email queue processing, cache warming, audit log archival)
 - [x] ~~If scaling to multiple servers, replace the in-memory `PausedJobCrons` dictionary with a persistent store (database or Hangfire job parameters)~~ — Pause state now persisted to `hangfire.pausedjobs` table; dictionary serves as read cache
 - [x] ~~Add a "restore jobs" admin endpoint (`POST /api/v1/admin/jobs/restore`) that re-registers all `IRecurringJobDefinition` implementations without requiring an app restart~~ — Implemented with permission gate + frontend button
+- [x] ~~Newtonsoft.Json NU1903 vulnerability warning~~ — Pinned Newtonsoft.Json 13.0.3 in `Directory.Packages.props` to override Hangfire's transitive 11.0.1 dependency. Hangfire is the only consumer; application code must use `System.Text.Json` exclusively
