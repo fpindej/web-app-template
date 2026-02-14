@@ -49,6 +49,7 @@ src/
 │   │   └── server.ts              # SERVER_CONFIG — import directly, not from barrel
 │   │
 │   ├── state/                     # Reactive state (.svelte.ts files only)
+│   │   ├── cooldown.svelte.ts     # createCooldown() — rate-limit countdown timer
 │   │   ├── shake.svelte.ts        # createShake(), createFieldShakes()
 │   │   ├── shortcuts.svelte.ts    # Keyboard shortcuts
 │   │   ├── sidebar.svelte.ts      # Sidebar state
@@ -309,11 +310,19 @@ if (isRateLimited(response)) {
 	return;
 }
 
-// In the template — disable buttons during cooldown:
-// <Button disabled={isLoading || cooldown.active}>Submit</Button>
+// In the template — show countdown on the button during cooldown:
+// <Button disabled={isLoading || cooldown.active}>
+//   {#if cooldown.active}
+//     {m.common_waitSeconds({ seconds: cooldown.remaining })}
+//   {:else}
+//     Submit
+//   {/if}
+// </Button>
 ```
 
-Components with multiple action handlers (e.g., `UserManagementCard`, `JobActionsCard`) should extract a local `handleRateLimited(response)` helper and share a single `cooldown` instance across all handlers.
+**Button countdown is mandatory.** Every rate-limited button must replace its label with `common_waitSeconds` during cooldown so users see exactly how long to wait. For buttons with icon + spinner, use a three-way `{#if cooldown.active}...{:else if isLoading}...{:else}` branch.
+
+Components with multiple action handlers (e.g., `UserManagementCard`, `JobActionsCard`) should extract a local `handleRateLimited(response)` helper and share a single `cooldown` instance across all handlers. All buttons in the component show the same countdown.
 
 ### Network Errors
 
@@ -572,6 +581,7 @@ State files use `.svelte.ts` extension and live in `$lib/state/`:
 
 | File                  | Exports                                                                 |
 | --------------------- | ----------------------------------------------------------------------- |
+| `cooldown.svelte.ts`  | `createCooldown()` — rate-limit countdown timer (active, remaining, start) |
 | `shake.svelte.ts`     | `createShake()`, `createFieldShakes()` — field-level animation triggers |
 | `theme.svelte.ts`     | `getTheme()`, `setTheme()`, `toggleTheme()` — light/dark/system         |
 | `sidebar.svelte.ts`   | `sidebarState`, `toggleSidebar()`, `setSidebarCollapsed()`              |

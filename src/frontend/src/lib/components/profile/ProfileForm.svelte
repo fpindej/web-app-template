@@ -176,7 +176,11 @@
 
 				<div class="flex justify-end">
 					<Button type="submit" disabled={isLoading || cooldown.active}>
-						{isLoading ? m.profile_personalInfo_saving() : m.profile_personalInfo_saveChanges()}
+						{#if cooldown.active}
+							{m.common_waitSeconds({ seconds: cooldown.remaining })}
+						{:else}
+							{isLoading ? m.profile_personalInfo_saving() : m.profile_personalInfo_saveChanges()}
+						{/if}
 					</Button>
 				</div>
 			</div>

@@ -132,7 +132,9 @@
 					variant="destructive"
 					disabled={isLoading || !password || cooldown.active}
 				>
-					{m.settings_deleteAccount_confirm()}
+					{cooldown.active
+						? m.common_waitSeconds({ seconds: cooldown.remaining })
+						: m.settings_deleteAccount_confirm()}
 				</Button>
 			</Dialog.Footer>
 		</form>

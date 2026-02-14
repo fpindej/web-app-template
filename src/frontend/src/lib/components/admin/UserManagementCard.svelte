@@ -234,12 +234,15 @@
 					disabled={!selectedRole || isAssigningRole || cooldown.active}
 					onclick={assignRole}
 				>
-					{#if isAssigningRole}
+					{#if cooldown.active}
+						{m.common_waitSeconds({ seconds: cooldown.remaining })}
+					{:else if isAssigningRole}
 						<Loader2 class="me-1 h-4 w-4 animate-spin" />
+						{m.admin_userDetail_assignRole()}
 					{:else}
 						<Plus class="me-1 h-4 w-4" />
+						{m.admin_userDetail_assignRole()}
 					{/if}
-					{m.admin_userDetail_assignRole()}
 				</Button>
 			</div>
 		{/if}
@@ -257,12 +260,15 @@
 						disabled={isUnlocking || cooldown.active}
 						onclick={unlockUser}
 					>
-						{#if isUnlocking}
+						{#if cooldown.active}
+							{m.common_waitSeconds({ seconds: cooldown.remaining })}
+						{:else if isUnlocking}
 							<Loader2 class="me-2 h-4 w-4 animate-spin" />
+							{m.admin_userDetail_unlockAccount()}
 						{:else}
 							<Unlock class="me-2 h-4 w-4" />
+							{m.admin_userDetail_unlockAccount()}
 						{/if}
-						{m.admin_userDetail_unlockAccount()}
 					</Button>
 				{:else}
 					<Button
@@ -272,12 +278,15 @@
 						disabled={isLocking || cooldown.active}
 						onclick={lockUser}
 					>
-						{#if isLocking}
+						{#if cooldown.active}
+							{m.common_waitSeconds({ seconds: cooldown.remaining })}
+						{:else if isLocking}
 							<Loader2 class="me-2 h-4 w-4 animate-spin" />
+							{m.admin_userDetail_lockAccount()}
 						{:else}
 							<Lock class="me-2 h-4 w-4" />
+							{m.admin_userDetail_lockAccount()}
 						{/if}
-						{m.admin_userDetail_lockAccount()}
 					</Button>
 				{/if}
 
@@ -306,10 +315,14 @@
 								disabled={isDeleting || cooldown.active}
 								onclick={deleteUser}
 							>
-								{#if isDeleting}
-									<Loader2 class="me-2 h-4 w-4 animate-spin" />
+								{#if cooldown.active}
+									{m.common_waitSeconds({ seconds: cooldown.remaining })}
+								{:else}
+									{#if isDeleting}
+										<Loader2 class="me-2 h-4 w-4 animate-spin" />
+									{/if}
+									{m.common_delete()}
 								{/if}
-								{m.common_delete()}
 							</Button>
 						</Dialog.Footer>
 					</Dialog.Content>

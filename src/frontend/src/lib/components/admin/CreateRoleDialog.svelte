@@ -85,10 +85,14 @@
 				{m.common_cancel()}
 			</Button>
 			<Button disabled={!name.trim() || isCreating || cooldown.active} onclick={createRole}>
-				{#if isCreating}
-					<Loader2 class="me-2 h-4 w-4 animate-spin" />
+				{#if cooldown.active}
+					{m.common_waitSeconds({ seconds: cooldown.remaining })}
+				{:else}
+					{#if isCreating}
+						<Loader2 class="me-2 h-4 w-4 animate-spin" />
+					{/if}
+					{m.admin_roles_createRole()}
 				{/if}
-				{m.admin_roles_createRole()}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

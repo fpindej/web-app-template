@@ -147,9 +147,13 @@
 
 				<div class="flex justify-end">
 					<Button type="submit" disabled={isLoading || cooldown.active}>
-						{isLoading
-							? m.settings_changePassword_submitting()
-							: m.settings_changePassword_submit()}
+						{#if cooldown.active}
+							{m.common_waitSeconds({ seconds: cooldown.remaining })}
+						{:else}
+							{isLoading
+								? m.settings_changePassword_submitting()
+								: m.settings_changePassword_submit()}
+						{/if}
 					</Button>
 				</div>
 			</div>

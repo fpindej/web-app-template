@@ -158,7 +158,11 @@
 						</div>
 
 						<Button type="submit" class="w-full" disabled={!isApiOnline || cooldown.active}>
-							{isApiOnline ? m.auth_login_submit() : m.auth_login_apiOffline()}
+							{#if cooldown.active}
+								{m.common_waitSeconds({ seconds: cooldown.remaining })}
+							{:else}
+								{isApiOnline ? m.auth_login_submit() : m.auth_login_apiOffline()}
+							{/if}
 						</Button>
 					</form>
 					<div class="mt-4 text-center text-sm">

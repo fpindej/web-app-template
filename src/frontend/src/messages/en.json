@@ -35,6 +35,7 @@
 	"common_cancel": "Cancel",
 	"common_delete": "Delete",
 	"common_toggleNavMenu": "Toggle navigation menu",
+	"common_waitSeconds": "Wait {seconds}s",
 
 	"shortcuts_title": "Keyboard Shortcuts",
 	"shortcuts_settings": "Open Settings",

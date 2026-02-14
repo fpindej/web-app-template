@@ -132,10 +132,14 @@
 						{m.common_cancel()}
 					</Button>
 					<Button disabled={isTriggering || cooldown.active} onclick={triggerJob}>
-						{#if isTriggering}
-							<Loader2 class="me-2 h-4 w-4 animate-spin" />
+						{#if cooldown.active}
+							{m.common_waitSeconds({ seconds: cooldown.remaining })}
+						{:else}
+							{#if isTriggering}
+								<Loader2 class="me-2 h-4 w-4 animate-spin" />
+							{/if}
+							{m.admin_jobDetail_trigger()}
 						{/if}
-						{m.admin_jobDetail_trigger()}
 					</Button>
 				</Dialog.Footer>
 			</Dialog.Content>
@@ -149,12 +153,15 @@
 				disabled={isResuming || cooldown.active}
 				onclick={resumeJob}
 			>
-				{#if isResuming}
+				{#if cooldown.active}
+					{m.common_waitSeconds({ seconds: cooldown.remaining })}
+				{:else if isResuming}
 					<Loader2 class="me-2 h-4 w-4 animate-spin" />
+					{m.admin_jobDetail_resume()}
 				{:else}
 					<RotateCcw class="me-2 h-4 w-4" />
+					{m.admin_jobDetail_resume()}
 				{/if}
-				{m.admin_jobDetail_resume()}
 			</Button>
 		{:else}
 			<Button
@@ -163,12 +170,15 @@
 				disabled={isPausing || cooldown.active}
 				onclick={pauseJob}
 			>
-				{#if isPausing}
+				{#if cooldown.active}
+					{m.common_waitSeconds({ seconds: cooldown.remaining })}
+				{:else if isPausing}
 					<Loader2 class="me-2 h-4 w-4 animate-spin" />
+					{m.admin_jobDetail_pause()}
 				{:else}
 					<Pause class="me-2 h-4 w-4" />
+					{m.admin_jobDetail_pause()}
 				{/if}
-				{m.admin_jobDetail_pause()}
 			</Button>
 		{/if}
 
@@ -196,10 +206,14 @@
 						disabled={isDeleting || cooldown.active}
 						onclick={deleteJob}
 					>
-						{#if isDeleting}
-							<Loader2 class="me-2 h-4 w-4 animate-spin" />
+						{#if cooldown.active}
+							{m.common_waitSeconds({ seconds: cooldown.remaining })}
+						{:else}
+							{#if isDeleting}
+								<Loader2 class="me-2 h-4 w-4 animate-spin" />
+							{/if}
+							{m.common_delete()}
 						{/if}
-						{m.common_delete()}
 					</Button>
 				</Dialog.Footer>
 			</Dialog.Content>

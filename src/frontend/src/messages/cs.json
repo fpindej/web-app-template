@@ -35,6 +35,7 @@
 	"common_cancel": "Zrušit",
 	"common_delete": "Smazat",
 	"common_toggleNavMenu": "Přepnout navigační menu",
+	"common_waitSeconds": "Počkejte {seconds}s",
 
 	"shortcuts_title": "Klávesové zkratky",
 	"shortcuts_settings": "Otevřít nastavení",

@@ -164,7 +164,9 @@
 						onclick={handleRemove}
 						disabled={isLoading || cooldown.active}
 					>
-						{m.profile_avatar_remove()}
+						{cooldown.active
+							? m.common_waitSeconds({ seconds: cooldown.remaining })
+							: m.profile_avatar_remove()}
 					</Button>
 				{/if}
 			</div>
@@ -177,7 +179,9 @@
 					{/snippet}
 				</Dialog.Close>
 				<Button onclick={handleSubmit} disabled={isLoading || !!avatarUrlError || cooldown.active}>
-					{m.profile_avatar_save()}
+					{cooldown.active
+						? m.common_waitSeconds({ seconds: cooldown.remaining })
+						: m.profile_avatar_save()}
 				</Button>
 			</div>
 		</Dialog.Footer>

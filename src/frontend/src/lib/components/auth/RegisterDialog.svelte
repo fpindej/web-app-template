@@ -222,10 +222,14 @@
 			</div>
 			<Dialog.Footer>
 				<Button type="submit" disabled={isLoading || cooldown.active} class="w-full">
-					{#if isLoading}
-						<Loader2 class="me-2 h-4 w-4 animate-spin" />
+					{#if cooldown.active}
+						{m.common_waitSeconds({ seconds: cooldown.remaining })}
+					{:else}
+						{#if isLoading}
+							<Loader2 class="me-2 h-4 w-4 animate-spin" />
+						{/if}
+						{m.auth_register_submit()}
 					{/if}
-					{m.auth_register_submit()}
 				</Button>
 			</Dialog.Footer>
 		</form>

@@ -157,12 +157,15 @@
 			</div>
 			{#if canManageRoles}
 				<Button size="sm" disabled={isSaving || cooldown.active} onclick={saveRole}>
-					{#if isSaving}
+					{#if cooldown.active}
+						{m.common_waitSeconds({ seconds: cooldown.remaining })}
+					{:else if isSaving}
 						<Loader2 class="me-2 h-4 w-4 animate-spin" />
+						{m.admin_roles_saveDetails()}
 					{:else}
 						<Save class="me-2 h-4 w-4" />
+						{m.admin_roles_saveDetails()}
 					{/if}
-					{m.admin_roles_saveDetails()}
 				</Button>
 			{/if}
 		</Card.Content>
@@ -187,12 +190,15 @@
 					disabled={isSavingPermissions || cooldown.active}
 					onclick={savePermissions}
 				>
-					{#if isSavingPermissions}
+					{#if cooldown.active}
+						{m.common_waitSeconds({ seconds: cooldown.remaining })}
+					{:else if isSavingPermissions}
 						<Loader2 class="me-2 h-4 w-4 animate-spin" />
+						{m.admin_roles_savePermissions()}
 					{:else}
 						<Save class="me-2 h-4 w-4" />
+						{m.admin_roles_savePermissions()}
 					{/if}
-					{m.admin_roles_savePermissions()}
 				</Button>
 			{/if}
 		</Card.Content>
@@ -230,10 +236,14 @@
 								disabled={isDeleting || cooldown.active}
 								onclick={deleteRole}
 							>
-								{#if isDeleting}
-									<Loader2 class="me-2 h-4 w-4 animate-spin" />
+								{#if cooldown.active}
+									{m.common_waitSeconds({ seconds: cooldown.remaining })}
+								{:else}
+									{#if isDeleting}
+										<Loader2 class="me-2 h-4 w-4 animate-spin" />
+									{/if}
+									{m.common_delete()}
 								{/if}
-								{m.common_delete()}
 							</Button>
 						</Dialog.Footer>
 					</Dialog.Content>
