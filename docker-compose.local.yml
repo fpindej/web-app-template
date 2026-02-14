@@ -8,6 +8,7 @@ x-api-environment: &api-environment
   Authentication__Jwt__Key: ${JWT_SECRET_KEY}
   Serilog__WriteTo__0__Name: Seq
   Serilog__WriteTo__0__Args__serverUrl: http://seq:80
+  HealthChecks__FrontendUrl: http://frontend:5173
 
 x-db-environment: &db-environment
   POSTGRES_DB: ${POSTGRES_DB:-{INIT_PROJECT_SLUG}}

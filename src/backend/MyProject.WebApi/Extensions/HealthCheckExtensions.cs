@@ -11,7 +11,7 @@ internal static class HealthCheckExtensions
     private const string ReadyTag = "ready";
 
     /// <summary>
-    /// Registers health checks for application dependencies (PostgreSQL and optionally Redis),
+    /// Registers health checks for application dependencies (PostgreSQL, optionally Redis, optionally Frontend),
     /// and the HealthChecks UI dashboard with in-memory storage in non-production environments.
     /// </summary>
     /// <param name="services">The service collection.</param>
@@ -29,7 +29,7 @@ internal static class HealthCheckExtensions
 
         healthChecks.AddNpgSql(
             connectionString,
-            name: "npgsql",
+            name: "PostgreSQL",
             timeout: TimeSpan.FromSeconds(3),
             tags: [ReadyTag]);
 
@@ -41,9 +41,19 @@ internal static class HealthCheckExtensions
 
             healthChecks.AddRedis(
                 redisConnectionString,
-                name: "redis",
+                name: "Redis",
                 timeout: TimeSpan.FromSeconds(3),
                 tags: [ReadyTag]);
+        }
+
+        var frontendUrl = configuration["HealthChecks:FrontendUrl"];
+
+        if (!string.IsNullOrWhiteSpace(frontendUrl))
+        {
+            healthChecks.AddUrlGroup(
+                new Uri(frontendUrl),
+                name: "Frontend",
+                timeout: TimeSpan.FromSeconds(5));
         }
 
         if (!environment.IsProduction())

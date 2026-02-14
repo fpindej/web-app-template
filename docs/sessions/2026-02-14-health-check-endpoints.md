@@ -79,6 +79,8 @@ Added `AspNetCore.HealthChecks.UI` dashboard at `/health-ui` (non-production onl
 - **Absolute endpoint URL (`http://localhost:8080/health`)**: Relative URIs resolve via `ServerAddressesService` which returns the bind address (`0.0.0.0`) — not a routable target. Port 8080 matches the Dockerfile `EXPOSE` directive.
 - **`--context` in init scripts**: `AddInMemoryStorage()` registers a second EF Core `DbContext` (`HealthChecksDb`), causing `dotnet ef` to fail without an explicit `--context` parameter.
 - **Init script URL output**: Added Health UI, Hangfire, and Seq URLs; removed redundant API base URL.
+- **Human-readable check names**: `"PostgreSQL"`, `"Redis"`, `"Frontend"` instead of library names (`npgsql`, `redis`).
+- **Frontend URI check**: Conditional on `HealthChecks:FrontendUrl` config — set via `HealthChecks__FrontendUrl: http://frontend:5173` in docker-compose. Not tagged as `"ready"` since the API doesn't depend on the frontend.
 
 ## Follow-Up Items
 
