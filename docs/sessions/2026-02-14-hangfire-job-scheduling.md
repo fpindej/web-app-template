@@ -63,6 +63,7 @@ Introduced Hangfire with PostgreSQL persistence as the standardized background j
 - **Choice**: Set cron to "0 0 31 2 *" (Feb 31, never fires) on pause, restore original on resume
 - **Alternatives considered**: Hangfire Pro pause API (paid), deleting and re-creating jobs
 - **Reasoning**: Hangfire free tier has no native pause/resume. The "never cron" approach keeps the job entry visible in the dashboard while preventing execution. Original cron is stored in a `ConcurrentDictionary` — simple and thread-safe for the single-server template use case.
+- **Restore interaction**: If a job is removed via the API, its pause record is cleaned up — restore brings it back running. If deleted directly from the Hangfire dashboard, the pause record survives — restore re-registers it still paused.
 
 ### Fire-and-Forget: No Custom Interface
 
