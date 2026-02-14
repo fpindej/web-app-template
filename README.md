@@ -46,7 +46,7 @@ Run the init script, pick a name, and start building your product. Everything el
 | **Logging** | Serilog → Seq with structured request logging |
 | **Account Management** | Registration, login/logout, remember me, password change, profile updates, account deletion |
 | **Admin Panel** | User management, custom role CRUD with permission editor, role assignment, hierarchy enforcement |
-| **Background Jobs** | Hangfire with PostgreSQL persistence — recurring jobs via `IRecurringJobDefinition`, fire-and-forget via `IBackgroundJobClient`, admin UI with trigger/pause/resume/delete |
+| **Background Jobs** | Hangfire with PostgreSQL persistence — recurring jobs via `IRecurringJobDefinition`, fire-and-forget via `IBackgroundJobClient`, admin UI with trigger/pause/resume/restore/delete, persistent pause state |
 | **Soft Refresh** | Role/permission changes rotate security stamps but preserve refresh tokens — users silently re-authenticate without logout |
 
 ### Frontend — SvelteKit / Svelte 5
