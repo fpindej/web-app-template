@@ -20,13 +20,21 @@ internal sealed class ExpiredRefreshTokenCleanupJob(
     /// <inheritdoc />
     public string CronExpression => Cron.Hourly();
 
+    /// <summary>
+    /// Grace period before deleting expired tokens. Avoids a race condition where a token
+    /// expires at the exact moment it is being refreshed — the auth service has loaded the
+    /// token (still valid) but hasn't called SaveChangesAsync yet, while the cleanup job
+    /// deletes the now-expired row, causing a DbUpdateConcurrencyException.
+    /// </summary>
+    private static readonly TimeSpan ExpirationGracePeriod = TimeSpan.FromHours(1);
+
     /// <inheritdoc />
     public async Task ExecuteAsync()
     {
-        var now = timeProvider.GetUtcNow().UtcDateTime;
+        var cutoff = timeProvider.GetUtcNow().UtcDateTime - ExpirationGracePeriod;
 
         var deletedCount = await dbContext.RefreshTokens
-            .Where(t => t.ExpiredAt < now && (t.IsUsed || t.IsInvalidated))
+            .Where(t => t.ExpiredAt < cutoff || t.IsUsed || t.IsInvalidated)
             .ExecuteDeleteAsync();
 
         logger.LogInformation("Deleted {Count} expired refresh tokens", deletedCount);
