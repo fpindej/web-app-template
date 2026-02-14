@@ -30,12 +30,17 @@ internal sealed class ProjectDocumentTransformer : IOpenApiDocumentTransformer
                                     4. When the access token expires, call `POST /api/auth/refresh` with the refresh token in the request body
 
                                     ## Cookie Authentication (Web Clients)
-                                    1. Call `POST /api/auth/login` with your credentials
-                                    2. The response sets HttpOnly cookies containing the tokens automatically
-                                    3. Subsequent requests automatically include these cookies (ensure "withCredentials" is enabled)
+                                    1. Call `POST /api/auth/login?useCookies=true` with your credentials
+                                    2. The response sets `__Secure-ACCESS-TOKEN` and `__Secure-REFRESH-TOKEN` as HttpOnly cookies
+                                    3. Subsequent requests automatically include these cookies (ensure `withCredentials` is enabled)
                                     4. Token refresh happens automatically via cookies
 
-                                    Both methods work simultaneously — tokens are always returned in the response body AND set as HttpOnly cookies.
+                                    ### Remember Me
+                                    Set `rememberMe: true` in the login request body to persist cookies across browser restarts.
+                                    When `false` (default), session cookies are used and expire when the browser closes.
+
+                                    Both methods work simultaneously — tokens are always returned in the response body.
+                                    Cookies are only set when `?useCookies=true` is passed.
                                     """;
 
         // Add security scheme for Bearer token authentication (mobile/API clients)
