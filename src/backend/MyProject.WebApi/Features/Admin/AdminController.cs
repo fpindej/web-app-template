@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MyProject.Application.Features.Admin;
 using MyProject.Application.Identity;
 using MyProject.Application.Identity.Constants;
@@ -10,6 +11,7 @@ using MyProject.WebApi.Features.Admin.Dtos.CreateRole;
 using MyProject.WebApi.Features.Admin.Dtos.ListUsers;
 using MyProject.WebApi.Features.Admin.Dtos.SetPermissions;
 using MyProject.WebApi.Features.Admin.Dtos.UpdateRole;
+using MyProject.WebApi.Options;
 using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Features.Admin;
@@ -87,6 +89,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="404">If the user was not found</response>
     [HttpPost("users/{id:guid}/roles")]
     [RequirePermission(AppPermissions.Users.AssignRoles)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -120,8 +123,9 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
     /// <response code="404">If the user was not found</response>
-    [HttpDelete("users/{id:guid}/roles/{role}")]
+    [HttpDelete("users/{id:guid}/roles/{role:maxlength(50):regex(^[[A-Za-z]][[A-Za-z0-9 _-]]*$)}")]
     [RequirePermission(AppPermissions.Users.AssignRoles)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -153,6 +157,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="404">If the user was not found</response>
     [HttpPost("users/{id:guid}/lock")]
     [RequirePermission(AppPermissions.Users.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -183,6 +188,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="404">If the user was not found</response>
     [HttpPost("users/{id:guid}/unlock")]
     [RequirePermission(AppPermissions.Users.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -214,6 +220,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="404">If the user was not found</response>
     [HttpDelete("users/{id:guid}")]
     [RequirePermission(AppPermissions.Users.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -290,6 +297,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="403">If the user does not have the required permission</response>
     [HttpPost("roles")]
     [RequirePermission(AppPermissions.Roles.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -321,6 +329,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="404">If the role was not found</response>
     [HttpPut("roles/{id:guid}")]
     [RequirePermission(AppPermissions.Roles.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -353,6 +362,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="404">If the role was not found</response>
     [HttpDelete("roles/{id:guid}")]
     [RequirePermission(AppPermissions.Roles.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -384,6 +394,7 @@ public class AdminController(IAdminService adminService, IRoleManagementService 
     /// <response code="404">If the role was not found</response>
     [HttpPut("roles/{id:guid}/permissions")]
     [RequirePermission(AppPermissions.Roles.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

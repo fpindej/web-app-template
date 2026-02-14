@@ -66,6 +66,7 @@ public static class ErrorMessages
         public const string RoleNameTaken = "A role with this name already exists.";
         public const string RoleHasUsers = "Cannot delete a role that has users assigned to it.";
         public const string InvalidPermission = "One or more permission values are invalid.";
+        public const string SystemRoleNameReserved = "This name is reserved for a system role.";
         public const string SuperAdminPermissionsFixed = "SuperAdmin permissions cannot be modified.";
     }
 

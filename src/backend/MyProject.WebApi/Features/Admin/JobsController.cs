@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MyProject.Application.Features.Jobs;
 using MyProject.Application.Identity.Constants;
 using MyProject.Domain;
 using MyProject.WebApi.Authorization;
 using MyProject.WebApi.Features.Admin.Dtos.Jobs;
+using MyProject.WebApi.Options;
 using MyProject.WebApi.Shared;
 
 namespace MyProject.WebApi.Features.Admin;
@@ -43,7 +45,7 @@ public class JobsController(IJobManagementService jobManagementService) : ApiCon
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
     /// <response code="404">If the job was not found</response>
-    [HttpGet("jobs/{jobId}")]
+    [HttpGet("jobs/{jobId:maxlength(100):regex(^[[A-Za-z0-9._-]]+$)}")]
     [RequirePermission(AppPermissions.Jobs.View)]
     [ProducesResponseType(typeof(RecurringJobDetailResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -72,6 +74,7 @@ public class JobsController(IJobManagementService jobManagementService) : ApiCon
     /// <response code="403">If the user does not have the required permission</response>
     [HttpPost("jobs/restore")]
     [RequirePermission(AppPermissions.Jobs.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -98,8 +101,9 @@ public class JobsController(IJobManagementService jobManagementService) : ApiCon
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
     /// <response code="404">If the job was not found</response>
-    [HttpPost("jobs/{jobId}/trigger")]
+    [HttpPost("jobs/{jobId:maxlength(100):regex(^[[A-Za-z0-9._-]]+$)}/trigger")]
     [RequirePermission(AppPermissions.Jobs.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -126,8 +130,9 @@ public class JobsController(IJobManagementService jobManagementService) : ApiCon
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
     /// <response code="404">If the job was not found</response>
-    [HttpDelete("jobs/{jobId}")]
+    [HttpDelete("jobs/{jobId:maxlength(100):regex(^[[A-Za-z0-9._-]]+$)}")]
     [RequirePermission(AppPermissions.Jobs.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -154,8 +159,9 @@ public class JobsController(IJobManagementService jobManagementService) : ApiCon
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
     /// <response code="404">If the job was not found</response>
-    [HttpPost("jobs/{jobId}/pause")]
+    [HttpPost("jobs/{jobId:maxlength(100):regex(^[[A-Za-z0-9._-]]+$)}/pause")]
     [RequirePermission(AppPermissions.Jobs.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -182,8 +188,9 @@ public class JobsController(IJobManagementService jobManagementService) : ApiCon
     /// <response code="401">If the user is not authenticated</response>
     /// <response code="403">If the user does not have the required permission</response>
     /// <response code="404">If the job was not found</response>
-    [HttpPost("jobs/{jobId}/resume")]
+    [HttpPost("jobs/{jobId:maxlength(100):regex(^[[A-Za-z0-9._-]]+$)}/resume")]
     [RequirePermission(AppPermissions.Jobs.Manage)]
+    [EnableRateLimiting(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

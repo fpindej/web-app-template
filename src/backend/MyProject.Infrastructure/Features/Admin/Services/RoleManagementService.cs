@@ -56,6 +56,11 @@ internal class RoleManagementService(
     public async Task<Result<Guid>> CreateRoleAsync(CreateRoleInput input,
         CancellationToken cancellationToken = default)
     {
+        if (AppRoles.All.Any(r => string.Equals(r, input.Name, StringComparison.OrdinalIgnoreCase)))
+        {
+            return Result<Guid>.Failure(ErrorMessages.Roles.SystemRoleNameReserved);
+        }
+
         var existing = await roleManager.FindByNameAsync(input.Name);
         if (existing is not null)
         {
@@ -97,6 +102,11 @@ internal class RoleManagementService(
             if (isSystem)
             {
                 return Result.Failure(ErrorMessages.Roles.SystemRoleCannotBeRenamed);
+            }
+
+            if (AppRoles.All.Any(r => string.Equals(r, input.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                return Result.Failure(ErrorMessages.Roles.SystemRoleNameReserved);
             }
 
             var existing = await roleManager.FindByNameAsync(input.Name);

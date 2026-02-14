@@ -32,6 +32,7 @@ internal static class RateLimiterExtensions
             ConfigureGlobalLimiter(opt, rateLimitOptions.Global);
             ConfigureOnRejected(opt);
             AddRegistrationPolicy(opt, rateLimitOptions.Registration);
+            AddAdminMutationsPolicy(opt, rateLimitOptions.AdminMutations);
         });
 
         return services;
@@ -93,6 +94,23 @@ internal static class RateLimiterExtensions
 
                 return RateLimitPartition.GetFixedWindowLimiter(ipAddress,
                     _ => CreateFixedWindowOptions(registrationOptions));
+            });
+    }
+
+    /// <summary>
+    /// Adds a fixed-window rate limit policy for state-changing admin and job management endpoints,
+    /// partitioned by authenticated user identity.
+    /// </summary>
+    private static void AddAdminMutationsPolicy(RateLimiterOptions options,
+        RateLimitingOptions.AdminMutationsLimitOptions adminMutationsOptions)
+    {
+        options.AddPolicy(RateLimitingOptions.AdminMutationsLimitOptions.PolicyName,
+            context =>
+            {
+                var userIdentifier = context.User.Identity?.Name ?? "anonymous";
+
+                return RateLimitPartition.GetFixedWindowLimiter(userIdentifier,
+                    _ => CreateFixedWindowOptions(adminMutationsOptions));
             });
     }
 

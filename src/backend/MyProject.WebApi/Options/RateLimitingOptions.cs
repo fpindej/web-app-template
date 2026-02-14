@@ -30,6 +30,15 @@ public sealed class RateLimitingOptions
     public RegistrationLimitOptions Registration { get; init; } = new();
 
     /// <summary>
+    /// Gets or sets the admin mutations rate limiter configuration.
+    /// Applies a stricter fixed-window limit to state-changing admin and job management operations,
+    /// partitioned by authenticated user.
+    /// </summary>
+    [Required]
+    [ValidateObjectMembers]
+    public AdminMutationsLimitOptions AdminMutations { get; init; } = new();
+
+    /// <summary>
     /// Base configuration for a fixed-window rate limit policy.
     /// Provides shared properties for permit limit, time window, queue behavior, and processing order.
     /// </summary>
@@ -97,6 +106,29 @@ public sealed class RateLimitingOptions
         public RegistrationLimitOptions()
         {
             PermitLimit = 5;
+            Window = TimeSpan.FromMinutes(1);
+            QueueLimit = 0;
+        }
+    }
+
+    /// <summary>
+    /// Configuration options for the admin mutations fixed-window rate limiter.
+    /// Applied to state-changing admin and job management endpoints, partitioned by authenticated user.
+    /// </summary>
+    public sealed class AdminMutationsLimitOptions : FixedWindowPolicyOptions
+    {
+        /// <summary>
+        /// The policy name used to reference this limiter in <c>[EnableRateLimiting]</c> attributes.
+        /// </summary>
+        public const string PolicyName = "admin-mutations";
+
+        /// <summary>
+        /// Initializes default values for the admin mutations rate limiter.
+        /// Defaults to 30 requests per 1 minute with no queuing.
+        /// </summary>
+        public AdminMutationsLimitOptions()
+        {
+            PermitLimit = 30;
             Window = TimeSpan.FromMinutes(1);
             QueueLimit = 0;
         }
