@@ -32,12 +32,16 @@ Quick-reference for "when you change X, also update Y" and "where does X live?"
 | **`Directory.Build.props`** (change TFM/settings) | All projects in solution |
 | **`BaseEntity.cs`** | `BaseEntityConfiguration`, `AuditingInterceptor`, all entities |
 | **`BaseEntityConfiguration.cs`** | All entity configurations that extend it |
-| **`AppRoles.cs`** (add role) | Role seeding picks up automatically; consider what permissions to seed for the new role |
+| **`AppRoles.cs`** (add role) | Role seeding picks up automatically; consider what permissions to seed for the new role; `RoleManagementService` checks `AppRoles.All` for system role collisions |
 | **`AppPermissions.cs`** (add permission) | Seed in `ApplicationBuilderExtensions.SeedRolePermissionsAsync()`, add `[RequirePermission]` to endpoints, update frontend `$lib/utils/permissions.ts` |
 | **`RequirePermission` attribute** (add to endpoint) | Remove any class-level `[Authorize(Roles)]`; ensure permission is defined in `AppPermissions.cs` |
 | **`RoleManagementService`** (change role behavior) | Verify system role protection rules, check security stamp rotation, verify frontend role detail page |
 | **`IRecurringJobDefinition`** (add new job) | Register in `ServiceCollectionExtensions.AddJobScheduling()`, job auto-discovered at startup |
 | **Job scheduling config** (`ServiceCollectionExtensions.AddJobScheduling`) | `Program.cs` must call `AddJobScheduling()` and `UseJobScheduling()` |
+| **`RateLimitPolicies.cs`** (add/rename constant) | `RateLimiterExtensions.cs` policy registration, `RateLimitingOptions.cs` config class, `appsettings.json` section, `[EnableRateLimiting]` attribute on controllers |
+| **`RateLimitingOptions.cs`** (add/rename option class) | `RateLimiterExtensions.cs`, `appsettings.json`, `appsettings.Development.json` |
+| **`RateLimiterExtensions.cs`** (add policy) | Requires matching constant in `RateLimitPolicies.cs` and config in `RateLimitingOptions.cs` |
+| **Route constraint** (add/modify in `Routing/`) | `Program.cs` constraint registration, route templates using that constraint |
 | **OpenAPI transformers** | Regenerate frontend types to verify; check Scalar UI |
 
 ### Frontend Changes
@@ -105,6 +109,8 @@ src/backend/MyProject.{Layer}/
                    Features/{Feature}/Dtos/{Operation}/{Operation}Request.cs
                    Features/{Feature}/Dtos/{Operation}/{Operation}RequestValidator.cs
                    Authorization/RequirePermissionAttribute.cs (+ handler, provider, requirement)
+                   Routing/{Name}RouteConstraint.cs
+                   Shared/RateLimitPolicies.cs
                    Program.cs
 ```
 
@@ -156,6 +162,7 @@ src/backend/MyProject.WebApi/Features/Admin/
 | `src/backend/MyProject.Application/Identity/Constants/AppRoles.cs` | Role definitions |
 | `src/backend/MyProject.Application/Identity/Constants/AppPermissions.cs` | Permission definitions (reflection-discovered) |
 | `src/frontend/src/lib/utils/permissions.ts` | Frontend permission constants + helpers |
+| `src/backend/MyProject.WebApi/Shared/RateLimitPolicies.cs` | Rate limit policy name constants |
 | `src/backend/Directory.Packages.props` | NuGet versions (never in .csproj) |
 | `src/frontend/src/lib/components/layout/SidebarNav.svelte` | Navigation entries |
 | `src/frontend/src/lib/api/v1.d.ts` | Generated types (never hand-edit) |

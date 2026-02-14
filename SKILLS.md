@@ -197,6 +197,66 @@ dotnet ef database update \
 8. If adding a sidebar nav item: add `permission: Permissions.Orders.View` to the nav item in `SidebarNav.svelte` — items are filtered per-permission, not as a group
 9. Verify: `cd src/frontend && npm run format && npm run lint && npm run check`
 
+### Add a Rate Limit Policy
+
+1. Add a constant to `src/backend/MyProject.WebApi/Shared/RateLimitPolicies.cs`:
+   ```csharp
+   public const string MyPolicy = "my-policy";
+   ```
+2. Add a configuration class to `src/backend/MyProject.WebApi/Options/RateLimitingOptions.cs` (extend `FixedWindowPolicyOptions`):
+   ```csharp
+   public sealed class MyPolicyLimitOptions : FixedWindowPolicyOptions
+   {
+       public MyPolicyLimitOptions()
+       {
+           PermitLimit = 10;
+           Window = TimeSpan.FromMinutes(1);
+           QueueLimit = 0;
+       }
+   }
+   ```
+3. Add the property to `RateLimitingOptions`:
+   ```csharp
+   [Required]
+   [ValidateObjectMembers]
+   public MyPolicyLimitOptions MyPolicy { get; init; } = new();
+   ```
+4. Register in `src/backend/MyProject.WebApi/Extensions/RateLimiterExtensions.cs` using the existing helpers:
+   - `AddIpPolicy(...)` for unauthenticated endpoints (partitions by IP)
+   - `AddUserPolicy(...)` for authenticated endpoints (partitions by user identity)
+5. Add config section to both `appsettings.json` and `appsettings.Development.json`
+6. Apply to endpoints: `[EnableRateLimiting(RateLimitPolicies.MyPolicy)]`
+7. Add `[ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status429TooManyRequests)]` to the endpoint
+8. Verify: `dotnet build src/backend/MyProject.slnx`
+
+### Add a Route Constraint
+
+For validating string path parameters (e.g. `{role}`, `{jobId}`) at the routing layer.
+
+1. Create `src/backend/MyProject.WebApi/Routing/{Name}RouteConstraint.cs`:
+   ```csharp
+   public partial class {Name}RouteConstraint : IRouteConstraint
+   {
+       public bool Match(HttpContext? httpContext, IRouter? route, string routeKey,
+           RouteValueDictionary values, RouteDirection routeDirection)
+       {
+           if (!values.TryGetValue(routeKey, out var value) || value is not string s)
+               return false;
+           return s.Length <= 100 && Pattern().IsMatch(s);
+       }
+
+       [GeneratedRegex(@"^[A-Za-z0-9._-]+$")]
+       private static partial Regex Pattern();
+   }
+   ```
+2. Register in `Program.cs` inside `AddRouting`:
+   ```csharp
+   options.ConstraintMap.Add("myConstraint", typeof({Name}RouteConstraint));
+   ```
+3. Use in routes: `[HttpGet("items/{id:myConstraint}")]`
+4. Non-matching routes return 404 automatically — no controller code needed
+5. Verify: `dotnet build src/backend/MyProject.slnx`
+
 ### Add a Background Job
 
 The template uses [Hangfire](https://www.hangfire.io/) for recurring background jobs with PostgreSQL persistence. Jobs implement the `IRecurringJobDefinition` interface and are auto-discovered at startup.
