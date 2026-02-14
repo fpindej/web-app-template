@@ -175,6 +175,11 @@
 	"gettingStarted_docs_title": "Přečtěte si dokumentaci",
 	"gettingStarted_docs_description": "Podívejte se na Copilot instrukce pro detailní konvence, vzory a best practices (pouze v angličtině).",
 
+	"error_429_title": "Zpomalte",
+	"error_429_description": "Odesíláte příliš mnoho požadavků. Počkejte chvíli a zkuste to znovu.",
+	"error_rateLimited": "Příliš mnoho požadavků",
+	"error_rateLimitedDescription": "Počkejte chvíli a zkuste to znovu.",
+
 	"error_403_title": "Tudy neprojdeš!",
 	"error_403_description": "Nemáte oprávnění k prohlížení této stránky. Ale snaha se cení.",
 	"error_404_title": "Ztraceno v časoprostoru?",

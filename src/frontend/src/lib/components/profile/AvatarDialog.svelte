@@ -5,7 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 	import * as m from '$lib/paraglide/messages';
-	import { browserClient, getErrorMessage } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
 	import { createFieldShakes } from '$lib/state';
@@ -85,6 +85,8 @@
 				toast.success(m.profile_avatar_updateSuccess());
 				open = false;
 				await invalidateAll();
+			} else if (isRateLimited(response)) {
+				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 			} else {
 				const errorMessage = getErrorMessage(apiError, '');
 				toast.error(

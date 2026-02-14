@@ -11,7 +11,12 @@
 	import { browserClient } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
-	import { isValidationProblemDetails, mapFieldErrors, getErrorMessage } from '$lib/api';
+	import {
+		isValidationProblemDetails,
+		mapFieldErrors,
+		getErrorMessage,
+		isRateLimited
+	} from '$lib/api';
 	import { createFieldShakes } from '$lib/state';
 
 	interface Props {
@@ -59,6 +64,8 @@
 			if (response.ok) {
 				toast.success(m.profile_personalInfo_updateSuccess());
 				await invalidateAll();
+			} else if (isRateLimited(response)) {
+				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 			} else if (isValidationProblemDetails(apiError)) {
 				fieldErrors = mapFieldErrors(apiError.errors);
 				fieldShakes.triggerFields(Object.keys(fieldErrors));

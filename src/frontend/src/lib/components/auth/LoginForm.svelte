@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { browserClient, getErrorMessage } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
 	import { cn } from '$lib/utils';
 	import { createShake } from '$lib/state';
 	import { onMount } from 'svelte';
@@ -60,6 +60,9 @@
 				await delay(500);
 				await invalidateAll();
 				await goto(resolve('/'));
+			} else if (isRateLimited(response)) {
+				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
+				shake.trigger();
 			} else {
 				let errorMessage = '';
 				if (response.status === 401) {

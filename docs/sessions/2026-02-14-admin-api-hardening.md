@@ -92,6 +92,30 @@ flowchart TD
 - **Alternatives considered**: Class-level `[ProducesResponseType(429)]` on `ApiController` since the global rate limiter applies to all endpoints
 - **Reasoning**: Class-level placement silently applies to every action, including ones that don't need it. This creates noise in the OpenAPI spec and misleading generated TypeScript types. Per-action placement keeps each endpoint's OAS entry self-contained and precise — you can read a single action and know exactly what it can return. Concrete example: 429 only goes on endpoints with `[EnableRateLimiting]`, not on the base class just because the global limiter exists. Same logic applies to 401, 403, 404, etc.
 
+## Frontend 429 Handling
+
+Added consistent rate-limit awareness across the entire frontend:
+
+| File | Change | Reason |
+|------|--------|--------|
+| `src/frontend/src/lib/api/error-handling.ts` | Added `isRateLimited(response)` type guard | Shared utility for 429 status check |
+| `src/frontend/src/messages/en.json` | Added `error_429_*` and `error_rateLimited*` keys | i18n for full-page and toast 429 messages |
+| `src/frontend/src/messages/cs.json` | Added same keys in Czech | i18n parity |
+| `src/frontend/src/routes/+error.svelte` | Added `case 429` with `Timer` icon and `text-warning` | Server-side load function 429s render a dedicated error page |
+| `LoginForm.svelte` | Early 429 return with toast | Rate-limited login attempts show user-friendly message |
+| `RegisterDialog.svelte` | Early 429 return with toast | Rate-limited registration attempts |
+| `ProfileForm.svelte` | Early 429 return with toast | Rate-limited profile updates |
+| `AvatarDialog.svelte` | Early 429 return with toast | Rate-limited avatar changes |
+| `ChangePasswordForm.svelte` | Early 429 return with toast | Rate-limited password changes |
+| `DeleteAccountDialog.svelte` | Early 429 return with toast | Rate-limited account deletion |
+| `UserManagementCard.svelte` | 429 guard in all 5 handlers (assign/remove role, lock/unlock/delete) | Admin user management mutations |
+| `CreateRoleDialog.svelte` | Early 429 return with toast | Rate-limited role creation |
+| `JobActionsCard.svelte` | 429 guard in all 4 handlers (trigger/pause/resume/delete) | Admin job management mutations |
+| `roles/[id]/+page.svelte` | 429 guard in all 3 handlers (save/permissions/delete) | Admin role detail mutations |
+| `admin/jobs/+page.svelte` | 429 guard in restore handler | Admin job restore |
+
+**Approach**: Per-component `isRateLimited` check + toast, not a global interceptor. This avoids coupling the API client to UI concerns, prevents double-toast issues, and works naturally with the existing explicit error handling pattern in each component.
+
 ## Follow-Up Items
 
 - [ ] Consider adding rate limiting to the `POST /auth/logout` endpoint (low priority since it requires authentication and is idempotent)

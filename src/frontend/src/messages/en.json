@@ -175,6 +175,11 @@
 	"gettingStarted_docs_title": "Read the Docs",
 	"gettingStarted_docs_description": "Check the Copilot instructions file for detailed coding conventions, patterns, and best practices.",
 
+	"error_429_title": "Slow Down",
+	"error_429_description": "You're making too many requests. Please wait a moment and try again.",
+	"error_rateLimited": "Too many requests",
+	"error_rateLimitedDescription": "Please wait a moment and try again.",
+
 	"error_403_title": "You Shall Not Pass!",
 	"error_403_description": "You don't have permission to be here. Nice try though, we appreciate the effort.",
 	"error_404_title": "Lost in the Void?",

@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { JobTable } from '$lib/components/admin';
-	import { browserClient, getErrorMessage } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
 	import { hasPermission, Permissions } from '$lib/utils';
@@ -26,6 +26,8 @@
 		if (response.ok) {
 			toast.success(m.admin_jobs_restoreSuccess());
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobs_restoreError()));
 		}

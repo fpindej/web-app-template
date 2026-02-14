@@ -6,7 +6,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { RolePermissionEditor } from '$lib/components/admin';
 	import { ArrowLeft, Loader2, Save, Trash2 } from '@lucide/svelte';
-	import { browserClient, getErrorMessage } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -46,6 +46,8 @@
 		if (response.ok) {
 			toast.success(m.admin_roles_updateSuccess());
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_roles_updateError()));
 		}
@@ -62,6 +64,8 @@
 		if (response.ok) {
 			toast.success(m.admin_roles_permissionsSaved());
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_roles_permissionsSaveError()));
 		}
@@ -78,6 +82,8 @@
 		if (response.ok) {
 			toast.success(m.admin_roles_deleteSuccess());
 			await goto(resolve('/admin/roles'));
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_roles_deleteError()));
 		}

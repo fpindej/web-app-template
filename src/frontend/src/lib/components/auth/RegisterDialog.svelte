@@ -8,7 +8,12 @@
 	import * as m from '$lib/paraglide/messages';
 	import { toast } from '$lib/components/ui/sonner';
 	import { Loader2 } from '@lucide/svelte';
-	import { isValidationProblemDetails, mapFieldErrors, getErrorMessage } from '$lib/api';
+	import {
+		isValidationProblemDetails,
+		mapFieldErrors,
+		getErrorMessage,
+		isRateLimited
+	} from '$lib/api';
 	import { createFieldShakes } from '$lib/state';
 
 	interface Props {
@@ -75,6 +80,8 @@
 				const registeredEmail = email;
 				open = false;
 				onSuccess?.(registeredEmail);
+			} else if (isRateLimited(response)) {
+				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 			} else if (apiError) {
 				// Extract validation errors from the errors object if present
 				if (isValidationProblemDetails(apiError)) {

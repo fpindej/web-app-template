@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
-	import { Ghost, Ban, TriangleAlert, Home, SearchX, type IconProps } from '@lucide/svelte';
+	import { Ghost, Ban, Timer, TriangleAlert, Home, SearchX, type IconProps } from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages';
 	import type { Component } from 'svelte';
 
@@ -14,6 +14,13 @@
 		iconColor: string;
 	} {
 		switch (status) {
+			case 429:
+				return {
+					title: m.error_429_title,
+					description: m.error_429_description,
+					icon: Timer,
+					iconColor: 'text-warning'
+				};
 			case 404:
 				return {
 					title: m.error_404_title,

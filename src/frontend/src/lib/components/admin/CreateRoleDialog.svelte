@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Loader2 } from '@lucide/svelte';
-	import { browserClient, getErrorMessage } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { invalidateAll } from '$app/navigation';
 	import * as m from '$lib/paraglide/messages';
@@ -34,6 +34,8 @@
 			description = '';
 			open = false;
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_roles_createError()));
 		}

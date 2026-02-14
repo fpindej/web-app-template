@@ -5,7 +5,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Separator } from '$lib/components/ui/separator';
-	import { browserClient, getErrorMessage } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -77,6 +77,8 @@
 			toast.success(m.admin_userDetail_roleAssigned());
 			selectedRole = '';
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_roleAssignError()));
 		}
@@ -95,6 +97,8 @@
 		if (response.ok) {
 			toast.success(m.admin_userDetail_roleRemoved());
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_roleRemoveError()));
 		}
@@ -111,6 +115,8 @@
 		if (response.ok) {
 			toast.success(m.admin_userDetail_lockSuccess());
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_lockError()));
 		}
@@ -126,6 +132,8 @@
 		if (response.ok) {
 			toast.success(m.admin_userDetail_unlockSuccess());
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_unlockError()));
 		}
@@ -142,6 +150,8 @@
 		if (response.ok) {
 			toast.success(m.admin_userDetail_deleteSuccess());
 			await goto(resolve('/admin/users'));
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_userDetail_deleteError()));
 		}

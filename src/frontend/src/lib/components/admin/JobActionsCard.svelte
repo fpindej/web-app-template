@@ -2,7 +2,7 @@
 	import * as Card from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import { browserClient, getErrorMessage } from '$lib/api';
+	import { browserClient, getErrorMessage, isRateLimited } from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -34,6 +34,8 @@
 		if (response.ok) {
 			toast.success(m.admin_jobDetail_triggerSuccess());
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobDetail_triggerError()));
 		}
@@ -49,6 +51,8 @@
 		if (response.ok) {
 			toast.success(m.admin_jobDetail_pauseSuccess());
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobDetail_pauseError()));
 		}
@@ -64,6 +68,8 @@
 		if (response.ok) {
 			toast.success(m.admin_jobDetail_resumeSuccess());
 			await invalidateAll();
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobDetail_resumeError()));
 		}
@@ -80,6 +86,8 @@
 		if (response.ok) {
 			toast.success(m.admin_jobDetail_deleteSuccess());
 			await goto(resolve('/admin/jobs'));
+		} else if (isRateLimited(response)) {
+			toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 		} else {
 			toast.error(getErrorMessage(error, m.admin_jobDetail_deleteError()));
 		}

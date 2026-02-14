@@ -8,7 +8,8 @@
 		browserClient,
 		isValidationProblemDetails,
 		mapFieldErrors,
-		getErrorMessage
+		getErrorMessage,
+		isRateLimited
 	} from '$lib/api';
 	import { toast } from '$lib/components/ui/sonner';
 	import { goto, invalidateAll } from '$app/navigation';
@@ -52,6 +53,8 @@
 				toast.success(m.settings_changePassword_success());
 				await invalidateAll();
 				await goto(resolve('/login'));
+			} else if (isRateLimited(response)) {
+				toast.error(m.error_rateLimited(), { description: m.error_rateLimitedDescription() });
 			} else if (isValidationProblemDetails(apiError)) {
 				fieldErrors = mapFieldErrors(apiError.errors);
 				fieldShakes.triggerFields(Object.keys(fieldErrors));
