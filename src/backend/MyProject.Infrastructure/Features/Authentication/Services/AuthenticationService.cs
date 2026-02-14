@@ -75,18 +75,8 @@ internal class AuthenticationService(
 
         if (useCookies)
         {
-            var accessTokenExpires = rememberMe ? utcNow.AddMinutes(_jwtOptions.ExpiresInMinutes) : (DateTimeOffset?)null;
-            var refreshTokenExpires = rememberMe ? utcNow.AddDays(_jwtOptions.RefreshToken.ExpiresInDays) : (DateTimeOffset?)null;
-
-            cookieService.SetSecureCookie(
-                key: CookieNames.AccessToken,
-                value: accessToken,
-                expires: accessTokenExpires);
-
-            cookieService.SetSecureCookie(
-                key: CookieNames.RefreshToken,
-                value: refreshTokenString,
-                expires: refreshTokenExpires);
+            SetAuthCookies(accessToken, refreshTokenString, rememberMe, utcNow,
+                utcNow.AddDays(_jwtOptions.RefreshToken.ExpiresInDays));
         }
 
         var output = new AuthenticationOutput(
@@ -217,18 +207,8 @@ internal class AuthenticationService(
 
         if (useCookies)
         {
-            var accessTokenExpires = storedToken.Persistent ? utcNow.AddMinutes(_jwtOptions.ExpiresInMinutes) : (DateTimeOffset?)null;
-            var refreshTokenExpires = storedToken.Persistent ? new DateTimeOffset(storedToken.ExpiredAt, TimeSpan.Zero) : (DateTimeOffset?)null;
-
-            cookieService.SetSecureCookie(
-                key: CookieNames.AccessToken,
-                value: newAccessToken,
-                expires: accessTokenExpires);
-
-            cookieService.SetSecureCookie(
-                key: CookieNames.RefreshToken,
-                value: newRefreshTokenString,
-                expires: refreshTokenExpires);
+            SetAuthCookies(newAccessToken, newRefreshTokenString, storedToken.Persistent, utcNow,
+                new DateTimeOffset(storedToken.ExpiredAt, TimeSpan.Zero));
         }
 
         var output = new AuthenticationOutput(
@@ -284,6 +264,25 @@ internal class AuthenticationService(
         await RevokeUserTokens(userId.Value, cancellationToken);
 
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Sets access and refresh token cookies. When <paramref name="persistent"/> is true,
+    /// cookies receive explicit expiry dates so they survive browser restarts.
+    /// When false, session cookies are used (no <c>Expires</c> header).
+    /// </summary>
+    private void SetAuthCookies(string accessToken, string refreshToken, bool persistent,
+        DateTimeOffset utcNow, DateTimeOffset refreshTokenExpiry)
+    {
+        cookieService.SetSecureCookie(
+            key: CookieNames.AccessToken,
+            value: accessToken,
+            expires: persistent ? utcNow.AddMinutes(_jwtOptions.ExpiresInMinutes) : null);
+
+        cookieService.SetSecureCookie(
+            key: CookieNames.RefreshToken,
+            value: refreshToken,
+            expires: persistent ? refreshTokenExpiry : null);
     }
 
     private async Task RevokeUserTokens(Guid userId, CancellationToken cancellationToken = default)
