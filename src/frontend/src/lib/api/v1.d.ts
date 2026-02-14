@@ -1057,15 +1057,6 @@ export interface paths {
 						'application/json': components['schemas']['RoleDetailResponse'];
 					};
 				};
-				/** @description If the role was not found */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': components['schemas']['ErrorResponse'];
-					};
-				};
 				/** @description If the user is not authenticated */
 				401: {
 					headers: {
@@ -1077,6 +1068,15 @@ export interface paths {
 				};
 				/** @description If the user does not have the required permission */
 				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the role was not found */
+				404: {
 					headers: {
 						[name: string]: unknown;
 					};
@@ -1138,6 +1138,15 @@ export interface paths {
 						'application/json': components['schemas']['ProblemDetails'];
 					};
 				};
+				/** @description If the role was not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
 			};
 		};
 		post?: never;
@@ -1181,6 +1190,15 @@ export interface paths {
 				};
 				/** @description If the user does not have the required permission */
 				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the role was not found */
+				404: {
 					headers: {
 						[name: string]: unknown;
 					};
@@ -1251,6 +1269,15 @@ export interface paths {
 				};
 				/** @description If the user does not have the required permission */
 				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': components['schemas']['ProblemDetails'];
+					};
+				};
+				/** @description If the role was not found */
+				404: {
 					headers: {
 						[name: string]: unknown;
 					};
@@ -1466,6 +1493,11 @@ export interface components {
 			username: string;
 			/** @description The password for authentication. */
 			password: string;
+			/**
+			 * @description When true, authentication cookies persist across browser restarts.
+			 *     When false (default), session cookies are used and expire when the browser closes.
+			 */
+			rememberMe?: boolean;
 		};
 		/** @description A group of permissions belonging to the same category. */
 		PermissionGroupResponse: {
