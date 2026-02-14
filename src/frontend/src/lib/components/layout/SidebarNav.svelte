@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { cn, hasAnyPermission, hasPermission, Permissions } from '$lib/utils';
+	import { cn, hasPermission, Permissions } from '$lib/utils';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import {
 		LayoutDashboard,
@@ -9,6 +9,7 @@
 		FileText,
 		Users,
 		Shield,
+		Clock,
 		type IconProps
 	} from '@lucide/svelte';
 	import * as m from '$lib/paraglide/messages';
@@ -57,6 +58,12 @@
 			href: resolve('/admin/roles'),
 			icon: Shield,
 			permission: Permissions.Roles.View
+		},
+		{
+			title: m.nav_adminJobs,
+			href: resolve('/admin/jobs'),
+			icon: Clock,
+			permission: Permissions.Jobs.View
 		}
 	];
 

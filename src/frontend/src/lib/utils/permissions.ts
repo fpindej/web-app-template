@@ -14,6 +14,10 @@ export const Permissions = {
 	Roles: {
 		View: 'roles.view',
 		Manage: 'roles.manage'
+	},
+	Jobs: {
+		View: 'jobs.view',
+		Manage: 'jobs.manage'
 	}
 } as const;
 
