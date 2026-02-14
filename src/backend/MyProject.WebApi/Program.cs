@@ -64,7 +64,7 @@ try
     }
 
     Log.Debug("Adding Cors Feature");
-    builder.Services.AddCors(builder.Configuration);
+    builder.Services.AddCors(builder.Configuration, builder.Environment);
 
     Log.Debug("Adding Routing => LowercaseUrls");
     builder.Services.AddRouting(options => options.LowercaseUrls = true);
