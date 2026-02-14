@@ -301,6 +301,7 @@ After creating entity + configuration:
 dotnet ef migrations add AddOrder \
   --project src/backend/MyProject.Infrastructure \
   --startup-project src/backend/MyProject.WebApi \
+  --context MyProjectDbContext \
   --output-dir Features/Postgres/Migrations
 ```
 

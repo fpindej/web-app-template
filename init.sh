@@ -599,12 +599,14 @@ if [[ "$CREATE_MIGRATION" == "y" ]]; then
         print_info "  dotnet ef migrations add Initial \\"
         print_info "    --project src/backend/$NEW_NAME.Infrastructure \\"
         print_info "    --startup-project src/backend/$NEW_NAME.WebApi \\"
+        print_info "    --context ${NEW_NAME}DbContext \\"
         print_info "    --output-dir Features/Postgres/Migrations"
     else
         print_substep "Running ef migrations add..."
         if dotnet ef migrations add Initial \
             --project "src/backend/$NEW_NAME.Infrastructure" \
             --startup-project "src/backend/$NEW_NAME.WebApi" \
+            --context "${NEW_NAME}DbContext" \
             --output-dir Features/Postgres/Migrations \
             --no-build >/dev/null 2>&1; then
 
@@ -623,6 +625,7 @@ if [[ "$CREATE_MIGRATION" == "y" ]]; then
             print_info "  dotnet ef migrations add Initial \\"
             print_info "    --project src/backend/$NEW_NAME.Infrastructure \\"
             print_info "    --startup-project src/backend/$NEW_NAME.WebApi \\"
+            print_info "    --context ${NEW_NAME}DbContext \\"
             print_info "    --output-dir Features/Postgres/Migrations"
         fi
     fi

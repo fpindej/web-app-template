@@ -87,6 +87,7 @@ Step-by-step recipes for common operations. Each recipe lists exact paths, patte
     dotnet ef migrations add Add{Entity} \
       --project src/backend/MyProject.Infrastructure \
       --startup-project src/backend/MyProject.WebApi \
+      --context MyProjectDbContext \
       --output-dir Features/Postgres/Migrations
     ```
 
@@ -146,6 +147,7 @@ Step-by-step recipes for common operations. Each recipe lists exact paths, patte
 dotnet ef migrations add {MigrationName} \
   --project src/backend/MyProject.Infrastructure \
   --startup-project src/backend/MyProject.WebApi \
+  --context MyProjectDbContext \
   --output-dir Features/Postgres/Migrations
 ```
 
@@ -154,7 +156,8 @@ To apply (development — runs automatically on startup, but can be run manually
 ```bash
 dotnet ef database update \
   --project src/backend/MyProject.Infrastructure \
-  --startup-project src/backend/MyProject.WebApi
+  --startup-project src/backend/MyProject.WebApi \
+  --context MyProjectDbContext
 ```
 
 ### Add a Role

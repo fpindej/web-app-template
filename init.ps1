@@ -617,7 +617,7 @@ if ($CreateMigration) {
 
     if (-not $migrationFailed) {
         Write-SubStep "Running ef migrations add..."
-        $output = dotnet ef migrations add Initial --project "src/backend/$NewName.Infrastructure" --startup-project "src/backend/$NewName.WebApi" --output-dir Features/Postgres/Migrations --no-build 2>&1
+        $output = dotnet ef migrations add Initial --project "src/backend/$NewName.Infrastructure" --startup-project "src/backend/$NewName.WebApi" --context "${NewName}DbContext" --output-dir Features/Postgres/Migrations --no-build 2>&1
 
         if ($LASTEXITCODE -ne 0) {
             $migrationFailed = $true
@@ -630,7 +630,7 @@ if ($CreateMigration) {
 
     if ($migrationFailed) {
         Write-Warning "Migration step failed. You can create it manually later with:"
-        Write-Host "  dotnet ef migrations add Initial --project src/backend/$NewName.Infrastructure --startup-project src/backend/$NewName.WebApi --output-dir Features/Postgres/Migrations" -ForegroundColor DarkGray
+        Write-Host "  dotnet ef migrations add Initial --project src/backend/$NewName.Infrastructure --startup-project src/backend/$NewName.WebApi --context ${NewName}DbContext --output-dir Features/Postgres/Migrations" -ForegroundColor DarkGray
     }
     else {
         Write-Success "Migration 'Initial' created"

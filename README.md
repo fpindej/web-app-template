@@ -237,6 +237,7 @@ docker compose -f docker-compose.local.yml up -d
 dotnet ef migrations add <Name> \
   --project src/backend/<YourProject>.Infrastructure \
   --startup-project src/backend/<YourProject>.WebApi \
+  --context <YourProject>DbContext \
   --output-dir Features/Postgres/Migrations
 ```
 
