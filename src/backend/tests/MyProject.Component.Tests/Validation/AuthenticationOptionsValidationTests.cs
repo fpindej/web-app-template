@@ -20,7 +20,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = "test",
             Audience = "test"
         };
@@ -34,6 +34,7 @@ public class AuthenticationOptionsValidationTests
     [InlineData("")]
     [InlineData("short")]
     [InlineData("this-key-is-exactly-31-chars!!!")]
+    [InlineData("this-key-is-63-chars-one-below-the-hmac-sha256-minimum-of-64!!!")]
     public void JwtOptions_Key_EmptyOrTooShort_ReturnsError(string key)
     {
         var options = new AuthenticationOptions.JwtOptions
@@ -57,7 +58,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = "MyProjectIssuer",
             Audience = "test"
         };
@@ -74,7 +75,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = issuer!,
             Audience = "test"
         };
@@ -93,7 +94,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = "test",
             Audience = "MyProjectAudience"
         };
@@ -110,7 +111,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = "test",
             Audience = audience!
         };
@@ -132,7 +133,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = "test",
             Audience = "test",
             AccessTokenLifetime = TimeSpan.FromMinutes(minutes)
@@ -151,7 +152,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = "test",
             Audience = "test",
             AccessTokenLifetime = TimeSpan.FromMinutes(minutes)
@@ -349,7 +350,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = "test",
             Audience = "test",
             SecurityStampClaimType = claimType
@@ -379,7 +380,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = "test",
             Audience = "test",
             SecurityStampClaimType = claimType
@@ -395,7 +396,7 @@ public class AuthenticationOptionsValidationTests
     {
         var options = new AuthenticationOptions.JwtOptions
         {
-            Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+            Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
             Issuer = "test",
             Audience = "test",
             SecurityStampClaimType = string.Empty

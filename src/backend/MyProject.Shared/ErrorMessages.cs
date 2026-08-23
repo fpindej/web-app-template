@@ -11,10 +11,9 @@ namespace MyProject.Shared;
 /// <para>
 /// All client-facing messages must be static - never interpolate runtime values
 /// (role names, user IDs, framework error descriptions) into error responses.
-/// Log runtime details server-side via <c>ILogger</c> instead. The only exceptions are
-/// entries explicitly documented as carrying a dynamic message (password policy feedback,
-/// rate-limit retry hints); those keep their stable code and override <see cref="Error.Message"/>
-/// with a <c>with</c> expression.
+/// Log runtime details server-side via <c>ILogger</c> instead. The only exception is
+/// an entry explicitly documented as carrying a dynamic message (rate-limit retry hints);
+/// it keeps its stable code and overrides <see cref="Error.Message"/> with a <c>with</c> expression.
 /// </para>
 /// </summary>
 public static class ErrorMessages
@@ -41,18 +40,19 @@ public static class ErrorMessages
         public static readonly Error ResetPasswordTokenInvalid = new("auth_reset_password_token_invalid", "Invalid or expired password reset token.");
         public static readonly Error EmailVerificationFailed = new("auth_email_verification_failed", "Email verification failed. The link may have expired or already been used.");
         public static readonly Error EmailAlreadyVerified = new("auth_email_already_verified", "Email address is already verified.");
-        public static readonly Error PasswordSameAsCurrent = new("auth_password_same_as_current", "New password must be different from your current password.");
         public static readonly Error CaptchaInvalid = new("auth_captcha_invalid", "CAPTCHA verification failed. Please try again.");
 
         /// <summary>
         /// Registration rejected by ASP.NET Identity (password policy, duplicate email). The message is
-        /// overridden with the Identity error descriptions so users get actionable feedback.
+        /// deliberately generic to prevent email enumeration; Identity error codes are logged server-side.
+        /// Request validation gives actionable password-policy feedback before this point.
         /// </summary>
         public static readonly Error RegistrationInvalid = new("auth_registration_invalid", "Registration failed. Please check the provided details.");
 
         /// <summary>
-        /// New password rejected by the password policy. The message is overridden with the
-        /// Identity error descriptions so users get actionable feedback.
+        /// New password rejected by the server-side password policy. The message is static; Identity
+        /// error codes are logged server-side. Request validation gives actionable password-policy
+        /// feedback before this point.
         /// </summary>
         public static readonly Error PasswordPolicyViolation = new("auth_password_policy_violation", "The new password does not meet the password requirements.");
     }

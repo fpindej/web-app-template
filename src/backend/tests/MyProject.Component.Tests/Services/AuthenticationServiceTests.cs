@@ -54,7 +54,7 @@ public class AuthenticationServiceTests : IDisposable
         {
             Jwt = new AuthenticationOptions.JwtOptions
             {
-                Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+                Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
                 Issuer = "test-issuer",
                 Audience = "test-audience",
                 AccessTokenLifetime = TimeSpan.FromMinutes(10),
@@ -104,7 +104,9 @@ public class AuthenticationServiceTests : IDisposable
     private ApplicationUser CreateTestUser(Guid? id = null, string? userName = null) => new()
     {
         Id = id ?? Guid.NewGuid(),
-        UserName = userName ?? "test@example.com"
+        UserName = userName ?? "test@example.com",
+        // Password-based accounts carry a hash; passwordless (external-only) users are created explicitly
+        PasswordHash = "hashed-password"
     };
 
     private void SetupSuccessfulLogin(ApplicationUser user, string password = "password123")
@@ -228,6 +230,52 @@ public class AuthenticationServiceTests : IDisposable
         Assert.True(result.IsFailure);
         Assert.Equal(ErrorMessages.Auth.LoginInvalidCredentials, result.Error);
         Assert.Equal(ErrorType.Unauthorized, result.ErrorType);
+    }
+
+    [Fact]
+    public async Task Login_InvalidUser_MasksAttemptedEmailInAuditMetadata()
+    {
+        _userManager.FindByNameAsync("unknown@example.com").Returns((ApplicationUser?)null);
+
+        await _sut.Login("unknown@example.com", "password123");
+
+        await _auditService.Received(1).LogAsync(
+            AuditActions.LoginFailure,
+            userId: Arg.Any<Guid?>(),
+            targetEntityType: Arg.Any<string?>(),
+            targetEntityId: Arg.Any<Guid?>(),
+            metadata: Arg.Is<string?>(m =>
+                m != null && m.Contains("u***@e***.com") && !m.Contains("unknown@example.com")),
+            ct: Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Login_ExternalOnlyAccount_ReturnsSameGenericFailure()
+    {
+        // Passwordless (OAuth-only) accounts must be indistinguishable from unknown accounts
+        var user = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = "external@example.com",
+            PasswordHash = null
+        };
+        _userManager.FindByNameAsync("external@example.com").Returns(user);
+
+        var result = await _sut.Login("external@example.com", "password123");
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(ErrorMessages.Auth.LoginInvalidCredentials, result.Error);
+        Assert.Equal(ErrorType.Unauthorized, result.ErrorType);
+        // The password sign-in pipeline is never entered for passwordless accounts
+        await _signInManager.DidNotReceive().CheckPasswordSignInAsync(
+            Arg.Any<ApplicationUser>(), Arg.Any<string>(), Arg.Any<bool>());
+        await _auditService.Received(1).LogAsync(
+            AuditActions.LoginFailure,
+            userId: user.Id,
+            targetEntityType: Arg.Any<string?>(),
+            targetEntityId: Arg.Any<Guid?>(),
+            metadata: Arg.Any<string?>(),
+            ct: Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -372,17 +420,23 @@ public class AuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Register_DuplicateEmail_ReturnsFailure()
+    public async Task Register_DuplicateEmail_ReturnsGenericFailureWithoutIdentityDetails()
     {
         var input = new RegisterInput("test@example.com", "Password1!", null, null, null);
         _userManager.CreateAsync(Arg.Any<ApplicationUser>(), "Password1!")
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Duplicate email." }));
+            .Returns(IdentityResult.Failed(new IdentityError
+            {
+                Code = "DuplicateEmail",
+                Description = "Email 'test@example.com' is already taken."
+            }));
 
         var result = await _sut.Register(input);
 
         Assert.True(result.IsFailure);
-        Assert.Equal(ErrorMessages.Auth.RegistrationInvalid.Code, result.Error?.Code);
-        Assert.Contains("Duplicate email", result.Error?.Message);
+        // Static error prevents email enumeration - Identity descriptions must never reach the client
+        Assert.Equal(ErrorMessages.Auth.RegistrationInvalid, result.Error);
+        Assert.DoesNotContain("test@example.com", result.Error?.Message);
+        Assert.DoesNotContain("already taken", result.Error?.Message);
     }
 
     [Fact]
@@ -866,13 +920,18 @@ public class AuthenticationServiceTests : IDisposable
         _userManager.FindByIdAsync(userId.ToString()).Returns(user);
         _userManager.CheckPasswordAsync(user, "current").Returns(true);
         _userManager.ChangePasswordAsync(user, "current", "newPass1!")
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Password too common." }));
+            .Returns(IdentityResult.Failed(new IdentityError
+            {
+                Code = "PasswordTooShort",
+                Description = "Password too common."
+            }));
 
         var result = await _sut.ChangePasswordAsync(new ChangePasswordInput("current", "newPass1!"));
 
         Assert.True(result.IsFailure);
-        Assert.Equal(ErrorMessages.Auth.PasswordPolicyViolation.Code, result.Error?.Code);
-        Assert.Contains("Password too common", result.Error?.Message);
+        // Static error - Identity descriptions must never reach the client
+        Assert.Equal(ErrorMessages.Auth.PasswordPolicyViolation, result.Error);
+        Assert.DoesNotContain("Password too common", result.Error?.Message);
     }
 
     #endregion
@@ -1139,7 +1198,7 @@ public class AuthenticationServiceTests : IDisposable
         _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
         var rawToken = await SeedEmailTokenAsync(user.Id, "bad-identity-token", EmailTokenPurpose.PasswordReset);
         _userManager.ResetPasswordAsync(user, "bad-identity-token", "NewPass1!")
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Invalid token." }));
+            .Returns(IdentityResult.Failed(new IdentityError { Code = "InvalidToken", Description = "Invalid token." }));
 
         var result = await _sut.ResetPasswordAsync(
             new ResetPasswordInput(rawToken, "NewPass1!"));
@@ -1149,20 +1208,42 @@ public class AuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_PasswordPolicyFailure_ReturnsDescriptiveError()
+    public async Task ResetPassword_PasswordPolicyFailure_ReturnsGenericPolicyError()
     {
         var user = CreateTestUser();
         _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
         var rawToken = await SeedEmailTokenAsync(user.Id, "identity-token", EmailTokenPurpose.PasswordReset);
         _userManager.ResetPasswordAsync(user, "identity-token", "weak")
-            .Returns(IdentityResult.Failed(new IdentityError { Description = "Password too short." }));
+            .Returns(IdentityResult.Failed(new IdentityError
+            {
+                Code = "PasswordTooShort",
+                Description = "Password too short."
+            }));
 
         var result = await _sut.ResetPasswordAsync(
             new ResetPasswordInput(rawToken, "weak"));
 
         Assert.True(result.IsFailure);
-        Assert.Equal(ErrorMessages.Auth.PasswordPolicyViolation.Code, result.Error?.Code);
-        Assert.Contains("Password too short", result.Error?.Message);
+        // Static error - Identity descriptions must never reach the client
+        Assert.Equal(ErrorMessages.Auth.PasswordPolicyViolation, result.Error);
+        Assert.DoesNotContain("Password too short", result.Error?.Message);
+    }
+
+    [Fact]
+    public async Task ResetPassword_DoesNotVerifyCandidatePasswordAgainstCurrentOne()
+    {
+        // A reset-token holder must not be able to use the endpoint as a password oracle:
+        // the service never calls CheckPasswordAsync, and resetting to the current password succeeds.
+        var user = CreateTestUser();
+        _userManager.FindByIdAsync(user.Id.ToString()).Returns(user);
+        var rawToken = await SeedEmailTokenAsync(user.Id, "identity-reset-token", EmailTokenPurpose.PasswordReset);
+        _userManager.ResetPasswordAsync(user, "identity-reset-token", "CurrentPass1!")
+            .Returns(IdentityResult.Success);
+
+        var result = await _sut.ResetPasswordAsync(new ResetPasswordInput(rawToken, "CurrentPass1!"));
+
+        Assert.True(result.IsSuccess);
+        await _userManager.DidNotReceive().CheckPasswordAsync(Arg.Any<ApplicationUser>(), Arg.Any<string>());
     }
 
     #endregion

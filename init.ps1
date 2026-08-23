@@ -486,9 +486,9 @@ if (Test-Path $frontendEnvExample) {
 
 # Generate random secrets
 $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-$jwtBytes = New-Object byte[] 48
+$jwtBytes = New-Object byte[] 64
 $rng.GetBytes($jwtBytes)
-$encBytes = New-Object byte[] 48
+$encBytes = New-Object byte[] 64
 $rng.GetBytes($encBytes)
 $rng.Dispose()
 $JwtSecret = [Convert]::ToBase64String($jwtBytes) -replace '[/+=]', '' | ForEach-Object { $_.Substring(0, [Math]::Min(64, $_.Length)) }

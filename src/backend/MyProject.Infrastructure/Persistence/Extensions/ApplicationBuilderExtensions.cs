@@ -10,18 +10,19 @@ using MyProject.Application.Caching.Constants;
 using MyProject.Application.Identity.Constants;
 using MyProject.Infrastructure.Features.Authentication.Models;
 using MyProject.Infrastructure.Persistence.Options;
+using MyProject.Shared;
 using Serilog;
 
 namespace MyProject.Infrastructure.Persistence.Extensions;
 
 /// <summary>
-/// Extension methods for database initialization at startup — migrations, role seeding, and user seeding.
+/// Extension methods for database initialization at startup - migrations, role seeding, and user seeding.
 /// </summary>
 public static class ApplicationBuilderExtensions
 {
     /// <summary>
     /// Initializes the database: applies migrations (development only), seeds roles (always),
-    /// and seeds users from configuration (always — env vars gate whether any users are seeded).
+    /// and seeds users from configuration (always - env vars gate whether any users are seeded).
     /// </summary>
     /// <param name="appBuilder">The application builder.</param>
     public static async Task InitializeDatabaseAsync(this IApplicationBuilder appBuilder)
@@ -255,7 +256,7 @@ public static class ApplicationBuilderExtensions
     /// Seeds users from the <c>Seed:Users</c> configuration section.
     /// Each entry must have a non-empty Email, Password, and a valid Role.
     /// Incomplete or invalid entries are logged as warnings and skipped.
-    /// Idempotent — existing users (matched by email) are not modified.
+    /// Idempotent - existing users (matched by email) are not modified.
     /// </summary>
     private static async Task SeedUsersFromConfigurationAsync(IServiceProvider serviceProvider)
     {
@@ -276,14 +277,14 @@ public static class ApplicationBuilderExtensions
 
             if (string.IsNullOrWhiteSpace(entry.Email) || string.IsNullOrWhiteSpace(entry.Password))
             {
-                Log.Warning("Seed:Users[{Index}] is missing Email or Password — skipping", i);
+                Log.Warning("Seed:Users[{Index}] is missing Email or Password - skipping", i);
                 continue;
             }
 
             if (!validRoles.Contains(entry.Role))
             {
                 Log.Warning(
-                    "Seed:Users[{Index}] has invalid role '{Role}' — skipping. Valid roles: {ValidRoles}",
+                    "Seed:Users[{Index}] has invalid role '{Role}' - skipping. Valid roles: {ValidRoles}",
                     i, entry.Role, string.Join(", ", AppRoles.All));
                 continue;
             }
@@ -304,7 +305,7 @@ public static class ApplicationBuilderExtensions
     {
         if (await userManager.FindByNameAsync(email) is not null)
         {
-            Log.Debug("Seed:Users[{Index}] {Email} already exists — skipping", index, email);
+            Log.Debug("Seed:Users[{Index}] {Email} already exists - skipping", index, email);
             return;
         }
 
@@ -313,8 +314,9 @@ public static class ApplicationBuilderExtensions
 
         if (!result.Succeeded)
         {
-            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
-            Log.Error("Seed:Users[{Index}] failed to create {Email}: {Errors}", index, email, errors);
+            // Identity error descriptions can embed the configured email - log codes and mask instead
+            Log.Error("Seed:Users[{Index}] failed to create {MaskedEmail}: {ErrorCodes}",
+                index, PiiMasker.MaskEmail(email), string.Join("; ", result.Errors.Select(e => e.Code)));
             return;
         }
 

@@ -409,7 +409,7 @@ These must be set on the API container before it will start correctly:
 | Variable | Purpose |
 |---|---|
 | `ConnectionStrings__Database` | PostgreSQL connection string |
-| `Authentication__Jwt__Key` | Minimum 32 characters - generate with `openssl rand -base64 64` |
+| `Authentication__Jwt__Key` | Minimum 64 characters - generate with `openssl rand -base64 64` |
 | `Cors__AllowedOrigins__0` | Production domain (e.g., `https://your-domain.com`) |
 | `ASPNETCORE_ENVIRONMENT` | Must be `Production` |
 

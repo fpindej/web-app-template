@@ -41,6 +41,14 @@ internal class AuthenticationService(
     private readonly AuthenticationOptions.EmailTokenOptions _emailTokenOptions = authenticationOptions.Value.EmailToken;
     private readonly EmailOptions _emailOptions = emailOptions.Value;
 
+    /// <summary>
+    /// Hash of a random throwaway password, computed lazily on first use with the
+    /// DI-configured password hasher so that a customized work factor is reflected.
+    /// Verifying candidate passwords against it always fails but costs the same as
+    /// a real password check.
+    /// </summary>
+    private static string? _dummyPasswordHash;
+
     /// <inheritdoc />
     public async Task<Result<LoginOutput>> Login(string username, string password, bool useCookies = false, bool rememberMe = false, CancellationToken cancellationToken = default)
     {
@@ -48,9 +56,23 @@ internal class AuthenticationService(
 
         if (user is null)
         {
+            // Burn a password verification so response timing does not reveal whether the account exists
+            BurnDummyPasswordVerification(password);
+
             await auditService.LogAsync(AuditActions.LoginFailure,
-                metadata: JsonSerializer.Serialize(new { attemptedEmail = username }),
+                metadata: JsonSerializer.Serialize(new { attemptedEmail = PiiMasker.MaskEmail(username) }),
                 ct: cancellationToken);
+            return Result<LoginOutput>.Failure(ErrorMessages.Auth.LoginInvalidCredentials, ErrorType.Unauthorized);
+        }
+
+        if (string.IsNullOrEmpty(user.PasswordHash))
+        {
+            // External-only (passwordless) account: CheckPasswordSignInAsync would short-circuit
+            // without hashing, so burn a dummy verification to keep timing indistinguishable
+            // from a wrong-password attempt, then return the same generic failure.
+            BurnDummyPasswordVerification(password);
+
+            await auditService.LogAsync(AuditActions.LoginFailure, userId: user.Id, ct: cancellationToken);
             return Result<LoginOutput>.Failure(ErrorMessages.Auth.LoginInvalidCredentials, ErrorType.Unauthorized);
         }
 
@@ -199,8 +221,10 @@ internal class AuthenticationService(
 
         if (!result.Succeeded)
         {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return Result<Guid>.Failure(ErrorMessages.Auth.RegistrationInvalid with { Message = errors });
+            // Static client message prevents email enumeration; details stay server-side (codes only, no PII)
+            logger.LogWarning("Registration rejected by Identity: {ErrorCodes}",
+                string.Join(", ", result.Errors.Select(e => e.Code)));
+            return Result<Guid>.Failure(ErrorMessages.Auth.RegistrationInvalid);
         }
 
         var roleResult = await userManager.AddToRoleAsync(user, AppRoles.User);
@@ -265,8 +289,9 @@ internal class AuthenticationService(
 
         if (!changeResult.Succeeded)
         {
-            var errors = string.Join(", ", changeResult.Errors.Select(e => e.Description));
-            return Result.Failure(ErrorMessages.Auth.PasswordPolicyViolation with { Message = errors });
+            logger.LogWarning("Password change rejected by Identity for user '{UserId}': {ErrorCodes}",
+                userId.Value, string.Join(", ", changeResult.Errors.Select(e => e.Code)));
+            return Result.Failure(ErrorMessages.Auth.PasswordPolicyViolation);
         }
 
         await tokenSessionService.RevokeUserTokensAsync(userId.Value, cancellationToken);
@@ -284,7 +309,7 @@ internal class AuthenticationService(
         if (user is null)
         {
             // Return success to prevent user enumeration
-            logger.LogDebug("Forgot password requested for non-existent email {Email}", email);
+            logger.LogDebug("Forgot password requested for non-existent email {MaskedEmail}", PiiMasker.MaskEmail(email));
             return Result.Success();
         }
 
@@ -317,24 +342,20 @@ internal class AuthenticationService(
             return Result.Failure(ErrorMessages.Auth.ResetPasswordFailed);
         }
 
-        if (await userManager.CheckPasswordAsync(user, input.NewPassword))
-        {
-            return Result.Failure(ErrorMessages.Auth.PasswordSameAsCurrent);
-        }
-
         var resetResult = await userManager.ResetPasswordAsync(user, emailToken.IdentityToken, input.NewPassword);
 
         if (!resetResult.Succeeded)
         {
-            var errors = resetResult.Errors.Select(e => e.Description).ToList();
+            logger.LogWarning("Password reset rejected by Identity for user '{UserId}': {ErrorCodes}",
+                user.Id, string.Join(", ", resetResult.Errors.Select(e => e.Code)));
 
             // Distinguish between invalid token and other Identity errors (e.g., password policy)
-            if (errors.Any(e => e.Contains("Invalid token", StringComparison.OrdinalIgnoreCase)))
+            if (resetResult.Errors.Any(e => string.Equals(e.Code, nameof(IdentityErrorDescriber.InvalidToken), StringComparison.Ordinal)))
             {
                 return Result.Failure(ErrorMessages.Auth.ResetPasswordTokenInvalid);
             }
 
-            return Result.Failure(ErrorMessages.Auth.PasswordPolicyViolation with { Message = string.Join(" ", errors) });
+            return Result.Failure(ErrorMessages.Auth.PasswordPolicyViolation);
         }
 
         emailToken.IsUsed = true;
@@ -440,6 +461,22 @@ internal class AuthenticationService(
         }
 
         return Result<TwoFactorChallenge>.Success(challenge);
+    }
+
+    /// <summary>
+    /// Verifies the candidate password against a throwaway hash so that login response timing
+    /// does not reveal whether the account exists or has a password set. Uses the password
+    /// hasher configured in DI (via <see cref="UserManager{TUser}.PasswordHasher"/>) so the
+    /// dummy verification always matches the real work factor.
+    /// </summary>
+    private void BurnDummyPasswordVerification(string password)
+    {
+        var dummyUser = new ApplicationUser();
+
+        // Benign race: concurrent first calls may compute the hash twice, all results are equivalent
+        _dummyPasswordHash ??= userManager.PasswordHasher.HashPassword(dummyUser, Guid.NewGuid().ToString("N"));
+
+        userManager.PasswordHasher.VerifyHashedPassword(dummyUser, _dummyPasswordHash, password);
     }
 
     /// <summary>
