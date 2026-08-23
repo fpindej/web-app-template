@@ -39,7 +39,7 @@ try {
   ) {
     const prettierBin = resolve(frontendDir, 'node_modules/.bin/prettier');
     if (existsSync(prettierBin)) {
-      execFileSync('pnpm', ['exec', 'prettier', '--write', filePath], {
+      execFileSync(prettierBin, ['--write', filePath], {
         cwd: frontendDir,
         stdio: 'ignore',
       });

@@ -58,7 +58,9 @@ if (dirtyFiles.length === 0) {
 // Block only once per (session, dirty-file set): if we already blocked for this
 // exact set, Claude has decided not to commit - let it stop with a visible note.
 const setHash = createHash('sha256').update(dirtyFiles.join('\n')).digest('hex').slice(0, 16);
-const marker = join(tmpdir(), `claude-stop-gate-${input.session_id || 'unknown'}`);
+const sessionId =
+  String(input.session_id || 'unknown').replace(/[^A-Za-z0-9-]/g, '').slice(0, 64) || 'unknown';
+const marker = join(tmpdir(), `claude-stop-gate-${sessionId}`);
 let alreadyBlocked = input.stop_hook_active === true;
 try {
   if (readFileSync(marker, 'utf8') === setHash) alreadyBlocked = true;

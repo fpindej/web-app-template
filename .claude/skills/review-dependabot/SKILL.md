@@ -15,9 +15,10 @@ Argument: PR number or URL.
 
 ## Steps
 
-1. Fetch PR metadata: `gh pr view {number} --json number,title,headRefName,body,labels`
-2. Get the diff: `gh pr diff {number}`
-3. Identify the package, old version, new version, and version bump type (patch / minor / major)
+1. Fetch PR metadata: `gh pr view {number} --json number,title,headRefName,body,labels,author`
+2. **Verify the author is `app/dependabot`.** If it is not, STOP and report - this skill fetches and builds the PR's code locally, and that is only acceptable for Dependabot-authored version bumps. Never proceed for an arbitrary PR number.
+3. Get the diff: `gh pr diff {number}`
+4. Identify the package, old version, new version, and version bump type (patch / minor / major)
 
 ## Determine scope
 
@@ -60,7 +61,8 @@ git worktree add /tmp/dependabot-{number} FETCH_HEAD
 ```
 
 - Backend: `dotnet build /tmp/dependabot-{number}/src/backend/MyProject.slnx && dotnet test /tmp/dependabot-{number}/src/backend/MyProject.slnx -c Release`
-- Frontend: `cd /tmp/dependabot-{number}/src/frontend && pnpm install && pnpm run test && pnpm run check`
+- Frontend: `cd /tmp/dependabot-{number}/src/frontend && pnpm install --ignore-scripts && pnpm run test && pnpm run check`
+  - `--ignore-scripts` is deliberate: package lifecycle scripts are the main local code-execution risk of building PR content. If the updated package genuinely needs its install scripts to function, do NOT run them - verdict is NEEDS MANUAL REVIEW.
 - Afterwards: `git worktree remove --force /tmp/dependabot-{number}`
 - If tests pass, that's a strong signal. If they fail, identify whether the failure is related to the update.
 
@@ -93,7 +95,7 @@ git worktree add /tmp/dependabot-{number} FETCH_HEAD
 
 ## Rules
 
-- Research only - never modify the user's working tree; all build/test side effects stay inside the disposable worktree
+- Research only - never modify the user's working tree; file side effects stay inside the disposable worktree. Building/testing still EXECUTES code from the PR (MSBuild targets, test code) with your privileges - that is why the author check and `--ignore-scripts` are mandatory, and why this skill is for Dependabot PRs only
 - Always run the test suite - never skip it
 - When in doubt, verdict is NEEDS MANUAL REVIEW, not SAFE TO MERGE
 - A passing test suite does not override known breaking changes in the changelog

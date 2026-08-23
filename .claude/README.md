@@ -6,6 +6,7 @@ How the agentic tooling in this template fits together. Read this once after clo
 
 1. Open Claude Code in the repo root and accept the workspace trust dialog.
 2. The project pins official LSP plugins (`csharp-lsp`, `typescript-lsp`) plus vendor skill packs from Microsoft and Svelte (`dotnet-aspnetcore`/`dotnet-data`/`dotnet-test`, `aspire`, `svelte` - registered via `extraKnownMarketplaces`). Official-marketplace plugins prompt once; for the vendor marketplaces run `/plugin install <name>@<marketplace>` when prompted. Everything works without them - the convention skills are local.
+   - Trust note: these marketplaces track their upstream repos (dotnet/skills, microsoft/aspire-skills, sveltejs/ai-tools), so their content can change over time and their skills inject instructions into your agent sessions. They are first-party vendor repos, but review what you install and opt out anytime via `"<plugin>@<marketplace>": false` in `settings.local.json`.
 3. Approve the project MCP server from `.mcp.json` (Playwright, used for browser-level verification of frontend changes). The `svelte` plugin adds the official Svelte MCP + LSP for `.svelte` files.
 4. Optional: copy `settings.local.json.example` to `settings.local.json` for personal permission overrides (gitignored).
 
