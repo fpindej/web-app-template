@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/backend/**"
+---
+
 # Backend API Rules
 
 Extends CLAUDE.md Hard Rules with implementation patterns.

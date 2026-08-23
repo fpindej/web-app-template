@@ -1,3 +1,10 @@
+---
+paths:
+  - "src/**"
+  - ".github/**"
+  - "docker-compose*"
+---
+
 # Infrastructure Rules
 
 Extends CLAUDE.md with Aspire, NuGet, and Docker patterns.

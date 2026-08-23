@@ -10,24 +10,26 @@ Creates a pull request for the current branch.
 
 **Branch:** !`git branch --show-current`
 
+**Default branch:** !`git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|origin/||' || gh repo view --json defaultBranchRef --jq .defaultBranchRef.name 2>/dev/null || echo "master"`
+
 **Commits on this branch:**
-!`git log master..HEAD --oneline 2>/dev/null || echo "(no commits ahead of master)"`
+!`git log $(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/master)..HEAD --oneline 2>/dev/null || echo "(no commits ahead of the default branch)"`
 
 **Files changed:**
-!`git diff --stat master 2>/dev/null || echo "(no diff from master)"`
+!`git diff --stat $(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/master) 2>/dev/null || echo "(no diff from the default branch)"`
 
 ## Hard rules
 
-- **Never commit on master.** If on master, create a branch first. No exceptions.
+- **Never commit on the default branch** (master or main - see context above). If on it, create a branch first. No exceptions.
 - **No Co-Authored-By lines** in commits. User mentions Claude on PRs, not on individual commits.
-- **Sign all commits** with `-S` flag.
+- **Commit signing follows the developer's git config** (`commit.gpgsign`) - never pass `-S` explicitly; fresh clones may have no signing key.
 - **Session docs are immutable history** - never update old session docs to reflect current state.
 
 ## Steps
 
 1. Check `git status` - if uncommitted changes exist, commit them first (infer message from changes)
-2. Verify you are NOT on master. If on master, stop and ask the user to create a branch.
-3. Review all branch commits: `git log master..HEAD --oneline`
+2. Verify you are NOT on the default branch. If you are, stop and ask the user to create a branch.
+3. Review all branch commits: `git log {default-branch}..HEAD --oneline`
 4. Push if needed: `git push -u origin $(git branch --show-current)`
 
 **Session documentation (auto-generate for non-trivial PRs - 3+ commits or 5+ files changed):**
@@ -44,7 +46,7 @@ Creates a pull request for the current branch.
 
 8. Create PR with `gh pr create` using the [PR body template](assets/pr-body.md):
    - **Title**: Conventional Commit format, under 70 chars
-   - **Base**: argument if provided, otherwise `master`
+   - **Base**: argument if provided, otherwise the default branch
    - **Labels**: Apply all relevant (`backend`, `frontend`, `feature`, `bug`, `security`, `documentation`)
 9. Merge strategy for this project: **squash-and-merge only**
 10. Report PR URL

@@ -10,7 +10,7 @@ Creates a GitHub release with auto-generated release notes.
 
 - **Only release from master.** If not on master, switch first.
 - **No Co-Authored-By lines** in commits.
-- **Sign all tags** with `-S` flag.
+- **Tag signing follows the developer's git config** (`tag.gpgSign`) - never pass `-s`/`-S` explicitly; fresh clones may have no signing key.
 - Releases use **semantic versioning** (vMAJOR.MINOR.PATCH).
 
 ## Steps

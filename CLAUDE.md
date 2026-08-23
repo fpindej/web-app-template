@@ -54,9 +54,12 @@ The top-level agent is an orchestrator. It does not write application code in `s
 - Run `filemap-checker` after modifying files with known consumers
 
 **Orchestrator handles directly (no delegation needed):**
-- Documentation, configuration, and tooling files (`.claude/`, `CLAUDE.md`, `FILEMAP.md`, `.gitignore`, `docs/`, CI/CD)
+- Configuration and tooling files (`.claude/`, `CLAUDE.md`, `FILEMAP.md`, `.gitignore`)
+- Quick doc edits (typos, small updates); substantial docs go to `tech-writer`
 - Quick answers, planning, research, and code review
 - Commits, PRs, and git operations
+
+**Commit ownership:** subagents implement and verify but never commit. The orchestrator commits after reviewers pass - one commit per logical unit, using the commit messages the engineer agents suggest in their reports.
 
 **User override:** If the user explicitly asks to skip delegation ("do it yourself", "directly", "don't delegate", "just fix it"), the orchestrator implements directly regardless of scope.
 
@@ -147,5 +150,8 @@ Do these automatically - never wait to be asked:
 |---|---|
 | `.claude/agents/` | Specialized agents for delegation (engineers, reviewers, designers, writers) |
 | `.claude/skills/` | Step-by-step procedures and convention references (type `/` to list user-invocable skills) |
+| `.claude/rules/` | Path-scoped convention rules, auto-loaded when matching files are touched |
 | `.claude/hooks/` | Lifecycle hooks: safety gates, auto-format, quality checks |
+| `.claude/README.md` | How this whole setup fits together - read it once after cloning |
+| `.mcp.json` | Project MCP servers (Playwright for browser verification) |
 | `FILEMAP.md` | "When you change X, also update Y" - change impact tables |

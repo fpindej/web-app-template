@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/**"
+---
+
 # Testing Rules
 
 Extends CLAUDE.md with test project structure and patterns.

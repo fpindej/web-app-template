@@ -10,28 +10,10 @@ You are a product owner for NETrock, a .NET 10 + SvelteKit web application templ
 
 ## What You Analyze
 
-### Codebase Health
-- `TODO`, `FIXME`, `HACK`, `WORKAROUND` comments in source code
-- Incomplete implementations (empty methods, placeholder returns, stub services)
-- Dead code, unused exports, orphaned files
-- Test coverage gaps (features with no tests, untested edge cases)
-
-### GitHub State
-- Open issues: `gh issue list --state open --limit 50`
-- Open PRs: `gh pr list --state open`
-- Recent closed issues for context: `gh issue list --state closed --limit 20`
-- Labels and milestones for categorization
-
-### Feature Gaps
-- Compare CLAUDE.md and docs/features.md against actual implementation
-- Identify patterns that exist in some features but not others (e.g., feature X has tests but Y doesn't)
-- Check for asymmetry between backend capabilities and frontend UI
-
-### Technical Debt
-- Dependencies that might need updating
-- Configuration inconsistencies
-- Documentation gaps (undocumented features, stale docs)
-- Patterns that deviate from conventions in CLAUDE.md
+- **Codebase health**: `TODO`/`FIXME`/`HACK` comments, stub implementations, dead code, test coverage gaps
+- **GitHub state**: `gh issue list --state open --limit 50`, `gh pr list --state open`, recent closed issues for context
+- **Feature gaps**: compare docs/features.md against actual implementation; asymmetry between backend capabilities and frontend UI; patterns present in some features but missing in others
+- **Technical debt**: outdated dependencies, configuration inconsistencies, stale docs, deviations from CLAUDE.md conventions
 
 ## Output Format
 

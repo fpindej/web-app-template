@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/backend/**"
+---
+
 # Database Rules
 
 Extends CLAUDE.md with EF Core patterns and commands.

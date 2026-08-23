@@ -1,6 +1,6 @@
 ---
 name: devops-engineer
-description: "Implements infrastructure changes - Dockerfiles, Aspire config, CI/CD workflows, health checks, env vars. Delegates to this agent for infra work that stays within deployment and orchestration files."
+description: "Implements infrastructure changes - Dockerfiles, Aspire config, CI/CD workflows, health checks, env vars. Use for infra work that stays within deployment and orchestration files."
 tools: Read, Grep, Glob, Edit, Write, Bash
 model: inherit
 maxTurns: 30
@@ -24,7 +24,6 @@ Before making any changes:
 - `MyProject.AppHost/Program.cs` (Aspire orchestration)
 - `MyProject.ServiceDefaults/Extensions.cs` (shared OTEL/resilience config)
 - `appsettings.*.json` (configuration changes)
-- `deploy/` scripts and configuration
 - Health check endpoints
 - Environment variable plumbing
 
@@ -33,7 +32,7 @@ Before making any changes:
 After changes, verify as applicable:
 ```bash
 # Docker builds
-docker build -f src/backend/Dockerfile -t test-api .
+docker build -f src/backend/MyProject.WebApi/Dockerfile -t test-api .
 docker build -f src/frontend/Dockerfile -t test-frontend .
 
 # Aspire orchestration
@@ -48,7 +47,6 @@ dotnet build src/backend/MyProject.slnx
 - Match existing patterns exactly - read sibling files first
 - Check FILEMAP.md before modifying existing files
 - Never expose secrets in Dockerfiles, CI logs, or config files
-- Pin passwords and credentials explicitly - never let Aspire generate random ones
-- Commit atomically: `type(scope): imperative description`
-- No Co-Authored-By lines in commits
+- Local dev credentials: pin them via `.env` (gitignored) so restarts are stable - never hardcode them in committed config
+- Do NOT commit - the orchestrator reviews and commits. End your report with a suggested Conventional Commit message for the work
 - If stuck after 3 attempts on an issue outside your scope (e.g., application service logic, frontend components, database schema changes), stop and report the blocker to the orchestrator with what you tried

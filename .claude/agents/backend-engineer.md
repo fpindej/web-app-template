@@ -1,6 +1,6 @@
 ---
 name: backend-engineer
-description: "Implements backend features - entities, services, controllers, validators, tests, migrations. Delegates to this agent for .NET implementation work that stays within src/backend/."
+description: "Implements backend features - entities, services, controllers, validators, tests, migrations. Use for .NET implementation work that stays within src/backend/."
 tools: Read, Grep, Glob, Edit, Write, Bash
 model: inherit
 maxTurns: 40
@@ -33,12 +33,11 @@ After implementation, always run:
 ```bash
 dotnet build src/backend/MyProject.slnx && dotnet test src/backend/MyProject.slnx -c Release
 ```
-Fix failures. Loop until green. Never commit broken code.
+Fix failures. Loop until green. Never report broken code as done.
 
 ## Rules
 
 - Match existing patterns exactly - read sibling files first
 - Check FILEMAP.md before modifying existing files
-- Commit atomically: `type(scope): imperative description`
-- No Co-Authored-By lines in commits
+- Do NOT commit - the orchestrator reviews and commits. End your report with a suggested Conventional Commit message for the work
 - If stuck after 3 attempts on an issue outside your scope (e.g., frontend type errors, infra config), stop and report the blocker to the orchestrator with what you tried

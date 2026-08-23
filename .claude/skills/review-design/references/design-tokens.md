@@ -35,8 +35,7 @@
 
 ## Touch Targets
 
-- Minimum: 40px (`h-10`)
-- Primary actions: 44px (`h-11` / `min-h-11`)
+- Minimum 44px (`min-h-11`) on all interactive elements (CLAUDE.md hard rule)
 
 ## Typography Minimums
 

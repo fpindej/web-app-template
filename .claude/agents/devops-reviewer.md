@@ -1,7 +1,7 @@
 ---
 name: devops-reviewer
 description: "Validates deployment readiness - Dockerfiles, Aspire config, CI/CD, env vars, health checks, and infrastructure reproducibility. Use when reviewing infra changes or before releases."
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob
 model: sonnet
 maxTurns: 20
 skills: infra-conventions
@@ -22,7 +22,7 @@ End with deployment readiness verdict: `READY`, `READY WITH WARNINGS`, or `NOT R
 
 ## Rules
 
-- Research only - do NOT modify any files
+- Read-only - review by reading files; if a change needs a live docker build or Aspire run to validate, say so in the verdict instead of assuming
 - Check actual file contents, not just names
 - Verify env var references match between config files and app code
 - Think about what happens on first deploy vs subsequent deploys

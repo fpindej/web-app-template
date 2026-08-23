@@ -66,7 +66,7 @@
 | **Dependabot** | Weekly NuGet, npm, and GitHub Actions updates with grouped minor+patch PRs |
 | **Environment Config** | `appsettings.json` defines all options, `appsettings.Development.json` provides working dev defaults, env vars override for production |
 | **Production Hardening** | Dev config stripping from production images, reverse proxy trust configuration, CORS startup safeguard (crashes on `AllowAllOrigins=true` in production) |
-| **Claude Code Skills** | 20+ native skills for development workflows - feature scaffolding, endpoint creation, PR management, design review, type generation. 12 specialized agents (engineers, reviewers, UX designer, product owner, tech writer), lifecycle hooks, and context files (`CLAUDE.md`, `FILEMAP.md`) for deep codebase understanding |
+| **Claude Code Skills** | 20+ native skills for development workflows - feature scaffolding, endpoint creation, PR management, design review, type generation. 13 specialized agents (engineers, reviewers, UX designer, product owner, tech writer), lifecycle hooks, and context files (`CLAUDE.md`, `FILEMAP.md`) for deep codebase understanding |
 
 ## What Your Users Get
 

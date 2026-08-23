@@ -1,6 +1,6 @@
 ---
 name: test-writer
-description: "Writes tests for backend and frontend code. Delegates to this agent when tests need to be written alongside new features or changes."
+description: "Writes tests for backend and frontend code. Use for test-only tasks: backfilling coverage, regression tests for a reported bug, or expanding an existing suite. Engineer agents write tests alongside their own features - do not double-delegate those."
 tools: Read, Grep, Glob, Edit, Write, Bash
 model: inherit
 maxTurns: 30

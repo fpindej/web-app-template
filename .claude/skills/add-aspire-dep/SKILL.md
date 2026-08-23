@@ -7,9 +7,9 @@ Adds an infrastructure dependency to Aspire AppHost.
 
 ## Steps
 
-1. Add hosting package version to `src/backend/Directory.Packages.props`:
+1. Add hosting package version to `src/backend/Directory.Packages.props`, matching the version of the existing `Aspire.Hosting.*` packages in that file:
    ```xml
-   <PackageVersion Include="Aspire.Hosting.{Resource}" Version="13.1.2" />
+   <PackageVersion Include="Aspire.Hosting.{Resource}" Version="{same as other Aspire.Hosting.* entries}" />
    ```
 2. Add package reference to `src/backend/MyProject.AppHost/MyProject.AppHost.csproj`:
    ```xml

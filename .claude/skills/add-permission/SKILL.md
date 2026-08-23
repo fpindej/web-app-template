@@ -32,9 +32,9 @@ Adds a permission constant across backend and frontend.
    },
    ```
 6. Use in components: `hasPermission(user, Permissions.Orders.View)`
-7. If adding a new admin page: add a per-page guard in `+page.server.ts`:
+7. If adding a new admin page: register it in `adminRoutes` in `$lib/config/routes.ts` (path + permission), then guard in `+page.server.ts`:
    ```typescript
-   if (!hasPermission(user, Permissions.Orders.View)) throw redirect(303, '/');
+   if (!hasPermission(user, adminRoutes.orders.permission)) throw redirect(303, routes.dashboard);
    ```
-8. If adding a sidebar nav item: add `permission: Permissions.Orders.View` to the nav item in `AppSidebar.svelte` - items are filtered per-permission, not as a group
+8. If adding a sidebar nav item: use `adminRoutes.orders.path` and `.permission` for the nav item in `AppSidebar.svelte` - items are filtered per-permission, not as a group
 9. Verify: `cd src/frontend && pnpm run test && pnpm run format && pnpm run lint && pnpm run check`

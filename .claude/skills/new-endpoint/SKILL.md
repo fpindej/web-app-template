@@ -27,6 +27,7 @@ Use these as starting points - fill in the specifics from context:
 7. Add mapper methods to `WebApi/Features/{Feature}/{Feature}Mapper.cs`
 8. Add controller action - include `/// <summary>`, `[ProducesResponseType]`, `CancellationToken`
 9. Add FluentValidation validator co-located with request DTO
+   - If a string path parameter needs format validation, add a route constraint: follow the existing `IRouteConstraint` implementations in `src/backend/MyProject.WebApi/Routing/` and register in `Program.cs` (`options.ConstraintMap`)
 10. Write tests: component test for service, API integration test for endpoint, validator test
 
 **Dockerfile:**

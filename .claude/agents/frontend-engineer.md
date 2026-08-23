@@ -1,6 +1,6 @@
 ---
 name: frontend-engineer
-description: "Implements frontend features - pages, components, API integration, i18n, styling. Delegates to this agent for SvelteKit/Svelte 5 implementation work that stays within src/frontend/."
+description: "Implements frontend features - pages, components, API integration, i18n, styling. Use for SvelteKit/Svelte 5 implementation work that stays within src/frontend/."
 tools: Read, Grep, Glob, Edit, Write, Bash
 model: inherit
 maxTurns: 40
@@ -40,6 +40,5 @@ Paraglide module errors (~32) are expected - ignore those. Fix everything else. 
 
 - Match existing component patterns exactly - read sibling components first
 - Mobile-first: base styles for 320px, then `sm:` / `md:` / `lg:` / `xl:`
-- Commit atomically: `type(scope): imperative description`
-- No Co-Authored-By lines in commits
+- Do NOT commit - the orchestrator reviews and commits. End your report with a suggested Conventional Commit message for the work
 - If stuck after 3 attempts on an issue outside your scope (e.g., backend API changes, infra config), stop and report the blocker to the orchestrator with what you tried

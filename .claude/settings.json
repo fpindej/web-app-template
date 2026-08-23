@@ -1,4 +1,29 @@
 {
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "extraKnownMarketplaces": {
+    "dotnet-agent-skills": {
+      "source": { "source": "github", "repo": "dotnet/skills" }
+    },
+    "aspire-skills": {
+      "source": { "source": "github", "repo": "microsoft/aspire-skills" }
+    },
+    "Svelte": {
+      "source": { "source": "github", "repo": "sveltejs/ai-tools" }
+    }
+  },
+  "enabledPlugins": {
+    "csharp-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "dotnet-aspnetcore@dotnet-agent-skills": true,
+    "dotnet-data@dotnet-agent-skills": true,
+    "dotnet-test@dotnet-agent-skills": true,
+    "aspire@aspire-skills": true,
+    "svelte@Svelte": true
+  },
   "permissions": {
     "allow": [
       "Bash(pnpm *)",
@@ -87,12 +112,12 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "",
+        "matcher": "startup",
         "hooks": [
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.mjs\"",
-            "timeout": 15000
+            "timeout": 15
           }
         ]
       }
@@ -116,7 +141,7 @@
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/auto-format.mjs\"",
             "async": true,
-            "timeout": 30000
+            "timeout": 30
           }
         ]
       }

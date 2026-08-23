@@ -19,10 +19,12 @@ const projectDir = process.env.CLAUDE_PROJECT_DIR;
 if (!projectDir) process.exit(0);
 
 const ext = extname(filePath);
+const backendDir = resolve(projectDir, 'src/backend');
+const frontendDir = resolve(projectDir, 'src/frontend');
+const inDir = (dir) => resolve(filePath).startsWith(dir + '/');
 
 try {
-  if (ext === '.cs') {
-    const backendDir = resolve(projectDir, 'src/backend');
+  if (ext === '.cs' && inDir(backendDir)) {
     const slnx = readdirSync(backendDir).find((f) => f.endsWith('.slnx'));
     if (slnx) {
       execFileSync(
@@ -31,11 +33,13 @@ try {
         { stdio: 'ignore' },
       );
     }
-  } else if (['.ts', '.svelte', '.js', '.json', '.css', '.html'].includes(ext)) {
-    const frontendDir = resolve(projectDir, 'src/frontend');
+  } else if (
+    ['.ts', '.svelte', '.js', '.json', '.css', '.html'].includes(ext) &&
+    inDir(frontendDir)
+  ) {
     const prettierBin = resolve(frontendDir, 'node_modules/.bin/prettier');
     if (existsSync(prettierBin)) {
-      execFileSync('pnpm', ['exec', 'prettier', '--write', filePath], {
+      execFileSync(prettierBin, ['--write', filePath], {
         cwd: frontendDir,
         stdio: 'ignore',
       });

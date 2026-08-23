@@ -51,6 +51,10 @@ const blocks = [
     pattern: /git\s+push\s+\S+\s+:(?!-)/,
     msg: 'Remote branch deletion blocked. Ask the user first.',
   },
+  {
+    pattern: /git\s+push\s+.*--delete\b/,
+    msg: 'Remote branch deletion blocked. Ask the user first.',
+  },
 ];
 
 for (const { pattern, msg } of blocks) {

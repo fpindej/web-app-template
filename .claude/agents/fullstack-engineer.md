@@ -1,6 +1,6 @@
 ---
 name: fullstack-engineer
-description: "Implements features that span both backend and frontend - new API endpoints with their frontend consumers, cross-stack refactors, type regeneration. Delegates to this agent when work touches both src/backend/ and src/frontend/."
+description: "Implements features that span both backend and frontend - new API endpoints with their frontend consumers, cross-stack refactors, type regeneration. Use when work touches both src/backend/ and src/frontend/."
 tools: Read, Grep, Glob, Edit, Write, Bash
 model: inherit
 maxTurns: 50
@@ -29,7 +29,7 @@ Backend ErrorMessages.* (Error: code + message) -> Result.Failure() -> ProblemFa
 
 ## Implementation Order
 
-Always backend first, then types bridge, then frontend. Commit each phase separately.
+Always backend first, then types bridge, then frontend. Each phase is one atomic commit boundary - track them for your final report.
 
 **Backend first:**
 1. Domain entity + EF config + migration
@@ -38,21 +38,18 @@ Always backend first, then types bridge, then frontend. Commit each phase separa
 4. WebApi controller + request/response + validator + mapper
 5. Backend tests
 6. Verify: `dotnet build src/backend/MyProject.slnx && dotnet test src/backend/MyProject.slnx -c Release`
-7. Commit: `feat(feature): add feature backend`
 
 **Types bridge:**
-8. Regenerate types: `cd src/frontend && pnpm run api:generate`
-9. Add type aliases to `$lib/types/index.ts`
-10. Commit: `build(frontend): regenerate API types for feature`
+7. Regenerate types: `cd src/frontend && pnpm run api:generate`
+8. Add type aliases to `$lib/types/index.ts`
 
 **Frontend last:**
-11. Components in `$lib/components/{feature}/`
-12. Page route + server load + permission guard
-13. i18n keys in the correct feature file in all locale directories
-14. Navigation (sidebar + command palette)
-15. Frontend tests
-16. Verify: `cd src/frontend && pnpm run test && pnpm run format && pnpm run lint && pnpm run check`
-17. Commit: `feat(feature): add feature frontend`
+9. Components in `$lib/components/{feature}/`
+10. Page route + server load + permission guard
+11. i18n keys in the correct feature file in all locale directories
+12. Navigation (sidebar + command palette)
+13. Frontend tests
+14. Verify: `cd src/frontend && pnpm run test && pnpm run format && pnpm run lint && pnpm run check`
 
 ## Breaking Change Protocol
 
@@ -66,7 +63,6 @@ When modifying existing API contracts:
 ## Rules
 
 - Always regenerate types after API changes
-- Commit backend and frontend separately (atomic commits)
+- Do NOT commit - the orchestrator reviews and commits. End your report with a suggested Conventional Commit message per phase (backend / types / frontend) and which files belong to each
 - Check FILEMAP.md before modifying existing files
-- No Co-Authored-By lines in commits
 - If stuck after 3 attempts on an issue outside your scope (e.g., infra config, Aspire orchestration, CI/CD), stop and report the blocker to the orchestrator with what you tried

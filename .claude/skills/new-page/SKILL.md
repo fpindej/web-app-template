@@ -45,7 +45,7 @@ Use these as starting points - fill in the specifics from context:
 
 **Verify and commit:**
 
-12. `cd src/frontend && pnpm run format && pnpm run lint && pnpm run check` - fix errors, loop until green
-13. Commit: `feat({feature}): add {feature} page`
+13. `cd src/frontend && pnpm run format && pnpm run lint && pnpm run check` - fix errors, loop until green
+14. Commit: `feat({feature}): add {feature} page`
 
 Paraglide module errors (~32) are expected at check time - ignore those. Fix everything else.

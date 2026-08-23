@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/frontend/**"
+---
+
 # Frontend Svelte Rules
 
 Extends CLAUDE.md Hard Rules with implementation patterns.

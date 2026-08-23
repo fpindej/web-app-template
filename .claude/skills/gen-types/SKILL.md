@@ -15,7 +15,7 @@ Regenerates frontend API types from the backend OpenAPI spec.
    cd src/frontend && pnpm run api:generate
    ```
 
-2. **If generation fails** (backend not running, generator broken, any reason): don't loop retrying or wait for startup. If you can see the API definition clearly from the backend code (DTOs, controllers, response types), edit `src/frontend/src/lib/api/v1.d.ts` manually to match. Add a comment at the top of the commit message: `Note: v1.d.ts was manually edited - regenerate with pnpm run api:generate to verify.`
+2. **If generation fails**: fix the cause, never the output - `v1.d.ts` is generated and must never be hand-edited (CLAUDE.md hard rule). Typical causes: backend does not build (`dotnet build src/backend/MyProject.slnx`), or the OpenAPI spec export step failed - read the generator error. If you cannot fix the cause, stop and report the blocker instead of shipping hand-written types.
 
 3. Check what changed - look for renamed/removed schemas (breaking) vs added schemas (safe)
 
