@@ -108,6 +108,8 @@
       "Bash(docker *compose* run *--mount*)",
       "Bash(docker *buildx*--output*)",
       "Bash(docker *build*--output*)",
+      "Bash(docker *buildx* -o *)",
+      "Bash(docker *build* -o *)",
       "Bash(gh repo edit*)",
       "Bash(rm -rf /)",
       "Bash(rm -rf ~*)",
