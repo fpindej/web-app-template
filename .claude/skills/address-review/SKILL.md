@@ -19,9 +19,11 @@ gh pr view --json number,title,url
 2. **Fetch all review comments** (includes inline code comments and review threads):
 
 ```bash
-gh api repos/{owner}/{repo}/pulls/{number}/comments
-gh api repos/{owner}/{repo}/pulls/{number}/reviews
+gh api --method GET repos/{owner}/{repo}/pulls/{number}/comments
+gh api --method GET repos/{owner}/{repo}/pulls/{number}/reviews
 ```
+
+(Always pass `--method GET` explicitly for `gh api` reads - only explicit-GET calls are pre-approved by the project permissions.)
 
 Filter to only unresolved threads with actual review content. Read the full thread (all replies in each discussion), not just the first comment.
 
