@@ -24,6 +24,10 @@ const blocks = [
     msg: 'Force push blocked. Use --force-with-lease if you must, or ask the user first.',
   },
   {
+    pattern: /git\s+push\b.*\s-f\b/,
+    msg: 'Force push blocked. Use --force-with-lease if you must, or ask the user first.',
+  },
+  {
     pattern: /rm\s+-rf\s+(\/|~|\$HOME|\.\.)/,
     msg: 'Destructive rm -rf on sensitive path blocked.',
   },
