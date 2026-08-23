@@ -24,7 +24,7 @@ const blocks = [
     msg: 'Force push blocked. Use --force-with-lease if you must, or ask the user first.',
   },
   {
-    pattern: /git\s+push\b.*\s-f\b/,
+    pattern: /git\s+push\b[^;&|]*\s-f(\s|$)/,
     msg: 'Force push blocked. Use --force-with-lease if you must, or ask the user first.',
   },
   {

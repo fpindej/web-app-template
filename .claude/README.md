@@ -43,8 +43,8 @@ The stop gate blocks at most once for the same set of dirty files, so it nags ex
 
 `settings.json` allowlists the routine toolchain and denies destructive operations, following deny-by-default:
 
-- **docker**: only `build`, `compose`, `info`, `ps`, `images`, `logs`, and `volume ls` are pre-approved. `docker run` prompts, and privileged containers or mounts of `/` and `~` are hard-denied (host-filesystem escape).
+- **docker**: pre-approved commands are `build`, `info`, `ps`, `images`, `logs`, `volume ls`, and the read-only compose verbs (`version`, `config`, `ps`, `logs`, `down`). `docker run`, `docker compose up`, and `docker compose run` prompt. Hard-denied everywhere: `--privileged`, `docker run` mounts of `/`/`~`/`$HOME`, `docker compose run` volume mounts, and `buildx --output` (arbitrary host writes). `docker build` stays pre-approved because it is the devops verify step - note this still runs a Dockerfile's `RUN` steps, so treat untrusted Dockerfiles with the same care as untrusted scripts.
 - **gh api**: only explicit `--method GET` reads plus two narrow POST endpoints (issue sub-issues, PR comment replies) are pre-approved. Other mutations prompt; `secrets`/`keys`/`hooks` API paths are hard-denied (credential and webhook surface).
-- **secrets**: `.env`/`.env.local` are denied for Read as well as Write/Edit, along with `*.pem`/`*.key` reads. `.env.example` and `.env.test` stay accessible. `appsettings.Development.json` is deliberately NOT denied - it is tracked template config with no real secrets, and skills edit it.
+- **secrets**: `.env`/`.env.local`/`.env.production`/`.env.development`/`.env.staging`/`.env.*.local` are denied for Read (and nested Write/Edit), along with `*.pem`/`*.key` reads. `.env.example` and `.env.test` stay accessible. `appsettings.Development.json` is deliberately NOT denied - it is tracked template config with no real secrets, and skills edit it.
 
 The deny list intentionally overlaps with `validate-bash.mjs` - permissions are the hard gate, the hook adds clearer messages and patterns permissions cannot express. Put personal additions in `settings.local.json`, not here.
