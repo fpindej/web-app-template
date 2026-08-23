@@ -305,7 +305,7 @@ public static class ApplicationBuilderExtensions
     {
         if (await userManager.FindByNameAsync(email) is not null)
         {
-            Log.Debug("Seed:Users[{Index}] {Email} already exists - skipping", index, email);
+            Log.Debug("Seed:Users[{Index}] {MaskedEmail} already exists - skipping", index, PiiMasker.MaskEmail(email));
             return;
         }
 
@@ -321,6 +321,6 @@ public static class ApplicationBuilderExtensions
         }
 
         await userManager.AddToRoleAsync(user, role);
-        Log.Information("Seed: created user {Email} with role {Role}", email, role);
+        Log.Information("Seed: created user {MaskedEmail} with role {Role}", PiiMasker.MaskEmail(email), role);
     }
 }

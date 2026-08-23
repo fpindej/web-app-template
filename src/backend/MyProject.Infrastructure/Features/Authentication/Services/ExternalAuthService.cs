@@ -246,8 +246,8 @@ internal class ExternalAuthService(
         var result = await userManager.AddPasswordAsync(user, input.NewPassword);
         if (!result.Succeeded)
         {
-            logger.LogError("Failed to set password for user {UserId}: {Errors}",
-                userId.Value, string.Join(", ", result.Errors.Select(e => e.Description)));
+            logger.LogError("Failed to set password for user {UserId}: {ErrorCodes}",
+                userId.Value, string.Join(", ", result.Errors.Select(e => e.Code)));
             return Result.Failure(ErrorMessages.ExternalAuth.PasswordSetFailed);
         }
 
