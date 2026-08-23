@@ -156,8 +156,7 @@ FluentValidation auto-discovered from WebApi assembly. Co-locate validators with
 - Every `ProblemDetails` response carries the code in the `code` extension (`ProblemFactory` for controllers/middleware, `ProblemFactory.EnsureCode` in `AddProblemDetails` for framework-generated bodies: `validation_failed` for model validation, snake_case reason phrase such as `not_found` otherwise). `ProblemDetailsSchemaTransformer` documents it in OpenAPI.
 - Codes are a public contract: adding one is additive, renaming or removing one is a breaking change for API consumers (frontend maps on codes, not on `detail` text).
 - Runtime values (role names, user IDs, framework errors): log server-side via `ILogger`, never in `Result.Failure()`
-- Identity errors: log `.Description` server-side, return a static `ErrorMessages` entry to the client
-- Exception: password policy / registration feedback keeps its stable code and overrides only the message: `ErrorMessages.Auth.PasswordPolicyViolation with { Message = errors }`
+- Identity errors: log the error `.Code` values server-side, return a static `ErrorMessages` entry to the client - never echo `.Description` (it can embed emails and enables account enumeration). No exceptions: register, change-password, and reset-password all return static messages; client-side validators provide the detailed password-policy feedback.
 - To add: create `public static readonly Error X = new("{class}_{x}", "...")` in the matching `ErrorMessages.cs` nested class. Dynamic values go in logs, not in Result.
 
 ## Authorization

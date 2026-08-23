@@ -12,8 +12,11 @@ internal static class IdentityMockHelpers
     public static UserManager<ApplicationUser> CreateMockUserManager()
     {
         var store = Substitute.For<IUserStore<ApplicationUser>>();
+        // Real password hasher: UserManager.PasswordHasher is non-virtual and services
+        // use it directly (e.g. dummy password verification in AuthenticationService)
+        var passwordHasher = new PasswordHasher<ApplicationUser>();
         return Substitute.For<UserManager<ApplicationUser>>(
-            store, null, null, null, null, null, null, null, null);
+            store, null, passwordHasher, null, null, null, null, null, null);
     }
 
     public static SignInManager<ApplicationUser> CreateMockSignInManager(

@@ -190,15 +190,17 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Validates the security stamp claim in the JWT token against the current stamp in the database.
     /// Uses HybridCache (5 minute TTL) to avoid a database hit on every request.
-    /// If the stamp has changed (password change, role update, session revocation), the token is rejected.
+    /// Tokens without the claim are rejected (fail closed), as are tokens whose stamp has changed
+    /// (password change, role update, session revocation).
     /// </summary>
-    private static async Task ValidateSecurityStampAsync(TokenValidatedContext context, string securityStampClaimType)
+    internal static async Task ValidateSecurityStampAsync(TokenValidatedContext context, string securityStampClaimType)
     {
         var stampClaim = context.Principal?.FindFirstValue(securityStampClaimType);
         if (string.IsNullOrEmpty(stampClaim))
         {
-            // Tokens issued before this feature was added won't have the claim — allow them
-            // to pass through. They'll get a stamped token on next refresh.
+            // Fail closed: every token issued by this API carries the stamp claim,
+            // so a token without it is stale or forged and must be rejected.
+            context.Fail("Missing security stamp claim.");
             return;
         }
 
@@ -226,7 +228,7 @@ public static class ServiceCollectionExtensions
 
         if (string.IsNullOrEmpty(currentStampHash))
         {
-            // User not found or has no stamp — reject
+            // User not found or has no stamp - reject
             context.Fail("User not found.");
             return;
         }

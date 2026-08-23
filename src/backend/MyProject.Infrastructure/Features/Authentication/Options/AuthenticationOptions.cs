@@ -42,10 +42,10 @@ public sealed class AuthenticationOptions
     {
         /// <summary>
         /// Gets or sets the symmetric signing key for JWT tokens.
-        /// Must be at least 32 characters for HMAC-SHA256.
+        /// Must be at least 64 characters to provide a full-entropy HMAC-SHA256 key.
         /// </summary>
         [Required]
-        [MinLength(32)]
+        [MinLength(64)]
         public string Key { get; init; } = string.Empty;
 
         /// <summary>

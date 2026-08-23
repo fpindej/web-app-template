@@ -66,7 +66,7 @@ Quick-reference for "when you change X, also update Y" and "where does X live?"
 | **`EmailTemplateNames.cs`** (Application - add/rename template name) | Services constructing `SendSafeAsync()` calls, matching `.liquid` template files |
 | **`AppRoles.cs`** (add role) | Add a `RoleDefinition` entry to `Definitions` (name, rank, flags, default permissions) - seeding upserts it automatically; `RoleManagementService` checks `AppRoles.All` for system role collisions |
 | **`AppPermissions.cs`** (add permission) | Seed via `DefaultPermissions` in `AppRoles.Definitions`, add `[RequirePermission]` to endpoints, update frontend `$lib/utils/permissions.ts` |
-| **`PiiMasker.cs`** (change masking rules) | `AdminMapper.WithMaskedPii` extensions, `PiiMaskerTests`, `AdminMapperPiiTests` |
+| **`PiiMasker.cs`** (Shared - change masking rules) | `AdminMapper.WithMaskedPii` extensions, `AuthenticationService` and `AdminService` (masked audit metadata + logs), `PiiMaskerTests` (Unit.Tests), `AdminMapperPiiTests` |
 | **`RequirePermission` attribute** (add to endpoint) | Remove any class-level `[Authorize(Roles)]`; ensure permission is defined in `AppPermissions.cs` |
 | **`RoleManagementService`** (change role behavior) | Verify system role protection rules, check security stamp rotation, verify frontend role detail page |
 | **`IRecurringJobDefinition`** (add new job) | Register in `ServiceCollectionExtensions.AddJobScheduling()`, job auto-discovered at startup |
@@ -150,7 +150,7 @@ Files that are frequently referenced in impact tables above. For anything not li
 
 ```
 src/backend/MyProject.{Layer}/
-  Shared:          Result.cs, Error.cs, ErrorType.cs, ErrorMessages.cs, PhoneNumberHelper.cs
+  Shared:          Result.cs, Error.cs, ErrorType.cs, ErrorMessages.cs, PhoneNumberHelper.cs, PiiMasker.cs
   Domain:          Entities/{Entity}.cs
   Application:     Features/{Feature}/I{Feature}Service.cs
                    Features/{Feature}/Dtos/{Operation}Input.cs, {Entity}Output.cs

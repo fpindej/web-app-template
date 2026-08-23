@@ -246,8 +246,8 @@ internal class ExternalAuthService(
         var result = await userManager.AddPasswordAsync(user, input.NewPassword);
         if (!result.Succeeded)
         {
-            logger.LogError("Failed to set password for user {UserId}: {Errors}",
-                userId.Value, string.Join(", ", result.Errors.Select(e => e.Description)));
+            logger.LogError("Failed to set password for user {UserId}: {ErrorCodes}",
+                userId.Value, string.Join(", ", result.Errors.Select(e => e.Code)));
             return Result.Failure(ErrorMessages.ExternalAuth.PasswordSetFailed);
         }
 
@@ -386,8 +386,8 @@ internal class ExternalAuthService(
         {
             if (!existingUser.EmailConfirmed)
             {
-                await auditService.LogAsync(AuditActions.ExternalLoginFailure,
-                    metadata: JsonSerializer.Serialize(new { provider, email = externalUser.Email, reason = "email_not_verified" }),
+                await auditService.LogAsync(AuditActions.ExternalLoginFailure, userId: existingUser.Id,
+                    metadata: JsonSerializer.Serialize(new { provider, reason = "email_not_verified" }),
                     ct: cancellationToken);
 
                 return Result<ExternalCallbackOutput>.Failure(
@@ -396,8 +396,8 @@ internal class ExternalAuthService(
 
             if (!externalUser.EmailVerified)
             {
-                await auditService.LogAsync(AuditActions.ExternalLoginFailure,
-                    metadata: JsonSerializer.Serialize(new { provider, email = externalUser.Email, reason = "provider_email_not_verified" }),
+                await auditService.LogAsync(AuditActions.ExternalLoginFailure, userId: existingUser.Id,
+                    metadata: JsonSerializer.Serialize(new { provider, reason = "provider_email_not_verified" }),
                     ct: cancellationToken);
 
                 return Result<ExternalCallbackOutput>.Failure(
@@ -457,8 +457,9 @@ internal class ExternalAuthService(
         var createResult = await userManager.CreateAsync(user);
         if (!createResult.Succeeded)
         {
-            logger.LogError("Failed to create user from external provider {Provider}: {Errors}",
-                provider, string.Join(", ", createResult.Errors.Select(e => e.Description)));
+            logger.LogError("Failed to create user '{MaskedEmail}' from external provider {Provider}: {ErrorCodes}",
+                PiiMasker.MaskEmail(externalUser.Email), provider,
+                string.Join(", ", createResult.Errors.Select(e => e.Code)));
             return Result<ExternalCallbackOutput>.Failure(
                 ErrorMessages.ExternalAuth.ProviderError, ErrorType.Validation);
         }
@@ -474,8 +475,8 @@ internal class ExternalAuthService(
 
         if (!loginResult.Succeeded)
         {
-            logger.LogError("Failed to link provider {Provider} to newly created user {UserId}: {Errors}",
-                provider, user.Id, string.Join(", ", loginResult.Errors.Select(e => e.Description)));
+            logger.LogError("Failed to link provider {Provider} to newly created user {UserId}: {ErrorCodes}",
+                provider, user.Id, string.Join(", ", loginResult.Errors.Select(e => e.Code)));
 
             // Clean up the orphaned user - they have no password and no linked provider
             await userManager.DeleteAsync(user);

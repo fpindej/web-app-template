@@ -1,10 +1,12 @@
-namespace MyProject.WebApi.Features.Admin;
+namespace MyProject.Shared;
 
 /// <summary>
-/// Masks personally identifiable information (PII) for admin views
-/// when the caller lacks the <c>users.view_pii</c> permission.
+/// Masks personally identifiable information (PII) before it is exposed to
+/// less-privileged callers or persisted outside the user record, such as
+/// admin views without the <c>users.view_pii</c> permission, audit metadata,
+/// and server-side logs.
 /// </summary>
-internal static class PiiMasker
+public static class PiiMasker
 {
     private const string MaskedPlaceholder = "***";
 
@@ -13,7 +15,7 @@ internal static class PiiMasker
     /// and the first character of the domain. Example: <c>john@gmail.com</c> becomes <c>j***@g***.com</c>.
     /// </summary>
     /// <param name="email">The email address to mask.</param>
-    /// <returns>The masked email, or <see cref="MaskedPlaceholder"/> if the format is unexpected.</returns>
+    /// <returns>The masked email, or <c>***</c> if the format is unexpected.</returns>
     public static string MaskEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -33,7 +35,7 @@ internal static class PiiMasker
         var dotIndex = domain.LastIndexOf('.');
         if (dotIndex < 1)
         {
-            // No TLD separator — mask the entire domain
+            // No TLD separator - mask the entire domain
             return $"{local}***@{domain[0]}***";
         }
 

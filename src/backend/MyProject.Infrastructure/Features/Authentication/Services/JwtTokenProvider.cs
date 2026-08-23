@@ -41,10 +41,15 @@ internal class JwtTokenProvider(
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        if (!string.IsNullOrEmpty(user.SecurityStamp))
+        if (string.IsNullOrEmpty(user.SecurityStamp))
         {
-            claims.Add(new Claim(_jwtOptions.SecurityStampClaimType, HashHelper.Sha256(user.SecurityStamp)));
+            // Identity always assigns a security stamp on user creation; a missing stamp is a broken
+            // account state. Tokens without the stamp claim are rejected at validation, so refuse to
+            // issue one rather than silently omitting the claim.
+            throw new InvalidOperationException($"User '{user.Id}' has no security stamp; cannot issue an access token.");
         }
+
+        claims.Add(new Claim(_jwtOptions.SecurityStampClaimType, HashHelper.Sha256(user.SecurityStamp)));
 
         var userRoles = await userManager.GetRolesAsync(user);
         claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));

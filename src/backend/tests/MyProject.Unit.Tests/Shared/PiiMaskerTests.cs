@@ -1,6 +1,6 @@
-using MyProject.WebApi.Features.Admin;
+using MyProject.Shared;
 
-namespace MyProject.Api.Tests.Features.Admin;
+namespace MyProject.Unit.Tests.Shared;
 
 public class PiiMaskerTests
 {

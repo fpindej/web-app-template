@@ -30,7 +30,7 @@ public class TwoFactorServiceTests : IDisposable
         {
             Jwt = new AuthenticationOptions.JwtOptions
             {
-                Key = "ThisIsATestSigningKeyWithAtLeast32Chars!",
+                Key = "ThisIsATestSigningKeyThatIsAtLeast64CharactersLongForTestFixtures!",
                 Issuer = "test-issuer",
                 Audience = "test-audience"
             },

@@ -637,8 +637,8 @@ internal class AdminService(
         var createResult = await userManager.CreateAsync(user, tempPassword);
         if (!createResult.Succeeded)
         {
-            logger.LogWarning("CreateAsync failed for admin-created user '{Email}': {Errors}",
-                input.Email, string.Join(", ", createResult.Errors.Select(e => e.Description)));
+            logger.LogWarning("CreateAsync failed for admin-created user '{MaskedEmail}': {ErrorCodes}",
+                PiiMasker.MaskEmail(input.Email), string.Join(", ", createResult.Errors.Select(e => e.Code)));
             return Result<Guid>.Failure(ErrorMessages.Admin.CreateUserFailed);
         }
 
@@ -656,8 +656,8 @@ internal class AdminService(
         var invitationModel = new InvitationModel(setPasswordUrl, _emailTokenOptions.Lifetime.ToHumanReadable());
         await templatedEmailSender.SendSafeAsync(EmailTemplateNames.Invitation, invitationModel, input.Email, cancellationToken);
 
-        logger.LogInformation("User '{UserId}' created via admin invitation for email '{Email}' by admin '{CallerUserId}'",
-            user.Id, input.Email, callerUserId);
+        logger.LogInformation("User '{UserId}' created via admin invitation by admin '{CallerUserId}'",
+            user.Id, callerUserId);
 
         await auditService.LogAsync(AuditActions.AdminCreateUser, userId: callerUserId,
             targetEntityType: "User", targetEntityId: user.Id, ct: cancellationToken);
