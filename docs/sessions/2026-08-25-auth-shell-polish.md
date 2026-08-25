@@ -19,7 +19,8 @@ Recomposed the decorative brand panel in `AuthShell.svelte` from a bare wordmark
 | `docs/sessions/assets/2026-08-25-auth-shell-polish/` | 8 verification screenshots | Visual evidence from the running app |
 | `.claude/skills/polish-ui/SKILL.md` | Added PR-screenshot step; verification step points to `init-verify` when present | Make the workflow repeatable without baking template-only steps into a skill that ships to consumers |
 | `.claude/skills/init-verify/SKILL.md` | New template-only skill for the init-verify-revert loop | Runtime verification needs an instantiated copy; consumers never need this |
-| `init.sh` / `init.ps1` | Added `.claude/skills/init-verify` to template cleanup dirs | The skill must not survive init |
+| `init.sh` / `init.ps1` | Added `.claude/skills/init-verify` to template cleanup dirs; init now keeps `docs/sessions/README.md` (deletes only dated docs + `assets/`) | The skill must not survive init; the session-doc convention should |
+| Skills sweep (`verify`, `create-pr`, `review-design`, `polish-ui`, `init-verify`, `ux-designer` agent, READMEs) | Integrated the new workflow: PR screenshots section, browser-verification pointer, reviewers read committed screenshots, canonical breakpoints, SHA-pinned URLs, teardown hardening (explicit reset SHA, gitignored bin/obj cleanup) | Full-repo skill review found template leaks and integration gaps after the new additions |
 
 ## Decisions & Reasoning
 

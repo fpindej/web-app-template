@@ -726,10 +726,12 @@ TEMPLATE_FILES=(
 )
 
 TEMPLATE_DIRS=(
-    "docs/sessions"
+    "docs/sessions/assets"
     ".claude/skills/init-verify"
 )
 
+# Dated session docs are template history; the README stays so the
+# session-doc convention keeps working in the initialized project.
 if git rev-parse --git-dir > /dev/null 2>&1; then
     for f in "${TEMPLATE_FILES[@]}"; do
         git rm -f "$f" >/dev/null 2>&1 || rm -f "$f"
@@ -737,6 +739,7 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     for d in "${TEMPLATE_DIRS[@]}"; do
         git rm -rf "$d" >/dev/null 2>&1 || rm -rf "$d"
     done
+    git rm -f "docs/sessions/2*.md" >/dev/null 2>&1 || rm -f docs/sessions/2*.md
 else
     for f in "${TEMPLATE_FILES[@]}"; do
         rm -f "$f"
@@ -744,6 +747,7 @@ else
     for d in "${TEMPLATE_DIRS[@]}"; do
         rm -rf "$d"
     done
+    rm -f docs/sessions/2*.md
 fi
 
 if [[ "$DO_COMMIT" == "y" ]]; then

@@ -43,15 +43,15 @@ Every session doc must follow this structure:
 
 ## Diagrams
 
-{Include Mermaid diagrams where they add clarity — entity relationships,
+{Include Mermaid diagrams where they add clarity - entity relationships,
 request flows, state transitions, service maps.
 
 Use the appropriate diagram type:
-- flowchart TD — request/data flows
-- erDiagram — entity relationships
-- sequenceDiagram — multi-step interactions
-- classDiagram — interface/implementation maps
-- stateDiagram-v2 — state transitions
+- flowchart TD - request/data flows
+- erDiagram - entity relationships
+- sequenceDiagram - multi-step interactions
+- classDiagram - interface/implementation maps
+- stateDiagram-v2 - state transitions
 
 Skip this section entirely if the work was trivial and diagrams wouldn't add value.}
 
@@ -59,6 +59,14 @@ Skip this section entirely if the work was trivial and diagrams wouldn't add val
 
 - [ ] {Any remaining work or known issues}
 ```
+
+## Screenshots and Assets
+
+Visual evidence (browser-verification screenshots, diagrams exported as images)
+lives in `assets/{YYYY-MM-DD}-{topic-slug}/`, matching the session doc's name.
+Commit only the meaningful shots (a handful per session, keep files small) and
+embed them in the PR description with SHA-pinned URLs so they survive branch
+deletion after squash-merge.
 
 ## Commit
 

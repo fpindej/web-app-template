@@ -18,6 +18,7 @@ Argument: file path, component name, or glob pattern. If omitted, reviews all fi
 
 1. **Resolve scope**: If argument provided, find matching `.svelte` files. If omitted, get changed files via `git diff $(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/master) --name-only -- '*.svelte'`
 2. **Read every file in scope** in full - understand the complete component, not just fragments
+   - If screenshots for this change exist under `docs/sessions/assets/`, Read them too and judge the rendered result, not just the classes
 3. **Read the [design tokens reference](references/design-tokens.md)** for project standards
 4. **Check the parent layout/page** that renders each component - understand the context it lives in
 5. **Cross-reference related components** - check siblings in the same feature folder for consistency

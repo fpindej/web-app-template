@@ -731,7 +731,7 @@ $templateFiles = @(
 )
 
 $templateDirs = @(
-    "docs/sessions"
+    "docs/sessions/assets"
     ".claude/skills/init-verify"
 )
 
@@ -750,6 +750,10 @@ if ($DoCommit) {
         if (Test-Path $fullPath) {
             $null = git rm -rf $d 2>&1
         }
+    }
+    # Dated session docs are template history; README.md stays for the convention
+    Get-ChildItem (Join-Path $ScriptDir "docs/sessions") -Filter "2*.md" -ErrorAction SilentlyContinue | ForEach-Object {
+        $null = git rm -f "docs/sessions/$($_.Name)" 2>&1
     }
     # Stage init.ps1 for deletion but keep it on disk for now (script is still running)
     $null = git rm --cached "init.ps1" 2>&1
@@ -770,6 +774,7 @@ else {
             Remove-Item $fullPath -Recurse -Force
         }
     }
+    Get-ChildItem (Join-Path $ScriptDir "docs/sessions") -Filter "2*.md" -ErrorAction SilentlyContinue | Remove-Item -Force
 }
 
 $ErrorActionPreference = "Stop"
