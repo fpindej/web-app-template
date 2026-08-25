@@ -35,6 +35,21 @@
 }
 
 /* -----------------------------------------------------------------------------
+   Dot Grid Fade
+   Subtle masked dot pattern for decorative panel depth.
+   Usage: Add to a positioned container with overflow-hidden.
+   ----------------------------------------------------------------------------- */
+.dot-grid-fade {
+	position: absolute;
+	inset: 0;
+	background-image: radial-gradient(hsl(var(--foreground) / 0.08) 1px, transparent 1px);
+	background-size: 1.25rem 1.25rem;
+	-webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent);
+	mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent);
+	pointer-events: none;
+}
+
+/* -----------------------------------------------------------------------------
    Card Hover Effects
    Interactive lift and glow effects for cards and interactive elements.
    ----------------------------------------------------------------------------- */

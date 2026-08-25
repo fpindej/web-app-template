@@ -110,7 +110,7 @@
 
 <div class={cn('flex flex-col gap-6', shake.active && 'animate-shake')}>
 	<div class="flex flex-col items-center gap-2 text-center">
-		<h1 class="text-2xl font-bold">{m.auth_twoFactor_title()}</h1>
+		<h1 class="text-2xl font-bold tracking-tight">{m.auth_twoFactor_title()}</h1>
 		<p class="text-sm text-balance text-muted-foreground">
 			{useRecovery ? m.auth_twoFactor_recoveryDescription() : m.auth_twoFactor_description()}
 		</p>

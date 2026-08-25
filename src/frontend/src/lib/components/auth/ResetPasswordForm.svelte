@@ -98,7 +98,7 @@
 		<div class="flex flex-col items-center gap-4 py-4">
 			<IconCircle icon={TriangleAlert} variant="warning" />
 			<div class="flex flex-col items-center gap-2 text-center">
-				<h1 class="text-2xl font-bold">
+				<h1 class="text-2xl font-bold tracking-tight">
 					{m.auth_resetPassword_alreadySignedInTitle()}
 				</h1>
 				<p class="text-sm text-balance text-muted-foreground">
@@ -128,7 +128,7 @@
 		<div class="flex flex-col items-center gap-4 py-4">
 			<IconCircle icon={CircleAlert} variant="error" />
 			<div class="flex flex-col items-center gap-2 text-center">
-				<h1 class="text-2xl font-bold">
+				<h1 class="text-2xl font-bold tracking-tight">
 					{m.auth_resetPassword_invalidLink()}
 				</h1>
 				<p class="text-sm text-balance text-muted-foreground">
@@ -146,7 +146,7 @@
 		<div class="flex flex-col items-center gap-4 py-4">
 			<IconCircle icon={CircleAlert} variant="error" />
 			<div class="flex flex-col items-center gap-2 text-center">
-				<h1 class="text-2xl font-bold">
+				<h1 class="text-2xl font-bold tracking-tight">
 					{m.auth_resetPassword_errorTitle()}
 				</h1>
 				<p class="text-sm text-balance text-muted-foreground">
@@ -171,7 +171,7 @@
 	{:else if !isSuccess}
 		<div class="flex flex-col gap-6">
 			<div class="flex flex-col items-center gap-2 text-center">
-				<h1 class="text-2xl font-bold">
+				<h1 class="text-2xl font-bold tracking-tight">
 					{invited ? m.auth_setPassword_title() : m.auth_resetPassword_title()}
 				</h1>
 				<p class="text-sm text-balance text-muted-foreground">
@@ -226,7 +226,7 @@
 		<div class="flex flex-col items-center gap-4 py-4">
 			<IconCircle icon={Check} variant="success" />
 			<div class="flex flex-col items-center gap-2 text-center">
-				<h1 class="text-2xl font-bold">
+				<h1 class="text-2xl font-bold tracking-tight">
 					{invited ? m.auth_setPassword_successTitle() : m.auth_resetPassword_successTitle()}
 				</h1>
 				<p class="text-sm text-balance text-muted-foreground">

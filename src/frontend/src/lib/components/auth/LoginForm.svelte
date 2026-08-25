@@ -131,7 +131,7 @@
 	{:else}
 		<div class="flex flex-col gap-6">
 			<div class="flex flex-col items-center gap-2 text-center">
-				<h1 class="text-2xl font-bold">
+				<h1 class="text-2xl font-bold tracking-tight">
 					{m.auth_login_title({ name: m.app_name() })}
 				</h1>
 				<p class="text-sm text-balance text-muted-foreground">
