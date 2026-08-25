@@ -115,6 +115,7 @@ NETrock ships with 20+ native [Claude Code](https://docs.anthropic.com/en/docs/c
 | `/create-pr` | Create a PR with session docs, reviews, and labels |
 | `/review-pr` | Review a PR for production-readiness |
 | `/review-design` | Review frontend components for UI/UX standards |
+| `/polish-ui` | Design-quality workflow: taste brief, guidelines audit, real-browser verification |
 | `/create-issue` | Create a GitHub issue with labels |
 | `/create-release` | Create a GitHub release with auto-generated notes |
 

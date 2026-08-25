@@ -42,9 +42,10 @@ Walk each layout mentally through 320px, 375px, 768px, 1024px, 1440px, and 2560p
 ## Process
 
 1. Read the component files being reviewed
-2. Read sibling/parent components to learn the established patterns
-3. Check design tokens in `styles/themes.css` for the color system
-4. Judge consistency and responsiveness as a designer, not a linter
+2. If screenshots for this change exist under `docs/sessions/assets/`, Read them and judge the rendered result, not just the classes
+3. Read sibling/parent components to learn the established patterns
+4. Check design tokens in `styles/themes.css` for the color system
+5. Judge consistency and responsiveness as a designer, not a linter
 
 ## Output Format
 

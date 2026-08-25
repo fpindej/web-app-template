@@ -20,3 +20,5 @@ cd src/frontend && pnpm run test && pnpm run format && pnpm run lint && pnpm run
 ```
 
 If unsure which stack changed, run both. Fix all failures before reporting success.
+
+For UI-visible changes, static checks are not enough: also verify in a real browser (`/polish-ui` step 5 describes the breakpoint/theme sweep).
