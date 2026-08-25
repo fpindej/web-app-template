@@ -29,9 +29,11 @@ npx skills add bergside/awesome-design-skills --skill shadcn --skill clean --ski
 
 4. **Audit**: Invoke the `web-design-guidelines` skill against the changed files for Web Interface Guidelines compliance (accessibility, focus states, interaction details). Also run `/review-design` for project-specific standards. Fix findings via the engineer agent; loop until clean.
 
-5. **Verify in a real browser**: Invoke the `playwright-cli` skill (or use the project Playwright MCP). With the frontend running at `http://localhost:5173`, screenshot the target at the project's required breakpoints: mobile (375px), tablet (768px), desktop (1440px), ultrawide (2560px), plus landscape on mobile. Check: no scrollbars in dialogs/modals, no horizontal overflow, touch targets >= 44px, both light and dark themes.
+5. **Verify in a real browser**: Invoke the `playwright-cli` skill (or use the project Playwright MCP) against the running app (Aspire full stack, or the frontend dev server at `http://localhost:5173`). If an `init-verify` skill exists in this repo, follow it to get a running full stack. Screenshot the target at the project's required breakpoints: mobile (375px), tablet (768px), desktop (1440px), ultrawide (2560px), plus landscape on mobile. Check: no scrollbars in dialogs/modals, no horizontal overflow, touch targets >= 44px, both light and dark themes. Save screenshots to the scratchpad.
 
 6. **Standard review pass**: Run `frontend-reviewer` + `ux-designer` in parallel per CLAUDE.md, then run frontend verification (`pnpm run test && pnpm run format && pnpm run lint && pnpm run check`) and commit.
+
+7. **PR with visual evidence**: When creating the PR, commit the meaningful screenshots under `docs/sessions/assets/<date>-<topic>/` on the branch and embed them in the PR description with `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/docs/sessions/assets/...` image URLs, grouped by breakpoint and theme.
 
 ## Notes
 

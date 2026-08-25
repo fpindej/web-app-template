@@ -727,6 +727,7 @@ TEMPLATE_FILES=(
 
 TEMPLATE_DIRS=(
     "docs/sessions"
+    ".claude/skills/init-verify"
 )
 
 if git rev-parse --git-dir > /dev/null 2>&1; then

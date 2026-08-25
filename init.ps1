@@ -732,6 +732,7 @@ $templateFiles = @(
 
 $templateDirs = @(
     "docs/sessions"
+    ".claude/skills/init-verify"
 )
 
 $ErrorActionPreference = "Continue"
