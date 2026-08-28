@@ -1,0 +1,164 @@
+name: Init scripts
+
+# Template-only. init.sh / init.ps1 delete this workflow during initialization,
+# together with the scripts it exercises.
+#
+# Why this exists: init.ps1 and init.sh were kept in sync by hand but nothing ever
+# executed init.ps1, so PowerShell-specific defects (case-insensitive operators,
+# -replace substitution templates, terminating errors) shipped untested.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'init.ps1'
+      - 'init.sh'
+      - '.github/workflows/init-scripts.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'init.ps1'
+      - 'init.sh'
+      - '.github/workflows/init-scripts.yml'
+
+concurrency:
+  group: init-scripts-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  lint:
+    name: Lint init.ps1
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Parse init.ps1
+        shell: pwsh
+        run: |
+          $errors = $null
+          $tokens = $null
+          $null = [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path ./init.ps1), [ref]$tokens, [ref]$errors)
+          if ($errors) {
+            $errors | ForEach-Object {
+              Write-Host "::error file=init.ps1,line=$($_.Extent.StartLineNumber)::$($_.Message)"
+            }
+            exit 1
+          }
+          Write-Host "Parsed cleanly."
+
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Force -Scope CurrentUser -ErrorAction Stop
+          $found = Invoke-ScriptAnalyzer -Path ./init.ps1 -Severity Error
+          if ($found) {
+            $found | ForEach-Object {
+              Write-Host "::error file=init.ps1,line=$($_.Line)::$($_.RuleName): $($_.Message)"
+            }
+            exit 1
+          }
+          Write-Host "No analyzer errors."
+
+  smoke:
+    name: Smoke ${{ matrix.script }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: init.ps1
+          - os: ubuntu-latest
+            script: init.ps1
+          - os: ubuntu-latest
+            script: init.sh
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      # A real initialization in a throwaway clone. The inputs are deliberately
+      # hostile: the name contains "MyProject" (the double-replace trap) and the
+      # credentials contain regex substitution tokens ($$, $&, $1).
+      - name: Run ${{ matrix.script }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --quiet . "$RUNNER_TEMP/smoke"
+          cd "$RUNNER_TEMP/smoke"
+          git config user.email ci@example.com
+          git config user.name CI
+          if [ "${{ matrix.script }}" = "init.sh" ]; then
+            chmod +x init.sh
+            ./init.sh --name MyProjectApi --port 14000 \
+              --password 'Pa$$w0rd$&x!' --email 'ci$1@example.com' \
+              --yes --no-migration --no-build --no-aspire
+          else
+            pwsh -NoProfile -File ./init.ps1 -Name MyProjectApi -Port 14000 \
+              -Password 'Pa$$w0rd$&x!' -Email 'ci$1@example.com' \
+              -Yes -NoMigration -NoBuild -NoAspire
+          fi
+
+      - name: Verify result
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-Location (Join-Path $env:RUNNER_TEMP 'smoke')
+          $failed = @()
+          function Check($ok, $label) {
+            if ($ok) { Write-Host "  PASS  $label" }
+            else { Write-Host "::error::$label"; $script:failed += $label }
+          }
+
+          $text = Get-ChildItem -Recurse -File -Force |
+            Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' }
+
+          # Nothing may be left unsubstituted.
+          $leftover = $text | Where-Object { (Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue) -like '*{INIT_*' }
+          Check ($leftover.Count -eq 0) "no {INIT_ placeholders remain ($($leftover.Count) found)"
+
+          # Regex substitution tokens in credentials must survive verbatim.
+          $settingsPath = 'src/backend/MyProjectApi.WebApi/appsettings.Development.json'
+          $settings = if (Test-Path $settingsPath) { Get-Content $settingsPath -Raw } else { '' }
+          Check (Test-Path $settingsPath) "seeded settings exist at $settingsPath"
+          Check ($settings.Contains('Pa$$w0rd$&x!')) 'password written verbatim'
+          Check ($settings.Contains('ci$1@example.com')) 'email written verbatim'
+
+          # The double-replace trap: "MyProjectApi" must not become "myprojectapiApi".
+          $corrupt = $text | Where-Object { (Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue) -cmatch 'myprojectapi' }
+          Check ($corrupt.Count -eq 0) "no case-folding corruption ($($corrupt.Count) files)"
+
+          $stale = $text | Where-Object { (Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue) -cmatch 'MyProject(?!Api)' }
+          Check ($stale.Count -eq 0) "no stale MyProject references ($($stale.Count) files)"
+
+          Check (Test-Path 'src/backend/MyProjectApi.AppHost') 'project directories renamed'
+          Check (-not (Test-Path 'init.ps1')) 'init.ps1 removed'
+          Check (-not (Test-Path 'init.sh')) 'init.sh removed'
+          Check (-not (Test-Path '.claude/skills/init-verify')) 'init-verify skill removed'
+          Check (-not (Test-Path '.github/workflows/init-scripts.yml')) 'this workflow removed'
+          Check (Test-Path 'docs/sessions/README.md') 'session-doc README kept'
+
+          if ($failed.Count -gt 0) {
+            Write-Host "`n$($failed.Count) check(s) failed."
+            exit 1
+          }
+          Write-Host "`nAll checks passed."
+
+  init-scripts-passed:
+    name: Init scripts passed
+    if: always()
+    needs: [lint, smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Verify upstream jobs
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "::error::One or more upstream jobs failed or were cancelled"
+            exit 1
+          fi
+          echo "All upstream jobs passed or were skipped"

@@ -1012,6 +1012,7 @@ $templateFiles = @(
     "init.sh"
     ".github/workflows/claude.yml"
     ".github/workflows/claude-code-review.yml"
+    ".github/workflows/init-scripts.yml"
 )
 
 $templateDirs = @(

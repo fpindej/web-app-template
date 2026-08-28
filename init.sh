@@ -723,6 +723,7 @@ TEMPLATE_FILES=(
     "init.ps1"
     ".github/workflows/claude.yml"
     ".github/workflows/claude-code-review.yml"
+    ".github/workflows/init-scripts.yml"
 )
 
 TEMPLATE_DIRS=(
