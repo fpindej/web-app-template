@@ -290,16 +290,25 @@ function Read-Secret {
 }
 
 function Test-Prerequisites {
+    # Docker is only needed to launch Aspire. Migrations, build and tests all run
+    # without a daemon (there are no Testcontainers in the solution), so -NoAspire
+    # runs should not be blocked by a stopped daemon.
+    param([bool]$RequireDocker = $true)
+
     $missing = @()
 
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) { $missing += "git" }
     if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { $missing += "dotnet" }
 
-    if (Get-Command docker -ErrorAction SilentlyContinue) {
-        # Windows PowerShell 5.1 surfaces native stderr as a NativeCommandError, which
-        # is script-terminating while $ErrorActionPreference is "Stop". Relax it around
-        # the probe so a stopped Docker daemon reports the friendly message below
-        # instead of aborting the whole run with a .NET stack trace.
+    if (-not $RequireDocker) {
+        # Skip the daemon probe entirely.
+    }
+    elseif (Get-Command docker -ErrorAction SilentlyContinue) {
+        # Needed on both hosts, for different reasons: Windows PowerShell 5.1
+        # surfaces native stderr as a terminating NativeCommandError, and PowerShell
+        # 7.3+ applies $ErrorActionPreference to a native non-zero exit code via
+        # $PSNativeCommandUseErrorActionPreference. Either way a stopped Docker
+        # daemon would abort the run instead of reporting the message below.
         $previousPreference = $ErrorActionPreference
         $ErrorActionPreference = "Continue"
         try {
@@ -391,6 +400,16 @@ function Set-FileContent {
     )
     $encoding = New-Object System.Text.UTF8Encoding $WithBom
     [System.IO.File]::WriteAllText($Path, $Content, $encoding)
+}
+
+# The superuser credentials are substituted into appsettings.Development.json, so
+# they must be encoded for JSON. Without this a password containing a backslash
+# changes value silently (pass\told parses back as pass<TAB>old) and one
+# containing a double quote produces a file that no longer parses.
+function ConvertTo-JsonStringContent {
+    param([string]$Value)
+    $quoted = $Value | ConvertTo-Json -Compress
+    return $quoted.Substring(1, $quoted.Length - 2)
 }
 
 function ConvertTo-KebabCase {
@@ -631,8 +650,14 @@ if (-not (Test-Path (Join-Path $ScriptDir "src/backend")) -or -not (Test-Path (J
 
 # Check prerequisites
 Write-Step "Checking prerequisites..."
-Test-Prerequisites
-Write-Success "All prerequisites found (git, dotnet, docker, node, pnpm)"
+Test-Prerequisites -RequireDocker (-not $NoAspire)
+if ($NoAspire) {
+    Write-Success "All prerequisites found (git, dotnet, node, pnpm)"
+    Write-Info "Docker not checked: -NoAspire means the stack is never launched"
+}
+else {
+    Write-Success "All prerequisites found (git, dotnet, docker, node, pnpm)"
+}
 
 # -----------------------------------------------------------------------------
 # Step 1: Project Name
@@ -833,8 +858,6 @@ $placeholders.Add("{INIT_API_PORT}", "$ApiPort")
 $placeholders.Add("{INIT_PROJECT_SLUG}", $ProjectSlug)
 $placeholders.Add("{INIT_JWT_SECRET}", $JwtSecret)
 $placeholders.Add("{INIT_ENCRYPTION_KEY}", $EncryptionKey)
-$placeholders.Add("{INIT_SUPERUSER_EMAIL}", $Email)
-$placeholders.Add("{INIT_SUPERUSER_PASSWORD}", $Password)
 
 $placeholderFailures = Update-TemplateFiles -Replacements $placeholders
 Write-Failures -Failures $placeholderFailures -Summary "Some files could not be updated"
@@ -910,6 +933,31 @@ if ($NewName -ceq $OldName) {
         $ErrorActionPreference = "Stop"
         Write-Success "Changes committed"
     }
+}
+
+# Step 3b: Seed superuser credentials
+#
+# Deliberately after the rename. The rename pass rewrites every occurrence of
+# MyProject and myproject across the tree, so substituting credentials earlier
+# silently mangles any value containing either token: --email admin@myproject.com
+# with -Name MyApi would seed admin@myapi.com while the summary showed the
+# address the user actually typed.
+Write-Step "Seeding superuser credentials..."
+
+$credentials = New-ReplacementMap
+$credentials.Add("{INIT_SUPERUSER_EMAIL}", (ConvertTo-JsonStringContent $Email))
+$credentials.Add("{INIT_SUPERUSER_PASSWORD}", (ConvertTo-JsonStringContent $Password))
+
+$credentialFailures = Update-TemplateFiles -Replacements $credentials
+Write-Failures -Failures $credentialFailures -Summary "Some credentials could not be written"
+
+Write-Success "Superuser credentials configured"
+
+if ($DoCommit) {
+    $ErrorActionPreference = "Continue"
+    $null = git add . 2>&1
+    $null = git commit -m "chore: seed superuser credentials" 2>&1
+    $ErrorActionPreference = "Stop"
 }
 
 # Step 4: Create Migration
@@ -1084,7 +1132,10 @@ if (-not $initRemoved) {
     # terminate the single-quoted string and the detached cleanup would never run.
     try {
         $pwshExe = (Get-Process -Id $PID).Path
-        $escapedInitPath = $initPs1.Replace("'", "''")
+        # Doubling apostrophes is not enough: the PowerShell tokenizer also accepts
+        # U+2018, U+2019, U+201A and U+201B as single-quote delimiters, and macOS
+        # and Word both autocorrect ' to U+2019 in folder names.
+        $escapedInitPath = [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($initPs1)
         $cleanupScript = "Start-Sleep -Seconds 2; Remove-Item -LiteralPath '$escapedInitPath' -Force -ErrorAction SilentlyContinue"
         $encodedCmd = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($cleanupScript))
         $startArgs = @{

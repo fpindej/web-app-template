@@ -45,6 +45,21 @@ The worst symptom was silent rather than loud. Running `.\init.ps1 -Name MyProje
 | `README.md` | Note that PowerShell 5.1 and 7 are both supported; document the non-interactive flags | `-Yes` existed but appeared in no user-facing doc |
 | `docs/troubleshooting.md` | Add Mark-of-the-Web and redirected-stdin entries | Both are common Windows entry points that were undocumented |
 
+### Added after review
+
+| File | Change | Reason |
+|------|--------|--------|
+| `init.sh` | Escape the superuser email for `sed`, not just the password | The email was interpolated raw into the `s///` replacement. A perfectly ordinary address containing `/` aborted the entire multi-expression `sed` call, and because the pipeline ends `2>/dev/null \|\| true` it failed silently: a reproduction left **8 files** unsubstituted, including `appsettings.json`, so the project shipped with a literal `{INIT_JWT_SECRET}` as its signing key and exit code 0 |
+| `init.sh`, `init.ps1` | JSON-encode the credentials before substitution | They land inside JSON string literals. A password containing `\` changed value silently (`pass\told` parses back as `pass<TAB>old`); one containing `"` produced a file that no longer parses |
+| `init.sh`, `init.ps1` | Substitute credentials *after* the rename pass, as a separate step | The rename rewrites `MyProject`/`myproject` across every file, so `--email admin@myproject.com` with `--name MyApi` seeded `admin@myapi.com` while the summary displayed what the user typed |
+| `init.ps1` | Use `CodeGeneration::EscapeSingleQuotedStringContent` for the self-delete payload | Doubling apostrophes is insufficient: the PowerShell tokenizer also treats U+2018, U+2019, U+201A and U+201B as single-quote delimiters, and macOS autocorrects `'` to U+2019 in folder names |
+| `init.sh`, `init.ps1` | Require a running Docker daemon only when Aspire will actually launch | Nothing else needs it. There are no Testcontainers in the solution, and `ef migrations add` never connects. This also makes the scripts testable on runners without a daemon |
+| `.github/workflows/init-scripts.yml` | Replace the top-level `paths:` filter with the `dorny/paths-filter` + gate-job pattern from `ci.yml` | Path-filtering the whole workflow stops `init-scripts-passed` from reporting on unrelated PRs, which leaves a required status check pending forever |
+| `.github/workflows/init-scripts.yml` | `permissions: contents: read`, `persist-credentials: false`, pinned PSScriptAnalyzer | The smoke jobs execute scripts from the PR head; do not hand that code a writable token or leave credentials in the workspace git config |
+| `.github/workflows/init-scripts.yml` | Harden the smoke credentials and assert on parsed JSON | The original test password contained no `/`, `&`, `\`, `"` or `MyProject`, so it passed against code that was still broken for all of them |
+| `.github/workflows/init-scripts.yml` | Add a `macos-latest` leg for `init.sh` | `init.sh` has a distinct BSD `sed -i ''` branch that GNU sed on Linux never reaches |
+| `docs/before-you-ship.md` | `Authentication__OAuth__EncryptionKey` to `Authentication__ExternalProviders__EncryptionKey` | `ExternalAuthOptions.SectionName` is `Authentication:ExternalProviders`. The documented variable bound nothing, so an operator following the checklist believed the key was rotated while OAuth client secrets stayed encrypted under the key committed to git |
+
 ## Decisions & Reasoning
 
 ### Ordinal `String.Replace` over escaped `-replace`
@@ -80,9 +95,19 @@ The worst symptom was silent rather than loud. Running `.\init.ps1 -Name MyProje
 - `init.sh` re-run after its one-line change: unchanged behaviour, template cleanup still correct.
 - Locale check: `ConvertTo-KebabCase "InvoiceHub"` returns `invoice-hub` under `en-US`, `tr-TR` and `az-Latn-AZ`.
 
+After the review round:
+
+- Both scripts re-run with the hardened credential set `P@ss$$w0rd$&$_&/x\y"z-MyProject!` and `ci$1+my/project@example.com`: `appsettings.Development.json` parses as JSON and both values round-trip byte for byte. That input breaks both scripts as they stood before this PR.
+- Negative control for the `init.sh` email escaping: the previous `init.sh` with the ordinary address `ci+my/project@example.com` left 8 files unsubstituted, `appsettings.json` among them, and exited 0.
+- Unicode-quote check: `.Replace("'", "''")` on a path containing U+2019 yields a payload that fails to parse; `EscapeSingleQuotedStringContent` yields a single well-formed command.
+- Docker gating verified both ways: `-NoAspire` reports `git, dotnet, node, pnpm` and skips the daemon probe, a default run still reports and requires `docker`.
+- Full edge-case suite re-run after every review fix: no `.git`, ancestor directory named `bin`, apostrophe in the path, redirected stdin, port typo recovery, `-Help`, unknown-flag rejection, lowercase name rejection, and the `Myproject` case variant all pass.
+
 ## Follow-ups
 
-- [ ] The `smoke` job assumes a running Docker daemon on GitHub-hosted runners because the prerequisite check requires one. This is the one part that could not be verified locally; if `windows-latest` turns out not to satisfy it, either relax the Docker check to the steps that actually need it or install a daemon in the job.
-- [ ] `init.sh` shares three defects that are harmless on POSIX but were fixed only on the PowerShell side: `--yes` with an out-of-range `--port` loops forever, `--yes` with an invalid `--name` re-prompts with no reader, and a failed build does not set a non-zero exit. Worth aligning so the two scripts do not drift again.
-- [ ] Generated JWT signing key, encryption key and superuser password are committed in plaintext by both scripts (`appsettings.json`, `appsettings.Development.json`) and stay in history. Pre-existing and unchanged here, but it deserves its own decision.
+- [ ] Neither script exits non-zero when the build or tests fail; both print an error and continue to the Aspire launch. This applies to `init.ps1` as much as to `init.sh`, so a CI or automation caller cannot detect the failure.
+- [ ] `init.sh` still has two non-interactive hangs that were fixed only on the PowerShell side: `--yes` with an out-of-range `--port` loops forever, and `--yes` with an invalid `--name` re-prompts with no reader. A scripted `init.sh` invocation with a bad port hangs indefinitely.
+- [ ] The smoke matrix always passes `--no-migration`/`--no-build`, so the `dotnet restore`, `build`, `test` and `ef migrations add` block is never exercised. That block holds the rest of the new error-handling discipline. Adding one slower leg that runs it would close the last untested path.
+- [ ] Generated JWT signing key, encryption key and superuser password are committed in plaintext by both scripts (`appsettings.json`, `appsettings.Development.json`) and stay in history. Writing them to an untracked `.env` or user-secrets file, leaving a sentinel in the committed config so `ValidateOnStart` fails loudly, would be the real fix. Now more pressing because the `before-you-ship` checklist pointed at the wrong variable for the encryption key, so nobody rotating it would have succeeded.
+- [ ] `Update-TemplateFiles` reports write failures as warnings and the script still commits. A file that could not be written (lock, read-only, AV) bakes a `{INIT_...}` placeholder or a stale `MyProject` into the first commit with only scrollback as evidence. Consider making write failures fatal before the commit, distinct from read failures.
 - [ ] `init-verify` runs `./init.sh` only. Now that CI covers both, consider teaching the skill to pick the script matching the host.
