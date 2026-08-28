@@ -80,6 +80,27 @@ Set-ExecutionPolicy -Scope Process Bypass
 pwsh -ExecutionPolicy Bypass -File init.ps1
 ```
 
+### `init.ps1 is not digitally signed` after downloading a ZIP (Windows)
+
+**Cause:** Files extracted from a downloaded ZIP carry the Mark of the Web, so `RemoteSigned` refuses to run them even when the execution policy is otherwise fine. Cloning with git does not set this mark.
+
+**Fix:**
+
+```powershell
+Unblock-File .\init.ps1
+.\init.ps1
+```
+
+### `init.ps1` seems to hang at the options checklist
+
+**Cause:** The checklist needs a real console to read single keypresses. When input is piped or redirected (CI, `echo | .\init.ps1`, some remoting hosts), it cannot be shown.
+
+**Fix:** The script detects this and falls back to the default options. To choose options explicitly in a non-interactive run, pass the flags instead:
+
+```powershell
+.\init.ps1 -Name MyApi -Yes -NoBuild -NoAspire
+```
+
 ### Name validation fails (`must be PascalCase`)
 
 **Cause:** The project name must match `^[A-Z][a-zA-Z0-9]*$` - start with an uppercase letter, alphanumeric only. No hyphens, underscores, or spaces.

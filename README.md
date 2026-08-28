@@ -77,7 +77,18 @@ chmod +x init.sh
 .\init.ps1
 ```
 
+Windows PowerShell 5.1 and PowerShell 7 are both supported. If the execution policy blocks the script, see [troubleshooting](docs/troubleshooting.md#powershell-execution-policy-blocks-initps1-windows).
+
 The init script will ask for your project name and base port, then rename everything and optionally create the initial migration.
+
+Both scripts take the same options non-interactively (`-Help` / `--help` lists them):
+
+```powershell
+.\init.ps1 -Name MyApi -Port 14000 -Yes      # Windows
+```
+```bash
+./init.sh --name MyApi --port 14000 --yes    # macOS / Linux
+```
 
 ### 2. Launch Everything
 
