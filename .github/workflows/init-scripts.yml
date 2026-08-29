@@ -1,0 +1,231 @@
+name: Init scripts
+
+# Template-only. init.sh / init.ps1 delete this workflow during initialization,
+# together with the scripts it exercises.
+#
+# Why this exists: init.ps1 and init.sh were kept in sync by hand but nothing ever
+# executed init.ps1, so PowerShell-specific defects (case-insensitive operators,
+# -replace substitution templates, terminating errors) shipped untested.
+#
+# The trigger deliberately has no top-level `paths:` filter. Path-filtering the
+# whole workflow would stop init-scripts-passed from reporting on unrelated PRs,
+# leaving a required status check pending forever. Same shape as ci.yml: a changes
+# job decides what runs, and the gate job always reports.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: init-scripts-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+# The smoke jobs execute scripts as checked out from the PR head, so give them the
+# minimum token and do not leave credentials in the workspace git config for that
+# code to read.
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    permissions:
+      pull-requests: read
+    outputs:
+      init: ${{ steps.filter.outputs.init }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            init:
+              - 'init.ps1'
+              - 'init.sh'
+              - '.github/workflows/init-scripts.yml'
+
+  lint:
+    name: Lint init.ps1
+    needs: changes
+    if: needs.changes.outputs.init == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Parse init.ps1
+        shell: pwsh
+        run: |
+          $errors = $null
+          $tokens = $null
+          $null = [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path ./init.ps1), [ref]$tokens, [ref]$errors)
+          if ($errors) {
+            $errors | ForEach-Object {
+              Write-Host "::error file=init.ps1,line=$($_.Extent.StartLineNumber)::$($_.Message)"
+            }
+            exit 1
+          }
+          Write-Host "Parsed cleanly."
+
+      - name: PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Force -Scope CurrentUser -ErrorAction Stop
+          $found = Invoke-ScriptAnalyzer -Path ./init.ps1 -Severity Error
+          if ($found) {
+            $found | ForEach-Object {
+              Write-Host "::error file=init.ps1,line=$($_.Line)::$($_.RuleName): $($_.Message)"
+            }
+            exit 1
+          }
+          Write-Host "No analyzer errors."
+
+  # Known gap: every leg passes --no-migration/--no-build, so the dotnet restore,
+  # build, test and `ef migrations add` block is not exercised here. The
+  # substitution, rename and cleanup logic (where every bug in this PR lived) runs
+  # in full. macOS covers init.sh's BSD `sed -i ''` branch, which GNU sed on Linux
+  # never reaches.
+  smoke:
+    name: Smoke ${{ matrix.script }} on ${{ matrix.os }}
+    needs: changes
+    if: needs.changes.outputs.init == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            script: init.ps1
+          - os: ubuntu-latest
+            script: init.ps1
+          - os: ubuntu-latest
+            script: init.sh
+          - os: macos-latest
+            script: init.sh
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # The scripts only probe for these with Get-Command / command -v, but pin
+      # them anyway so a runner image change cannot quietly alter the result.
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Enable pnpm
+        run: corepack enable
+
+      # A real initialization in a throwaway clone. The inputs are deliberately
+      # hostile: the name contains "MyProject" (the double-replace trap) and the
+      # credentials contain every metacharacter that has broken a substitution
+      # here: $$, $&, $_, $1 (regex templates), / & \ (sed), " \ (JSON), and the
+      # literal MyProject token that the rename pass would otherwise rewrite.
+      - name: Run ${{ matrix.script }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --quiet . "$RUNNER_TEMP/smoke"
+          cd "$RUNNER_TEMP/smoke"
+          git config user.email ci@example.com
+          git config user.name CI
+          if [ "${{ matrix.script }}" = "init.sh" ]; then
+            chmod +x init.sh
+            ./init.sh --name MyProjectApi --port 14000 \
+              --password 'P@ss$$w0rd$&$_&/x\y"z-MyProject!' --email 'ci$1+my/project@example.com' \
+              --yes --no-migration --no-build --no-aspire
+          else
+            pwsh -NoProfile -File ./init.ps1 -Name MyProjectApi -Port 14000 \
+              -Password 'P@ss$$w0rd$&$_&/x\y"z-MyProject!' -Email 'ci$1+my/project@example.com' \
+              -Yes -NoMigration -NoBuild -NoAspire
+          fi
+
+      - name: Verify result
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-Location (Join-Path $env:RUNNER_TEMP 'smoke')
+          $failed = @()
+          function Check($ok, $label) {
+            if ($ok) { Write-Host "  PASS  $label" }
+            else { Write-Host "::error::$label"; $script:failed += $label }
+          }
+
+          $text = Get-ChildItem -Recurse -File -Force |
+            Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' }
+
+          # Nothing may be left unsubstituted.
+          $leftover = $text | Where-Object { (Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue) -like '*{INIT_*' }
+          Check ($leftover.Count -eq 0) "no {INIT_ placeholders remain ($($leftover.Count) found)"
+
+          # Credentials must round-trip through JSON exactly. Assert on the parsed
+          # value, not the raw text: \ and " are escaped on disk by design.
+          $expectedPassword = 'P@ss$$w0rd$&$_&/x\y"z-MyProject!'
+          $expectedEmail = 'ci$1+my/project@example.com'
+          $settingsPath = 'src/backend/MyProjectApi.WebApi/appsettings.Development.json'
+          Check (Test-Path $settingsPath) "seeded settings exist at $settingsPath"
+          $seeded = $null
+          if (Test-Path $settingsPath) {
+            try { $seeded = (Get-Content $settingsPath -Raw | ConvertFrom-Json).Seed.Users[0] }
+            catch { Write-Host "::error::appsettings.Development.json is not valid JSON: $($_.Exception.Message)" }
+          }
+          Check ($null -ne $seeded) 'appsettings.Development.json parses as JSON'
+          Check ($seeded -and $seeded.Password -ceq $expectedPassword) 'password round-trips exactly'
+          Check ($seeded -and $seeded.Email -ceq $expectedEmail) 'email round-trips exactly'
+
+          # -NoBuild means ValidateOnStart never runs, so check the key length here.
+          $jwtKey = (Get-Content 'src/backend/MyProjectApi.WebApi/appsettings.json' -Raw | ConvertFrom-Json).Authentication.Jwt.Key
+          Check ($jwtKey.Length -ge 64) "JWT key is at least 64 chars (got $($jwtKey.Length))"
+
+          # The double-replace trap: "MyProjectApi" must not become "myprojectapiApi".
+          $corrupt = $text | Where-Object { (Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue) -cmatch 'myprojectapi' }
+          Check ($corrupt.Count -eq 0) "no case-folding corruption ($($corrupt.Count) files)"
+
+          # The seeded credentials intentionally contain MyProject, so exclude that file.
+          $stale = $text |
+            Where-Object { $_.FullName -notmatch 'appsettings\.Development\.json$' } |
+            Where-Object { (Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue) -cmatch 'MyProject(?!Api)' }
+          Check ($stale.Count -eq 0) "no stale MyProject references ($($stale.Count) files)"
+
+          Check (Test-Path 'src/backend/MyProjectApi.AppHost') 'project directories renamed'
+          Check (-not (Test-Path 'init.ps1')) 'init.ps1 removed'
+          Check (-not (Test-Path 'init.sh')) 'init.sh removed'
+          Check (-not (Test-Path '.claude/skills/init-verify')) 'init-verify skill removed'
+          Check (-not (Test-Path '.github/workflows/init-scripts.yml')) 'this workflow removed'
+          Check (Test-Path 'docs/sessions/README.md') 'session-doc README kept'
+          Check (-not (git status --porcelain)) 'working tree clean after init'
+
+          if ($failed.Count -gt 0) {
+            Write-Host "`n$($failed.Count) check(s) failed."
+            exit 1
+          }
+          Write-Host "`nAll checks passed."
+
+  init-scripts-passed:
+    name: Init scripts passed
+    if: always()
+    needs: [changes, lint, smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Verify upstream jobs
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "::error::One or more upstream jobs failed or were cancelled"
+            exit 1
+          fi
+          echo "All upstream jobs passed or were skipped"

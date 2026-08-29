@@ -145,14 +145,19 @@ check_prerequisites() {
     command -v git >/dev/null 2>&1 || missing+=("git")
     command -v dotnet >/dev/null 2>&1 || missing+=("dotnet")
 
-    if command -v docker &>/dev/null; then
-        if docker info &>/dev/null; then
-            : # Docker running, ok
+    # Docker is only needed to launch Aspire. Migrations, build and tests all run
+    # without a daemon (there are no Testcontainers in the solution), so --no-aspire
+    # runs should not be blocked by a stopped daemon.
+    if [[ "$START_ASPIRE" != "n" ]]; then
+        if command -v docker &>/dev/null; then
+            if docker info &>/dev/null; then
+                : # Docker running, ok
+            else
+                missing+=("docker (installed but not running)")
+            fi
         else
-            missing+=("docker (installed but not running)")
+            missing+=("docker")
         fi
-    else
-        missing+=("docker")
     fi
 
     command -v node >/dev/null 2>&1 || missing+=("node")
@@ -355,7 +360,12 @@ fi
 # Check prerequisites
 print_step "Checking prerequisites..."
 check_prerequisites
-print_success "All prerequisites found (git, dotnet, docker, node, pnpm via corepack)"
+if [[ "$START_ASPIRE" == "n" ]]; then
+    print_success "All prerequisites found (git, dotnet, node, pnpm via corepack)"
+    print_info "Docker not checked: --no-aspire means the stack is never launched"
+else
+    print_success "All prerequisites found (git, dotnet, docker, node, pnpm via corepack)"
+fi
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 1: Project Name
@@ -544,8 +554,25 @@ fi
 JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64)
 ENCRYPTION_KEY=$(openssl rand -base64 64 | tr -d '\n/+=' | cut -c1-64)
 
-# Escape special sed characters in the password (/, &, \)
-ESCAPED_ADMIN_PASSWORD=$(printf '%s\n' "$ADMIN_PASSWORD" | sed 's/[&/\]/\\&/g')
+# The credentials land in appsettings.Development.json, so encode them for JSON
+# first: an unescaped backslash changes the value silently (pass\told parses back
+# as pass<TAB>old) and a double quote breaks the file. Only then escape the sed
+# replacement metacharacters &, / and \.
+#
+# The email was previously interpolated raw, so a perfectly ordinary address
+# containing a / aborted the whole sed invocation. Because the pipeline ends in
+# `2>/dev/null || true`, every placeholder in every file was then left
+# unsubstituted with no error shown.
+json_escape() {
+    printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
+
+sed_escape() {
+    printf '%s' "$1" | sed -e 's/[&/\]/\\&/g'
+}
+
+ESCAPED_ADMIN_EMAIL=$(sed_escape "$(json_escape "$ADMIN_EMAIL")")
+ESCAPED_ADMIN_PASSWORD=$(sed_escape "$(json_escape "$ADMIN_PASSWORD")")
 
 print_substep "Replacing placeholders..."
 if [ "$OS" = "Darwin" ]; then
@@ -554,18 +581,14 @@ if [ "$OS" = "Darwin" ]; then
         -e "s/{INIT_API_PORT}/$API_PORT/g" \
         -e "s/{INIT_PROJECT_SLUG}/$PROJECT_SLUG/g" \
         -e "s/{INIT_JWT_SECRET}/$JWT_SECRET/g" \
-        -e "s/{INIT_ENCRYPTION_KEY}/$ENCRYPTION_KEY/g" \
-        -e "s/{INIT_SUPERUSER_EMAIL}/$ADMIN_EMAIL/g" \
-        -e "s/{INIT_SUPERUSER_PASSWORD}/$ESCAPED_ADMIN_PASSWORD/g" 2>/dev/null || true
+        -e "s/{INIT_ENCRYPTION_KEY}/$ENCRYPTION_KEY/g" 2>/dev/null || true
 else
     grep -rIl --null "{INIT_FRONTEND_PORT}\|{INIT_API_PORT}\|{INIT_PROJECT_SLUG}\|{INIT_JWT_SECRET}\|{INIT_ENCRYPTION_KEY}\|{INIT_SUPERUSER_EMAIL}\|{INIT_SUPERUSER_PASSWORD}" . $EXCLUDE_PATTERNS 2>/dev/null | xargs -0 sed -i \
         -e "s/{INIT_FRONTEND_PORT}/$FRONTEND_PORT/g" \
         -e "s/{INIT_API_PORT}/$API_PORT/g" \
         -e "s/{INIT_PROJECT_SLUG}/$PROJECT_SLUG/g" \
         -e "s/{INIT_JWT_SECRET}/$JWT_SECRET/g" \
-        -e "s/{INIT_ENCRYPTION_KEY}/$ENCRYPTION_KEY/g" \
-        -e "s/{INIT_SUPERUSER_EMAIL}/$ADMIN_EMAIL/g" \
-        -e "s/{INIT_SUPERUSER_PASSWORD}/$ESCAPED_ADMIN_PASSWORD/g" 2>/dev/null || true
+        -e "s/{INIT_ENCRYPTION_KEY}/$ENCRYPTION_KEY/g" 2>/dev/null || true
 fi
 
 print_success "Port configuration complete"
@@ -635,6 +658,32 @@ else
         git commit -m "chore: rename project from $OLD_NAME to $NEW_NAME" >/dev/null 2>&1
         print_success "Changes committed"
     fi
+fi
+
+# Step 3b: Seed superuser credentials
+#
+# Deliberately after the rename. The rename pass rewrites every occurrence of
+# MyProject and myproject across the tree, so substituting credentials earlier
+# silently mangles any value containing either token: --email admin@myproject.com
+# with --name MyApi would seed admin@myapi.com while the summary showed the
+# address the user actually typed.
+print_step "Seeding superuser credentials..."
+
+if [ "$OS" = "Darwin" ]; then
+    grep -rIl --null "{INIT_SUPERUSER_EMAIL}\|{INIT_SUPERUSER_PASSWORD}" . $EXCLUDE_PATTERNS 2>/dev/null | xargs -0 sed -i '' \
+        -e "s/{INIT_SUPERUSER_EMAIL}/$ESCAPED_ADMIN_EMAIL/g" \
+        -e "s/{INIT_SUPERUSER_PASSWORD}/$ESCAPED_ADMIN_PASSWORD/g" 2>/dev/null || true
+else
+    grep -rIl --null "{INIT_SUPERUSER_EMAIL}\|{INIT_SUPERUSER_PASSWORD}" . $EXCLUDE_PATTERNS 2>/dev/null | xargs -0 sed -i \
+        -e "s/{INIT_SUPERUSER_EMAIL}/$ESCAPED_ADMIN_EMAIL/g" \
+        -e "s/{INIT_SUPERUSER_PASSWORD}/$ESCAPED_ADMIN_PASSWORD/g" 2>/dev/null || true
+fi
+
+print_success "Superuser credentials configured"
+
+if [[ "$DO_COMMIT" == "y" ]]; then
+    git add . >/dev/null 2>&1
+    git commit -m "chore: seed superuser credentials" >/dev/null 2>&1
 fi
 
 # Step 4: Create Migration
@@ -723,6 +772,7 @@ TEMPLATE_FILES=(
     "init.ps1"
     ".github/workflows/claude.yml"
     ".github/workflows/claude-code-review.yml"
+    ".github/workflows/init-scripts.yml"
 )
 
 TEMPLATE_DIRS=(
